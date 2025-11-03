@@ -3,18 +3,18 @@ const sql = require("mssql");
 
 async function createTask(task) {
   try {
-    const { title, description, dueDate, isDone } = task;
+    const { title, description, category, priority, skills } = task;
     const pool = await dbConfig;
     const result = await pool
       .request()
       .input("title", sql.NVarChar, title)
       .input("description", sql.NVarChar, description)
-      .input("dueDate", sql.DateTime, dueDate)
-      .input("isDone", sql.Bit, isDone)
-      .query(`INSERT INTO Tasks (Title, Description, DueDate, IsDone)
+      .input("category", sql.NVarChar, category)
+      .input("priority", sql.NVarChar, priority)
+      .input("skills", sql.NVarChar, skills)
+      .query(`INSERT INTO Tasks (Title, Description, Category, Priority, Skills)
             OUTPUT INSERTED.TaskId AS TaskId
-            VALUES (@title, @description, @dueDate, @imageUrl, @isDone)`);
-
+            VALUES (@title, @description, @category, @priority, @skills)`);
     return result.recordset[0].TaskId;
   } catch (error) {
     console.error("Error in createTask:", error.message);
@@ -22,41 +22,21 @@ async function createTask(task) {
   }
 }
 
-async function createSubtask({ taskId, subtask }) {
-  try {
-    const { title, isDone } = subtask;
-    const pool = await dbConfig;
-    const result = await pool
-      .request()
-      .input("taskId", sql.Int, taskId)
-      .input("title", sql.NVarChar, title)
-      .input("isDone", sql.Bit, isDone)
-      .query(`INSERT INTO Subtasks (TaskId, Title, IsDone)
-            OUTPUT INSERTED.TaskId AS TaskId
-            VALUES (@taskId, @title, @isDone)`);
-
-    return result.recordset[0].TaskId;
-  } catch (error) {
-    console.error("Error in createSubtask:", error.message);
-    throw new Error("Database query failed");
-  }
-}
-// Filter by date rather than single date
-
-async function getAllTasks({ sortDate, isDone }) {
+async function getAllTasks({ status, priority }) {
   try {
     const pool = await dbConfig;
     let query = `SELECT * FROM Tasks WHERE 1 = 1`;
     const request = pool.request();
-    if (isDone == "true") {
-      query += " AND IsDone = @isDone";
-      request.input("isDone", sql.Bit, isDone);
+
+    if (status) {
+      query += " AND Status = @status";
+      request.input("status", sql.NVarChar, status);
     }
-    if (sortDate == "DESC") {
-      query += " ORDER BY DueDate DESC";
-    } else if (sortDate == "ASC") {
-      query += " ORDER BY DueDate ASC";
+    if (priority) {
+      query += " AND Priority = @priority";
+      request.input("priority", sql.NVarChar, priority);
     }
+
     const result = await request.query(query);
     return result.recordset;
   } catch (error) {
@@ -81,19 +61,19 @@ async function getTaskById(taskId) {
 
 async function updateTask({ taskId, taskData }) {
   try {
-    const { title, description, dueDate, imageUrl, isDone } = taskData;
+    const { title, description, category, priority, skills } = taskData;
     const pool = await dbConfig;
     const result = await pool
       .request()
       .input("title", sql.NVarChar, title)
       .input("description", sql.NVarChar, description)
-      .input("dueDate", sql.DateTime, dueDate)
-      .input("imageUrl", sql.NVarChar, imageUrl)
-      .input("isDone", sql.Bit, isDone)
+      .input("category", sql.NVarChar, category)
+      .input("priority", sql.NVarChar, priority)
+      .input("skills", sql.NVarChar, skills)
       .input("taskId", sql.Int, taskId)
       .query(
         `UPDATE Tasks 
-        SET Title = @title, Description = @description, DueDate = @dueDate, ImageUrl = @imageUrl, isDone = @isDone 
+        SET Title = @title, Description = @description, Category = @category, Priority = @priority, Skills = @skills
         WHERE TaskId = @taskId`
       );
 
@@ -122,7 +102,6 @@ async function deleteTask(taskId) {
 
 module.exports = {
   createTask,
-  createSubtask,
   getAllTasks,
   getTaskById,
   updateTask,
