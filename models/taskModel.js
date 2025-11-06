@@ -3,7 +3,22 @@ const sql = require("mssql");
 
 async function createTask(task) {
   try {
-    const { title, description, category, priority, skills } = task;
+    const {
+      title,
+      description,
+      category,
+      priority,
+      status,
+      requiredSkills,
+      estimatedDuration,
+      assignedAgent,
+      agentMatchScore,
+      agentProgress,
+      dependencies,
+      createdBy,
+      createdAt,
+    } = task;
+
     const pool = await dbConfig;
     const result = await pool
       .request()
@@ -11,10 +26,26 @@ async function createTask(task) {
       .input("description", sql.NVarChar, description)
       .input("category", sql.NVarChar, category)
       .input("priority", sql.NVarChar, priority)
-      .input("skills", sql.NVarChar, skills)
-      .query(`INSERT INTO Tasks (Title, Description, Category, Priority, Skills)
-            OUTPUT INSERTED.TaskId AS TaskId
-            VALUES (@title, @description, @category, @priority, @skills)`);
+      .input("status", sql.NVarChar, status)
+      .input("requiredSkills", sql.NVarChar, JSON.stringify(requiredSkills))
+      .input("estimatedDuration", sql.NVarChar, estimatedDuration)
+      .input("assignedAgent", sql.NVarChar, assignedAgent)
+      .input("agentMatchScore", sql.Int, agentMatchScore)
+      .input("agentProgress", sql.Int, agentProgress)
+      .input("dependencies", sql.NVarChar, JSON.stringify(dependencies))
+      .input("createdBy", sql.NVarChar, createdBy)
+      .input("createdAt", sql.DateTime, createdAt || new Date()).query(`
+        INSERT INTO Tasks (
+          Title, Description, Category, Priority, Status, RequiredSkills, EstimatedDuration,
+          AssignedAgent, AgentMatchScore, AgentProgress, Dependencies, CreatedBy, CreatedAt
+        )
+        OUTPUT INSERTED.TaskId AS TaskId
+        VALUES (
+          @title, @description, @category, @priority, @status, @requiredSkills, @estimatedDuration,
+          @assignedAgent, @agentMatchScore, @agentProgress, @dependencies, @createdBy, @createdAt
+        )
+      `);
+
     return result.recordset[0].TaskId;
   } catch (error) {
     console.error("Error in createTask:", error.message);
@@ -61,7 +92,21 @@ async function getTaskById(taskId) {
 
 async function updateTask({ taskId, taskData }) {
   try {
-    const { title, description, category, priority, skills } = taskData;
+    const {
+      title,
+      description,
+      category,
+      priority,
+      status,
+      requiredSkills,
+      estimatedDuration,
+      assignedAgent,
+      agentMatchScore,
+      agentProgress,
+      dependencies,
+      createdBy,
+      createdAt,
+    } = taskData;
     const pool = await dbConfig;
     const result = await pool
       .request()
@@ -71,9 +116,20 @@ async function updateTask({ taskId, taskData }) {
       .input("priority", sql.NVarChar, priority)
       .input("skills", sql.NVarChar, skills)
       .input("taskId", sql.Int, taskId)
+      .input("status", sql.NVarChar, status)
+      .input("requiredSkills", sql.NVarChar, JSON.stringify(requiredSkills))
+      .input("estimatedDuration", sql.NVarChar, estimatedDuration)
+      .input("assignedAgent", sql.NVarChar, assignedAgent)
+      .input("agentMatchScore", sql.Int, agentMatchScore)
+      .input("agentProgress", sql.Int, agentProgress)
+      .input("dependencies", sql.NVarChar, JSON.stringify(dependencies))
+      .input("createdBy", sql.NVarChar, createdBy)
+      .input("createdAt", sql.DateTime, createdAt)
       .query(
         `UPDATE Tasks 
-        SET Title = @title, Description = @description, Category = @category, Priority = @priority, Skills = @skills
+        SET Title = @title, Description = @description, Category = @category, Priority = @priority, Skills = @skills, Status = @status, RequiredSkills = @requiredSkills, EstimatedDuration = @estimatedDuration,
+            AssignedAgent = @assignedAgent, AgentMatchScore = @agentMatchScore, AgentProgress = @agentProgress,
+            Dependencies = @dependencies, CreatedBy = @createdBy, CreatedAt = @createdAt
         WHERE TaskId = @taskId`
       );
 

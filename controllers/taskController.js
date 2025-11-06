@@ -1,17 +1,13 @@
 const taskModel = require("../models/taskModel");
+const { aiAssignAgent } = require("../ai/aiAssignAgent");
 
 async function createTask(req, res) {
   try {
     if (!req.body.title) {
       return res.json({ error: "No title!" });
     }
-    const task = {
-      title: req.body.title,
-      description: req.body.description || "",
-      category: req.body.category || "",
-      priority: req.body.priority || "",
-      skills: req.body.skills || "",
-    };
+    const aiData = await aiAssignAgent(req.body);
+    const task = { ...req.body, ...aiData };
     const taskId = await taskModel.createTask(task);
 
     res.status(201).json({ message: "Task created", taskId }); //, subtaskIds
@@ -24,7 +20,6 @@ async function createTask(req, res) {
 async function getAllTasks(req, res) {
   try {
     const { status, priority } = req.query;
-
     const tasks = await taskModel.getAllTasks({ status, priority });
     res.json(tasks);
   } catch (error) {
@@ -54,9 +49,9 @@ async function updateTask(req, res) {
     const taskData = {
       title: req.body.title,
       description: req.body.description || "",
-      dueDate: req.body.dueDate,
-      imageUrl: req.file ? `/images/${req.file.filename}` : null,
-      isDone: req.body.isDone ? 1 : 0,
+      category: req.body.category || "",
+      priority: req.body.priority || "",
+      skills: req.body.skills || "",
     };
 
     const { updated } = await taskModel.updateTask({ taskId, taskData });
@@ -88,7 +83,6 @@ async function deleteTask(req, res) {
 
 module.exports = {
   createTask,
-  createSubtask,
   getAllTasks,
   getTaskById,
   updateTask,
