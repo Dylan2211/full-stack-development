@@ -1,8 +1,11 @@
 const fetch = require("node-fetch");
 
 const agents = [
-  { name: "Claude Code", skills: ["Node.js", "Express", "JWT"] },
-  { name: "Ollama", skills: ["Reasoning", "Natural Language", "Task Analysis"] },
+  // { name: "Claude Code", skills: ["Node.js", "Express", "JWT"] },
+  {
+    name: "Ollama",
+    skills: ["Reasoning", "Natural Language", "Task Analysis"],
+  },
 ];
 
 async function queryOllama(prompt, model = "llama3") {
@@ -25,7 +28,9 @@ async function aiAssignAgent(task) {
   let bestScore = 0;
 
   for (const agent of agents) {
-    const matchCount = agent.skills.filter(s => taskSkills.includes(s)).length;
+    const matchCount = agent.skills.filter((s) =>
+      taskSkills.includes(s)
+    ).length;
     const score = (matchCount / taskSkills.length) * 100;
     if (score > bestScore) {
       bestScore = score;
