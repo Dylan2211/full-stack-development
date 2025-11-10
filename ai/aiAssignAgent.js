@@ -62,4 +62,4 @@ async function aiAssignAgent(task) {
   };
 }
 
-module.exports = aiAssignAgent;
+module.exports = { aiAssignAgent };

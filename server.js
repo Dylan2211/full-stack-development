@@ -10,6 +10,7 @@ dotenv.config();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/tasks", routes);
 
 app.get("/", (req, res) => {
   res.redirect("/task");

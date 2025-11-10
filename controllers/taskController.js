@@ -1,12 +1,12 @@
 const taskModel = require("../models/taskModel");
-const { aiAssignAgent } = require("../ai/aiAssignAgent");
+const ai = require("../ai/aiAssignAgent");
 
 async function createTask(req, res) {
   try {
     if (!req.body.title) {
       return res.json({ error: "No title!" });
     }
-    const aiData = await aiAssignAgent(req.body);
+    const aiData = await ai.aiAssignAgent(req.body);
     const task = { ...req.body, ...aiData };
     const taskId = await taskModel.createTask(task);
 
