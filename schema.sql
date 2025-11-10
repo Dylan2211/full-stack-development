@@ -30,3 +30,20 @@ CREATE TABLE Tasks (
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL
 );
+
+
+CREATE TABLE Users (
+    UserId INT IDENTITY(1,1) PRIMARY KEY,
+    FullName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(150) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    Role NVARCHAR(50) DEFAULT 'User',
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+
+INSERT INTO Users (FullName, Email, PasswordHash, Role)
+VALUES
+('Lynus Lim', 'lynus@example.com', 'hashed_password_123', 'Admin'),
+('Ariel Tan', 'ariel@example.com', 'hashed_password_456', 'User'),
+('Falak A.', 'falak@example.com', 'hashed_password_789', 'User');
