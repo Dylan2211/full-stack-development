@@ -9,10 +9,10 @@ async function createTask(task) {
       category, // Frontend, backend, DevOps, etc., Python, JavaScript, HTML etc.
       priority, // Low, Medium, High
       status, // To Do, In Progress, Done
-      skills,
+      skills, // Required skills for the task
+      assignedAgent, // Possible assigned AI agent
       boardId,
       estimatedDuration,
-      assignedAgent,
       agentMatchScore,
       agentProgress,
       dependencies,
@@ -28,10 +28,10 @@ async function createTask(task) {
       .input("category", sql.NVarChar, category)
       .input("priority", sql.NVarChar, priority)
       .input("status", sql.NVarChar, status)
+      .input("assignedAgent", sql.NVarChar, assignedAgent)
       .input("boardId", sql.Int, boardId)
       .input("skills", sql.NVarChar, JSON.stringify(skills))
       .input("estimatedDuration", sql.NVarChar, estimatedDuration)
-      .input("assignedAgent", sql.NVarChar, assignedAgent)
       .input("agentMatchScore", sql.Int, agentMatchScore)
       .input("agentProgress", sql.Int, agentProgress)
       .input("dependencies", sql.NVarChar, JSON.stringify(dependencies))
