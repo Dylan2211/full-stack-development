@@ -20,7 +20,7 @@ CREATE TABLE Tasks (
     Category NVARCHAR(100) NULL,
     Priority NVARCHAR(50) NULL,
     Status NVARCHAR(50) NULL,
-    RequiredSkills NVARCHAR(MAX) NULL,      -- Stored as JSON array
+    Skills NVARCHAR(MAX) NULL,      -- Stored as JSON array
     EstimatedDuration NVARCHAR(50) NULL,
     AssignedAgent NVARCHAR(100) NULL,
     AgentMatchScore INT NULL,
