@@ -12,10 +12,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.redirect("/index");
+  res.redirect("/task");
 });
-app.get("/index", (req, res) => {
-  res.sendFile(path.join(__dirname, "mainpage", "index.html"));
+app.get("/task", (req, res) => {
+  res.sendFile(path.join(__dirname, "mainpage", "task.html"));
 });
 
 app.use((req, res, next) => {

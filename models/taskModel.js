@@ -6,10 +6,11 @@ async function createTask(task) {
     const {
       title,
       description,
-      category,
-      priority,
-      status,
-      requiredSkills,
+      category, // Frontend, backend, DevOps, etc., Python, JavaScript, HTML etc.
+      priority, // Low, Medium, High
+      status, // To Do, In Progress, Done
+      skills,
+      boardId,
       estimatedDuration,
       assignedAgent,
       agentMatchScore,
@@ -27,7 +28,8 @@ async function createTask(task) {
       .input("category", sql.NVarChar, category)
       .input("priority", sql.NVarChar, priority)
       .input("status", sql.NVarChar, status)
-      .input("requiredSkills", sql.NVarChar, JSON.stringify(requiredSkills))
+      .input("boardId", sql.Int, boardId)
+      .input("skills", sql.NVarChar, JSON.stringify(skills))
       .input("estimatedDuration", sql.NVarChar, estimatedDuration)
       .input("assignedAgent", sql.NVarChar, assignedAgent)
       .input("agentMatchScore", sql.Int, agentMatchScore)
@@ -36,12 +38,12 @@ async function createTask(task) {
       .input("createdBy", sql.NVarChar, createdBy)
       .input("createdAt", sql.DateTime, createdAt || new Date()).query(`
         INSERT INTO Tasks (
-          Title, Description, Category, Priority, Status, RequiredSkills, EstimatedDuration,
+          Title, Description, Category, Priority, Status, BoardId, Skills, EstimatedDuration,
           AssignedAgent, AgentMatchScore, AgentProgress, Dependencies, CreatedBy, CreatedAt
         )
         OUTPUT INSERTED.TaskId AS TaskId
         VALUES (
-          @title, @description, @category, @priority, @status, @requiredSkills, @estimatedDuration,
+          @title, @description, @category, @priority, @status, @boardId, @skills, @estimatedDuration,
           @assignedAgent, @agentMatchScore, @agentProgress, @dependencies, @createdBy, @createdAt
         )
       `);
@@ -98,7 +100,7 @@ async function updateTask({ taskId, taskData }) {
       category,
       priority,
       status,
-      requiredSkills,
+      boardId,
       estimatedDuration,
       assignedAgent,
       agentMatchScore,
@@ -115,9 +117,9 @@ async function updateTask({ taskId, taskData }) {
       .input("category", sql.NVarChar, category)
       .input("priority", sql.NVarChar, priority)
       .input("skills", sql.NVarChar, skills)
+      .input("boardId", sql.Int, boardId)
       .input("taskId", sql.Int, taskId)
       .input("status", sql.NVarChar, status)
-      .input("requiredSkills", sql.NVarChar, JSON.stringify(requiredSkills))
       .input("estimatedDuration", sql.NVarChar, estimatedDuration)
       .input("assignedAgent", sql.NVarChar, assignedAgent)
       .input("agentMatchScore", sql.Int, agentMatchScore)
@@ -127,7 +129,7 @@ async function updateTask({ taskId, taskData }) {
       .input("createdAt", sql.DateTime, createdAt)
       .query(
         `UPDATE Tasks 
-        SET Title = @title, Description = @description, Category = @category, Priority = @priority, Skills = @skills, Status = @status, RequiredSkills = @requiredSkills, EstimatedDuration = @estimatedDuration,
+        SET Title = @title, Description = @description, Category = @category, Priority = @priority, Skills = @skills, Status = @status, BoardId = @boardId, EstimatedDuration = @estimatedDuration,
             AssignedAgent = @assignedAgent, AgentMatchScore = @agentMatchScore, AgentProgress = @agentProgress,
             Dependencies = @dependencies, CreatedBy = @createdBy, CreatedAt = @createdAt
         WHERE TaskId = @taskId`
