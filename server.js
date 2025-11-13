@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
   res.redirect("/task");
 });
 app.get("/task", (req, res) => {
-  res.sendFile(path.join(__dirname, "mainpage", "task.html"));
+  res.sendFile(path.join(__dirname, "test", "task.html"));
 });
 
 app.use((req, res, next) => {
