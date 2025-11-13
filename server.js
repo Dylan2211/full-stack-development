@@ -2,7 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
-const routes = require("./routes");
+const taskRoutes = require("./routes/taskRoutes");
 const app = express();
 
 dotenv.config();
@@ -10,7 +10,7 @@ dotenv.config();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/tasks", routes);
+app.use("/tasks", taskRoutes);
 
 app.get("/", (req, res) => {
   res.redirect("/task");
