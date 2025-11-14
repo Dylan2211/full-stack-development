@@ -1,32 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>AI Project - Main Page (Kanban)</title>
-    <link rel="stylesheet" href="kanban.css" />
-  </head>
-  <body>
-    <!-- LEFT SIDEBAR -->
-    <aside class="sidebar">
-      <div class="brand">Agentic PM</div>
-      <div class="subtitle">Project: Intelligent Kanban</div>
-      <div class="agent-title">AI Agents</div>
-      <div class="agents">
-        <div class="agent">
-          <span>Gemini</span><span class="status">idle</span>
-        </div>
-        <div class="agent">
-          <span>Claude Code</span><span class="status">running</span>
-        </div>
-        <div class="agent">
-          <span>Amp</span><span class="status">idle</span>
-        </div>
-        <div class="agent">
-          <span>Custom Agent</span><span class="status">busy</span>
-        </div>
-      </div>
-    </aside>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Project - Main Page (Kanban)</title>
+  <link rel="stylesheet" href="kanban.css" />
+  <script defer src="kanban.js"></script>
+</head>
+<body>
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">Agentic PM</div>
+    <div class="subtitle">Project: Intelligent Kanban</div>
+    <div class="agent-title">AI Agents</div>
+    <div class="agents">
+      <div class="agent"><span>Gemini</span><span class="status">idle</span></div>
+      <div class="agent"><span>Claude Code</span><span class="status">running</span></div>
+      <div class="agent"><span>Amp</span><span class="status">idle</span></div>
+      <div class="agent"><span>Custom Agent</span><span class="status">busy</span></div>
+    </div>
+  </aside>
 
     <!-- MAIN -->
     <main class="main">
@@ -38,6 +31,16 @@
           <div class="profile">AS</div>
         </div>
       </div>
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="project-title">AI-Driven Kanban — Main Page</div>
+      <div class="top-actions">
+        <button id="newTaskBtn" class="new-task">New Task</button>
+        <button class="my-profile" onclick="window.location.href='profile.html'">My Profile</button>
+        <div class="profile">AS</div>
+      </div>
+    </div>
 
       <div class="board-wrap">
         <!-- To Do -->
@@ -61,6 +64,28 @@
             </article>
           </div>
         </section>
+    <div class="board-wrap">
+      <!-- To Do -->
+      <div class="column" data-status="todo">
+        <div class="col-head">
+          <div class="col-title">To Do</div>
+          <div class="col-sub">Tasks awaiting assignment</div>
+        </div>
+        <div class="list" id="todo">
+          <div class="card" draggable="true" data-id="t1">
+            <div class="title">Design main page layout</div>
+            <div class="small">Columns, task cards, agent panel</div>
+          </div>
+          <div class="card" draggable="true" data-id="t2">
+            <div class="title">Define task schema</div>
+            <div class="small">Fields: title, desc, agent, status</div>
+          </div>
+          <div class="card" draggable="true" data-id="t3">
+            <div class="title">Create sample agent list</div>
+            <div class="small">Dummy agents for demo</div>
+          </div>
+        </div>
+      </div>
 
         <!-- In Progress -->
         <section
@@ -115,8 +140,82 @@
           </div>
         </section>
       </div>
+
+      <!-- Done -->
+      <div class="column" data-status="done">
+        <div class="col-head">
+          <div class="col-title">Done</div>
+          <div class="col-sub">Completed tasks</div>
+        </div>
+        <div class="list" id="done">
+          <div class="card" draggable="true" data-id="t5">
+            <div class="title">Project kickoff</div>
+            <div class="small">Requirements gathered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+        <!-- Done -->
+        <section class="column" data-status="done" aria-label="Done column">
+          <header class="col-head">
+            <div class="col-title">Done</div>
+            <div class="col-sub">Completed tasks</div>
+          </header>
+          <div class="list" id="done" data-allow-drop="true">
+            <article class="card" draggable="true" data-id="t5">
+              <div class="title">Project kickoff</div>
+              <div class="small">Requirements gathered</div>
+            </article>
+          </div>
+        </section>
+
+        <!-- Failed (system-only drop target) -->
+        <section
+          class="column failed-column"
+          data-status="failed"
+          aria-label="Failed column"
+        >
+          <header class="col-head">
+            <div class="col-title">Failed</div>
+            <div class="col-sub">
+              System-detected failures (read-only for drag-in)
+            </div>
+          </header>
+          <div class="list" id="failed" data-allow-drop="false">
+            <!-- Example failed task (can be dragged OUT but not IN) -->
+            <article class="card" draggable="true" data-id="t6">
+              <div class="title">Auto-build checks</div>
+              <div class="small">Failed during QA pipeline</div>
+            </article>
+          </div>
+        </section>
+      </div>
     </main>
 
-    <script src="kanban.js"></script>
-  </body>
+  <!-- 🔹 New Task Overlay -->
+  <div id="newTaskOverlay" class="overlay hidden">
+    <div class="overlay-content">
+      <span id="closeNewTask" class="close-btn">&times;</span>
+      <h2>Create New Task</h2>
+      <form id="newTaskForm">
+        <label>Task Title:</label>
+        <input type="text" id="taskTitle" required />
+
+        <label>Description:</label>
+        <textarea id="taskDesc" rows="3"></textarea>
+
+        <label>Assign To (Agent):</label>
+        <select id="taskAgent">
+          <option>Gemini</option>
+          <option>Claude Code</option>
+          <option>Amp</option>
+          <option>Custom Agent</option>
+        </select>
+
+        <button type="submit">Add Task</button>
+      </form>
+    </div>
+  </div>
+</body>
 </html>
