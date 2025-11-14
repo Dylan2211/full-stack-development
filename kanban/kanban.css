@@ -3,6 +3,9 @@
   --card: #fff;
   --muted: #707582;
   --accent: #00bcd4;
+  --border-soft: #e6e9ef;
+  --failed-bg: #ffecec;
+  --failed-border: #f2b1b1;
 }
 
 * {
@@ -75,8 +78,8 @@ body {
 
 /* Topbar */
 .topbar {
-  background: white;
-  border-bottom: 1px solid #e6e9ef;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-soft);
   height: 60px;
   display: flex;
   justify-content: space-between;
@@ -89,12 +92,19 @@ body {
   font-size: 1.1rem;
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .new-task {
   padding: 6px 12px;
   border-radius: 8px;
-  border: 1px solid #e6e9ef;
-  background: #fff;
+  border: 1px solid var(--border-soft);
+  background: #ffffff;
   cursor: pointer;
+  font-size: 0.9rem;
   transition: background 0.2s ease;
 }
 
@@ -104,11 +114,10 @@ body {
 
 .my-profile {
   background-color: #1e3b70;
-  color: #fff;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   padding: 6px 14px;
-  margin-left: 0.8rem;
   cursor: pointer;
   font-size: 0.9rem;
   transition: background 0.3s ease;
@@ -123,7 +132,7 @@ body {
   height: 36px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,6 +156,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.failed-column {
+  background: var(--failed-bg);
+  border: 1px solid var(--failed-border);
 }
 
 .col-head {
@@ -176,6 +190,11 @@ body {
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   cursor: grab;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .card.dragging {
