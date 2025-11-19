@@ -50,6 +50,8 @@ body {
   flex-direction: column;
 }
 
+/* Topbar */
+
 .topbar {
   background: linear-gradient(to right, #ffffff, #f9fafb);
   border: 1px solid var(--border-soft);
@@ -74,23 +76,8 @@ body {
   gap: 10px;
 }
 
-.new-task {
-  padding: 7px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border-soft);
-  background: #ffffff;
-  cursor: pointer;
-  font-size: 0.88rem;
-  font-weight: 500;
-  transition: var(--transition);
-}
-
-.new-task:hover {
-  background: #f3f4ff;
-  border-color: var(--indigo-light);
-}
-
-.my-profile {
+/* Unified Dev buttons */
+.top-btn {
   background-color: #1e3b70;
   color: #ffffff;
   border: none;
@@ -102,10 +89,11 @@ body {
   transition: var(--transition);
 }
 
-.my-profile:hover {
+.top-btn:hover {
   background-color: #27457f;
 }
 
+/* Profile bubble */
 .profile {
   width: 34px;
   height: 34px;
@@ -118,6 +106,8 @@ body {
   font-weight: 700;
   font-size: 0.9rem;
 }
+
+/* Board Layout */
 
 .board-wrap {
   display: flex;
@@ -137,7 +127,7 @@ body {
 
 .column {
   background: var(--surface);
-  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.9), rgba(249, 250, 251, 0.9));
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(249,250,251,0.9));
   border: 1px solid var(--border-soft);
   border-radius: 18px;
   padding: 18px 16px 16px 16px;
@@ -151,7 +141,7 @@ body {
 .column.drag-over {
   background: #eef2ff;
   border-color: var(--indigo-light);
-  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.4);
+  box-shadow: 0 0 0 2px rgba(129,140,248,0.4);
 }
 
 .column-header {
@@ -178,21 +168,12 @@ body {
   font-weight: 500;
 }
 
-.col-todo .column-title {
-  color: var(--slate);
-}
+.col-todo .column-title { color: var(--slate); }
+.col-in-progress .column-title { color: var(--indigo); }
+.col-review .column-title { color: var(--amber); }
+.col-done .column-title { color: var(--rose); }
 
-.col-in-progress .column-title {
-  color: var(--indigo);
-}
-
-.col-review .column-title {
-  color: var(--amber);
-}
-
-.col-done .column-title {
-  color: var(--rose);
-}
+/* Task Card Styles */
 
 .task-card {
   background: #ffffff;
@@ -281,35 +262,7 @@ body {
   font-weight: 600;
 }
 
-.agent-icon {
-  width: 16px;
-  height: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.agent-name {
-  white-space: nowrap;
-}
-
-.skills-tag,
-.category-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: var(--slate);
-  font-size: 11px;
-  font-weight: 500;
-  margin-top: 4px;
-}
-
-.category-tag {
-  background: #eef2ff;
-  color: var(--indigo);
-}
+/* Tags */
 
 .skills-list {
   display: flex;
@@ -317,45 +270,25 @@ body {
   gap: 6px;
 }
 
-.btn {
-  padding: 10px 18px;
+.skills-tag {
+  padding: 3px 8px;
   border-radius: 999px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  transition: var(--transition);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  background: #f1f5f9;
+  color: var(--slate);
+  font-size: 11px;
 }
 
-.btn-primary {
-  background: var(--indigo);
-  color: white;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+.category-tag {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: var(--indigo);
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 4px;
 }
 
-.btn-primary:hover {
-  background: #4338ca;
-  transform: translateY(-1px);
-  box-shadow: 0 12px 26px rgba(79, 70, 229, 0.3);
-}
-
-.btn-outline {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text);
-}
-
-.btn-outline:hover {
-  background: var(--divider);
-}
-
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 13px;
-}
+/* Modal */
 
 .modal-overlay {
   position: fixed;
@@ -430,17 +363,7 @@ body {
   padding: 22px 24px 24px 24px;
 }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-@media (max-width: 600px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* Forms */
 
 .form-group {
   margin-bottom: 14px;
@@ -468,7 +391,7 @@ body {
 .form-control:focus {
   outline: none;
   border-color: var(--indigo-light);
-  box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.25);
+  box-shadow: 0 0 0 2px rgba(129,140,248,0.25);
   background: #ffffff;
 }
 
@@ -483,45 +406,13 @@ textarea.form-control {
   margin-top: 4px;
 }
 
-.form-row .form-group {
-  margin-bottom: 0;
-}
-
-.form-row-full {
-  grid-column: 1 / -1;
-}
-
 .btn-group {
   display: flex;
   gap: 12px;
   margin-top: 20px;
 }
 
-.progress-section {
-  margin-top: 16px;
-}
-
-.progress-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-.progress-bar {
-  height: 8px;
-  background: var(--divider);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--indigo), #7c3aed);
-  border-radius: 999px;
-  transition: width 0.5s ease;
-}
+/* Status Footer */
 
 .status-bar {
   display: flex;
@@ -539,6 +430,8 @@ textarea.form-control {
   flex-wrap: wrap;
 }
 
+/* Live Indicator */
+
 .live-indicator {
   display: flex;
   align-items: center;
@@ -550,15 +443,16 @@ textarea.form-control {
   height: 9px;
   background: var(--green);
   border-radius: 999px;
-  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
   animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
 }
+
+/* Agent Utilisation */
 
 .agent-utilization {
   display: flex;
@@ -584,18 +478,6 @@ textarea.form-control {
   border-radius: 999px;
   background: var(--divider);
   font-size: 12px;
-}
-
-.text-sm {
-  font-size: 13px;
-}
-
-.text-muted {
-  color: var(--text-muted);
-}
-
-.mt-4 {
-  margin-top: 16px;
 }
 
 .hidden {

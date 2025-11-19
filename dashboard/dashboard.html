@@ -1,63 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mainpage</title>
-    <link rel="stylesheet" href="dashboard0.css">
-    <script defer src="dashboard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synapse – Dashboards</title>
+  <link rel="stylesheet" href="dashboard0.css">
+  <script defer src="dashboard.js"></script>
 </head>
 <body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-title">Synapse</div>
+        <div class="brand-subtitle">agentic pm</div>
+      </div>
 
-    <div class="navbar">
-        <input type="text" placeholder="Type to search..." class="search-bar">
-        <div class="nav-icons">
-            <div class="settings-icon">⚙️</div>
-            <div class="profile-icon"></div>
+      <div class="topbar-center">
+        <input
+          type="search"
+          placeholder="Search dashboards..."
+          class="topbar-search"
+        >
+      </div>
+
+      <div class="topbar-right">
+        <button type="button" class="icon-button settings-button" aria-label="Settings">
+          ⚙️
+        </button>
+        <div class="user-pill">
+          <span class="user-initials">as</span>
         </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="dashboard-header">
+        <div>
+          <h1 class="page-title">Dashboards</h1>
+          <p class="page-subtitle">Choose a workspace or create a new one.</p>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card create-card" id="create-dashboard-card">
+          <p>Create new<br>dashboard</p>
+          <div class="plus">+</div>
+        </div>
+
+        <a href="../demo/kanban.html" class="card card-link">
+          <h3>EGRA Team Project</h3>
+          <p>EGRA Dashboard for collaboration for work projects.</p>
+        </a>
+
+        <div class="card">
+          <h3>Holiday Planning</h3>
+          <p>Dashboard used to plan our holiday in December!</p>
+        </div>
+
+        <div class="card">
+          <h3>Daily Task Manager</h3>
+          <p>Keep track of daily tasks and provide suggestions on how to improve</p>
+        </div>
+
+        <div class="card">
+          <h3>Gaming Checklist</h3>
+          <p>Dashboard to check for optimizations for gaming performance</p>
+        </div>
+
+        <div class="card">
+          <h3>Dashmi Task Board</h3>
+          <p>Dashmi task board with Alison for weekend planning</p>
+        </div>
+
+        <div class="card">
+          <h3>Assignment 1 FSDP</h3>
+          <p>Dashboard to help provide help for Full Stack Development Assignment 1</p>
+        </div>
+
+        <div class="card">
+          <h3>Dashboard 7</h3>
+          <p>This dashboard is used for interesting purposes</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="overlay" id="new-dashboard-overlay" aria-hidden="true">
+    <div class="overlay-backdrop" id="overlay-backdrop"></div>
+    <div class="overlay-dialog" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+      <div class="overlay-header">
+        <h2 id="overlay-title">Create new dashboard</h2>
+        <button type="button" class="icon-button overlay-close" id="overlay-close" aria-label="Close">
+          ✕
+        </button>
+      </div>
+      <form id="new-dashboard-form" class="overlay-form">
+        <label class="overlay-field">
+          <span class="overlay-label">Dashboard name</span>
+          <input type="text" id="dashboard-name" required>
+        </label>
+
+        <label class="overlay-field">
+          <span class="overlay-label">Description (optional)</span>
+          <textarea id="dashboard-description" rows="3"></textarea>
+        </label>
+
+        <div class="overlay-actions">
+          <button type="button" class="overlay-button secondary" id="overlay-cancel">Cancel</button>
+          <button type="submit" class="overlay-button primary">Create</button>
+        </div>
+      </form>
     </div>
-
-    <div class="container">
-        <div class="card create-card">
-            <p>Create new<br> dashboard</p>
-            <div class="plus">+</div>
-        </div>
-
-        <div class="card">
-            <h3>Holiday Planning</h3>
-            <p>Dashboard used to plan our holiday in December!</p>
-        </div>
-
-        <div class="card">
-            <h3>EGRA Team Project</h3>
-            <p>EGRA Dashboard for collaboration for work projects.</p>
-        </div>
-
-        <div class="card">
-            <h3>Daily Task Manager</h3>
-            <p>Keep track of daily tasks and provide suggestions on how to improve</p>
-        </div>
-
-        <div class="card">
-            <h3>Gaming Checklist</h3>
-            <p>Dashboard to check for different optimizations and settings for optimal game performance</p>
-        </div>
-
-        <div class="card">
-            <h3>Dashmi Task Board</h3>
-            <p>Dashmi task board with Alison for weekend planning</p>
-        </div>
-
-        <div class="card">
-            <h3>Assignment 1 FSDP</h3>
-            <p>Dashboard to help provide help for Full Stack Development Assignment 1</p>
-        </div>
-
-        <div class="card">
-            <h3>Dashboard 7</h3>
-            <p>This dashboard is used for interesting purposes</p>
-        </div>
-    </div>
-
+  </div>
 </body>
 </html>

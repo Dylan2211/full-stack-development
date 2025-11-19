@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Synapse — AI Project Management</title>
+  <title>EGRA Team Project – Synapse</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="kanban.css" />
   <script defer src="kanban.js"></script>
@@ -11,12 +11,20 @@
 <body>
   <main class="main">
     <div class="topbar">
-      <div class="project-title">Synapse</div>
+      <div class="project-title">EGRA Team Project</div>
       <div class="top-actions">
-        <button id="openCreateModal" class="btn btn-primary new-task">
-          <span>+ New Task</span>
+        <button class="top-btn" onclick="window.location.href='../dashboard/dashboard.html'">
+          Dashboard
         </button>
-        <button class="my-profile" onclick="window.location.href='profile.html'">My Profile</button>
+        <button id="openCreateModal" class="top-btn">
+          + New Task
+        </button>
+        <button class="top-btn" onclick="window.location.href='../analytics/analytics.html'">
+          Analytics
+        </button>
+        <button class="top-btn" onclick="window.location.href='profile.html'">
+          My Profile
+        </button>
         <div class="profile">AS</div>
       </div>
     </div>

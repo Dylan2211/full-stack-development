@@ -304,6 +304,7 @@ function metricsFromQuery() {
 document.addEventListener("DOMContentLoaded", function () {
   var data = metricsFromQuery();
   applyMetrics(data);
+
   var snapshotButton = document.getElementById("snapshot-button");
   if (snapshotButton) {
     snapshotButton.addEventListener("click", function () {
@@ -313,5 +314,14 @@ document.addEventListener("DOMContentLoaded", function () {
       alert(title);
     });
   }
+
+  // Kanban navigation button – updated path
+  var navKanban = document.getElementById("nav-kanban");
+  if (navKanban) {
+    navKanban.addEventListener("click", function () {
+      window.location.href = "../demo/kanban.html";
+    });
+  }
+
   window.updateDashboard = applyMetrics;
 });

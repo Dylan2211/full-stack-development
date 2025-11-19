@@ -1,83 +1,300 @@
 body {
-    margin: 0;
-    background-color: #f3f4f6;
-    font-family: Arial, sans-serif;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: #f3f4f6;
+  color: #111827;
 }
 
-.navbar {
-    background-color: white;
-    padding: 18px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    border-bottom: 1px solid #e5e7eb;
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.search-bar {
-    width: 70%;
-    padding: 12px 16px;
-    border-radius: 20px;
-    border: 1px solid #d1d5db;
-    font-size: 16px;
+/* Top navigation bar */
+
+.topbar {
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #ffffff;
 }
 
-.nav-icons {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 20px;
+.brand {
+  display: flex;
+  flex-direction: column;
 }
 
-.settings-icon {
-    font-size: 22px;
-    cursor: pointer;
+.brand-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.profile-icon {
-    width: 40px;
-    height: 40px;
-    background-color: #cbd5e1;
-    border-radius: 50%;
-    cursor: pointer;
+.brand-subtitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-top: 2px;
 }
 
-.container {
-    padding: 40px 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 25px;
+.topbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-search {
+  width: 300px;
+  max-width: 50vw;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  outline: none;
+}
+
+.topbar-search:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px #4f46e5;
+}
+
+.icon-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button:hover {
+  background-color: #e5e7eb;
+}
+
+.user-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background-color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f9fafb;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+/* Main content */
+
+.main {
+  flex: 1;
+  padding: 24px 32px 32px;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.page-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Dashboard grid & cards */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
 }
 
 .card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    text-align: left;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  text-align: left;
+  border: 1px solid #e5e7eb;
 }
 
 .card h3 {
-    margin: 0 0 10px 0;
-    font-size: 18px;
+  margin: 0 0 10px 0;
+  font-size: 17px;
 }
 
 .card p {
-    margin: 0;
-    color: #555;
-    font-size: 14px;
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
 }
 
 .create-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-    height: 150px;
-    color: #9ca3af;
-    border: 2px dashed #d1d5db;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  min-height: 150px;
+  color: #9ca3af;
+  border: 2px dashed #d1d5db;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.create-card:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
 }
 
 .plus {
-    font-size: 40px;
-    margin-top: 10px;
+  font-size: 36px;
+  margin-top: 10px;
+}
+
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* Overlay */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  font-family: inherit;
+}
+
+.overlay.visible {
+  display: flex;
+}
+
+.overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.overlay-dialog {
+  position: relative;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+  padding: 20px 24px 20px;
+  width: 100%;
+  max-width: 420px;
+  z-index: 31;
+}
+
+.overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.overlay-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.overlay-close {
+  font-size: 16px;
+}
+
+.overlay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.overlay-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overlay-label {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.overlay-field input,
+.overlay-field textarea {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.overlay-field input:focus,
+.overlay-field textarea:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px #4f46e5;
+}
+
+.overlay-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.overlay-button {
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.overlay-button.primary {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+.overlay-button.secondary {
+  background-color: #f3f4f6;
+  color: #111827;
+  border-color: #e5e7eb;
+}
+
+.overlay-button.primary:hover {
+  background-color: #020617;
+}
+
+.overlay-button.secondary:hover {
+  background-color: #e5e7eb;
 }

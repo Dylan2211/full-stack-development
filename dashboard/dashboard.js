@@ -314,4 +314,86 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
   window.updateDashboard = applyMetrics;
+
+  var createCard = document.getElementById("create-dashboard-card");
+  var overlay = document.getElementById("new-dashboard-overlay");
+  var overlayBackdrop = document.getElementById("overlay-backdrop");
+  var overlayClose = document.getElementById("overlay-close");
+  var overlayCancel = document.getElementById("overlay-cancel");
+  var form = document.getElementById("new-dashboard-form");
+  var nameInput = document.getElementById("dashboard-name");
+  var descInput = document.getElementById("dashboard-description");
+  var grid = document.querySelector(".dashboard-grid");
+
+  if (!createCard || !overlay || !form || !grid || !nameInput || !descInput) {
+    return;
+  }
+
+  function openOverlay() {
+    overlay.classList.add("visible");
+    overlay.setAttribute("aria-hidden", "false");
+    nameInput.value = "";
+    descInput.value = "";
+    nameInput.focus();
+  }
+
+  function closeOverlay() {
+    overlay.classList.remove("visible");
+    overlay.setAttribute("aria-hidden", "true");
+  }
+
+  createCard.addEventListener("click", function () {
+    openOverlay();
+  });
+
+  if (overlayBackdrop) {
+    overlayBackdrop.addEventListener("click", function () {
+      closeOverlay();
+    });
+  }
+
+  if (overlayClose) {
+    overlayClose.addEventListener("click", function () {
+      closeOverlay();
+    });
+  }
+
+  if (overlayCancel) {
+    overlayCancel.addEventListener("click", function () {
+      closeOverlay();
+    });
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var title = nameInput.value.trim();
+    var desc = descInput.value.trim();
+    if (!title) return;
+
+    var card = document.createElement("div");
+    card.className = "card";
+
+    var h3 = document.createElement("h3");
+    h3.textContent = title;
+
+    var p = document.createElement("p");
+    p.textContent = desc || "Custom dashboard";
+
+    card.appendChild(h3);
+    card.appendChild(p);
+
+    if (createCard.nextSibling) {
+      grid.insertBefore(card, createCard.nextSibling);
+    } else {
+      grid.appendChild(card);
+    }
+
+    closeOverlay();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && overlay.classList.contains("visible")) {
+      closeOverlay();
+    }
+  });
 });
