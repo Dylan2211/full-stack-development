@@ -1,27 +1,33 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const closeBtn = document.getElementById("closeTask");
-  const cancelBtn = document.getElementById("cancelTask");
+  const close_btn = document.getElementById("closeTask");
+  const cancel_btn = document.getElementById("cancelTask");
   const form = document.getElementById("taskForm");
 
-  // Close popup and go back to mainpage
-  const closePopup = () => {
-    window.location.href = "../mainpage.html";
+  const close_popup = () => {
+    // both files in same folder
+    window.location.href = "kanban.html";
   };
 
-  closeBtn.addEventListener("click", closePopup);
-  cancelBtn.addEventListener("click", closePopup);
+  if (close_btn) {
+    close_btn.addEventListener("click", close_popup);
+  }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+  if (cancel_btn) {
+    cancel_btn.addEventListener("click", close_popup);
+  }
 
-    const title = document.getElementById("taskTitle").value.trim();
-    const desc = document.getElementById("taskDesc").value.trim();
-    const agent = document.getElementById("taskAgent").value;
+  if (form) {
+    form.addEventListener("submit", event => {
+      event.preventDefault();
 
-    // Save task (could be localStorage or backend later)
-    console.log("New Task Created:", { title, desc, agent });
+      const title = document.getElementById("taskTitle").value.trim();
+      const desc = document.getElementById("taskDesc").value.trim();
+      const agent = document.getElementById("taskAgent").value;
 
-    alert("Task created successfully!");
-    closePopup();
-  });
+      console.log("new task created:", { title, desc, agent });
+
+      alert("task created successfully!");
+      close_popup();
+    });
+  }
 });

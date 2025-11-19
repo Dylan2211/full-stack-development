@@ -38,14 +38,14 @@ CREATE TABLE Tasks (
     Title NVARCHAR(255) NOT NULL,
     Description NVARCHAR(MAX) NULL,
     Category NVARCHAR(100) NULL,
-    Priority NVARCHAR(50) NULL,
+    Priority NVARCHAR(50) NULL, --all the above
     Status NVARCHAR(50) NULL,
-    Skills NVARCHAR(MAX) NULL,      -- Stored as JSON array
-    EstimatedDuration NVARCHAR(50) NULL,
-    AssignedAgent NVARCHAR(100) NULL,
+    Skills NVARCHAR(MAX) NULL,     
+    EstimatedDuration NVARCHAR(50) NULL 
+    AssignedAgent NVARCHAR(100) NULL, --optional
     AgentMatchScore INT NULL,
     AgentProgress INT NULL,
-    Dependencies NVARCHAR(MAX) NULL,        -- Stored as JSON array
+    Dependencies NVARCHAR(MAX) NULL,        
     CreatedBy NVARCHAR(100) NULL,
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL
