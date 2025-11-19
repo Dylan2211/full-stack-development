@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Task</title>
+  <link rel="stylesheet" href="newtask_style.css" />
+</head>
+<body>
+  <div class="overlay">
+    <div class="overlay-content small-popup">
+      <span class="close-btn" id="closeTask">&times;</span>
+      <h2>New Task</h2>
+
+      <form id="taskForm">
+        <label>Task Title</label>
+        <input type="text" id="taskTitle" required placeholder="Enter task title" />
+
+        <label>Description</label>
+        <textarea id="taskDesc" rows="3" placeholder="Enter task description"></textarea>
+
+        <label>Assign Agent</label>
+        <select id="taskAgent">
+          <option value="Gemini">Gemini</option>
+          <option value="Claude Code">Claude Code</option>
+          <option value="Amp">Amp</option>
+          <option value="Custom Agent">Custom Agent</option>
+        </select>
+
+        <div class="form-buttons">
+          <button type="submit" class="create-btn">Create Task</button>
+          <button type="button" id="cancelTask" class="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="newtask_script.js"></script>
+</body>
+</html>

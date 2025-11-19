@@ -1,0 +1,83 @@
+body {
+    margin: 0;
+    background-color: #f3f4f6;
+    font-family: Arial, sans-serif;
+}
+
+.navbar {
+    background-color: white;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.search-bar {
+    width: 70%;
+    padding: 12px 16px;
+    border-radius: 20px;
+    border: 1px solid #d1d5db;
+    font-size: 16px;
+}
+
+.nav-icons {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.settings-icon {
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.profile-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #cbd5e1;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.container {
+    padding: 40px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 25px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    text-align: left;
+}
+
+.card h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.card p {
+    margin: 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.create-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    height: 150px;
+    color: #9ca3af;
+    border: 2px dashed #d1d5db;
+}
+
+.plus {
+    font-size: 40px;
+    margin-top: 10px;
+}

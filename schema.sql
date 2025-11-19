@@ -1,8 +1,28 @@
+
+CREATE TABLE Users (
+    UserId INT IDENTITY(1,1) PRIMARY KEY,
+    FullName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(150) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    Role NVARCHAR(50) DEFAULT 'User',
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+
 CREATE TABLE Dashboards (
     DashboardId INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) NOT NULL,
     Description NVARCHAR(MAX) NULL,
     CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE UserDashboards (
+    UserDashboardId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL FOREIGN KEY REFERENCES Users(UserId),
+    DashboardId INT NOT NULL FOREIGN KEY REFERENCES Dashboards(DashboardId),
+    Role NVARCHAR(50) DEFAULT 'Viewer',     -- e.g., 'Owner', 'Editor', 'Viewer'
+    JoinedAt DATETIME DEFAULT GETDATE(),
+    UNIQUE (UserId, DashboardId)            -- Prevent duplicate membership
 );
 
 CREATE TABLE Boards (
@@ -31,15 +51,6 @@ CREATE TABLE Tasks (
     UpdatedAt DATETIME NULL
 );
 
-
-CREATE TABLE Users (
-    UserId INT IDENTITY(1,1) PRIMARY KEY,
-    FullName NVARCHAR(100) NOT NULL,
-    Email NVARCHAR(150) NOT NULL UNIQUE,
-    PasswordHash NVARCHAR(255) NOT NULL,
-    Role NVARCHAR(50) DEFAULT 'User',
-    CreatedAt DATETIME DEFAULT GETDATE()
-);
 
 
 INSERT INTO Users (FullName, Email, PasswordHash, Role)
