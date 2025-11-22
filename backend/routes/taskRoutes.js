@@ -1,13 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const taskController = require("../../controllers/taskController");
 
 // Controllers
 const taskController = require("./controllers/taskController");
 const userController = require("./controllers/userController");
 
 // Middleware
-const { authMiddleware } = require("./middleware/jwtAuth"); 
+const { authMiddleware } = require("./middleware/jwtAuth");
 const { validateRegistration } = require("./middleware/registerValidation");
 const { validateLogin } = require("./middleware/loginValidation");
 
