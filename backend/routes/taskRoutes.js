@@ -2,13 +2,13 @@ const express = require("express");
 const router = express.Router();
 
 // Controllers
-const taskController = require("./controllers/taskController");
-const userController = require("./controllers/userController");
+const taskController = require("../controllers/taskController");
+const userController = require("../controllers/userController");
 
 // Middleware
-const { authMiddleware } = require("./middleware/jwtAuth");
-const { validateRegistration } = require("./middleware/registerValidation");
-const { validateLogin } = require("./middleware/loginValidation");
+const { authMiddleware } = require("../middleware/jwtAuth");
+const { validateRegistration } = require("../middleware/registerValidation");
+const { validateLogin } = require("../middleware/loginValidation");
 
 // User routes
 router.post("/register", validateRegistration, userController.registerUser);
