@@ -32,13 +32,13 @@ function init_drag_and_drop() {
 
   cards.forEach(attach_card_drag_events);
 
-  columns.forEach(column => {
+  columns.forEach((column) => {
     const list = column.querySelector(".list");
     if (!list) {
       return;
     }
 
-    column.addEventListener("dragover", event => {
+    column.addEventListener("dragover", (event) => {
       event.preventDefault();
       const dragging = document.querySelector(".card.dragging");
       if (!dragging) {
@@ -55,12 +55,12 @@ function init_drag_and_drop() {
       column.classList.add("drag-over");
     });
 
-    column.addEventListener("dragenter", event => {
+    column.addEventListener("dragenter", (event) => {
       event.preventDefault();
       column.classList.add("drag-over");
     });
 
-    column.addEventListener("dragleave", event => {
+    column.addEventListener("dragleave", (event) => {
       const dragging = document.querySelector(".card.dragging");
       if (!column.contains(event.relatedTarget) && dragging) {
         column.classList.remove("drag-over");
