@@ -12,7 +12,6 @@ async function createUser(fullName, email, passwordHash) {
       `);
 }
 
-// Find user by email
 async function findByEmail(email) {
   return pool
     .request()
@@ -20,12 +19,10 @@ async function findByEmail(email) {
     .query(`SELECT * FROM Users WHERE Email = @Email`);
 }
 
-// Get all users
 async function getAll() {
   return pool.request().query(`SELECT * FROM Users`);
 }
 
-// Get user by ID
 async function getById(id) {
   return pool
     .request()
@@ -39,6 +36,7 @@ async function deleteUser(id) {
     .input("UserId", sql.Int, id)
     .query(`DELETE FROM Users WHERE UserId = @UserId`);
 }
+
 async function updateUser(id, fullName, email) {
   return pool
     .request()

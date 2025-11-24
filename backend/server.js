@@ -2,7 +2,8 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
-const taskRoutes = require("./routes/taskRoutes");
+// const taskRoutes = require("./routes/taskRoutes");
+const taskRoutes = require("./routes/no_login_routes");
 const app = express();
 
 dotenv.config();
@@ -11,12 +12,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/tasks", taskRoutes);
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.get("/", (req, res) => {
-  res.redirect("/task");
+  res.redirect("/test");
 });
-app.get("/task", (req, res) => {
-  res.sendFile(path.join(__dirname, "test", "../frontend/task.html"));
+app.get("/test", (req, res) => {
+  res.sendFile(path.join(__dirname, "test", "../frontend/test/task.html"));
 });
 
 app.use((req, res, next) => {

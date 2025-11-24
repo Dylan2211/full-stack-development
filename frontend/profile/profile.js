@@ -7,10 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Optional: dynamically set name or avatar based on userId
     document.getElementById("name").textContent = "Employee " + userId;
-    document.getElementById("avatar").textContent = userId.slice(-2).toUpperCase(); // last 2 digits
+    document.getElementById("avatar").textContent = userId
+      .slice(-2)
+      .toUpperCase(); // last 2 digits
   } else {
     // If no user ID found, redirect to login
-    window.location.href = "login.html";
+    window.location.href = "../login/login.html";
   }
 
   // Logout function
