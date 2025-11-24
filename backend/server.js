@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
 const taskRoutes = require("./routes/taskRoutes");
+const no_login_routes = require("./routes/no_login_routes");
 const app = express();
 
 dotenv.config();
@@ -10,15 +11,21 @@ dotenv.config();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/tasks", taskRoutes);
+app.use("/tasks", no_login_routes);
+app.use(express.static(path.join(__dirname, "../frontend")));
+app.use("/api", taskRoutes);
 
 app.get("/", (req, res) => {
-  res.redirect("/task");
+  res.redirect("/test");
 });
-app.get("/task", (req, res) => {
-  res.sendFile(path.join(__dirname, "test", "../frontend/task.html"));
+app.get("/test", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/test/task.html"));
+});
+app.get("/login", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/login/login.html"));
 });
 
+// #region Error handling middleware
 app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });
@@ -30,3 +37,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server is running on port " + PORT);
 });
+// #endregion
