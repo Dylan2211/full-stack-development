@@ -62,6 +62,7 @@ async function aiAssignAgent(task) {
   `;
 
     const raw = await queryOllama(analysisPrompt);
+    console.log("Ollama raw response:", raw);
 
     // Try to parse JSON safely
     let parsed;

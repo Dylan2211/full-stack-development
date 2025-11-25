@@ -81,7 +81,7 @@
         };
 
         try {
-          const res = await fetch("http://localhost:3000/tasks", {
+          const res = await fetch("http://localhost:3000/no_login_routes/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(task),
