@@ -1,0 +1,3 @@
+Generate a Jest test (no backticks) for the following code:
+${generatedCode}
+File name: server.test.js

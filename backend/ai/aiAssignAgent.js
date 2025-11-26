@@ -82,4 +82,4 @@ async function aiAssignAgent(task) {
     return parsed;
   }
 }
-module.exports = { aiAssignAgent };
+module.exports = { aiAssignAgent, queryOllama };
