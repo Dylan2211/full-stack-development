@@ -22,14 +22,15 @@ app.get("/", (req, res) => {
   res.redirect("/test");
 });
 app.get("/test", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/test/task.html"));
+  res.sendFile(path.join(__dirname, "../../frontend/test/task.html"));
 });
 app.get("/login", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/login/login.html"));
+  res.sendFile(path.join(__dirname, "../../frontend/login/login.html"));
 });
 app.get("/profile", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/profile/profile.html"));
+  res.sendFile(path.join(__dirname, "../../frontend/profile/profile.html"));
 });
+
 
 // #region Error handling middleware
 app.use((req, res, next) => {
