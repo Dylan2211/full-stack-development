@@ -1,5 +1,6 @@
 import type{ Request, Response, NextFunction } from "express";  
-
+// npm run dev
+// npx tsc or npx tsc--build
 import express from "express";
 // const express = require("express");
 const dotenv = require("dotenv");
@@ -18,11 +19,15 @@ app.use("/no_login_routes", no_login_routes);
 app.use(express.static(path.join(__dirname, "../frontend")));
 app.use("/api", taskRoutes);
 
+//  #region Frontend routes
 app.get("/", (req, res) => {
-  res.redirect("/test");
+  res.redirect("/ai-files");
 });
 app.get("/test", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/test/task.html"));
+});
+app.get("/ai-files", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/ai-files/ai-files.html"));
 });
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/login/login.html"));
@@ -30,7 +35,7 @@ app.get("/login", (req, res) => {
 app.get("/profile", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/profile/profile.html"));
 });
-
+//  #endregion
 
 // #region Error handling middleware
 app.use((req, res, next) => {
