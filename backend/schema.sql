@@ -33,22 +33,27 @@ CREATE TABLE Boards (
 );
 
 CREATE TABLE Tasks (
+    -- Identifiers
     TaskId INT IDENTITY(100,1) PRIMARY KEY,
-    BoardId INT FOREIGN KEY REFERENCES Boards(BoardId),
+    BoardId INT FOREIGN KEY REFERENCES Boards(BoardId) NOT NULL,
+    
+    Position INT NOT NULL DEFaULT 0, --for ordering
+    -- User Provided Fields
     Title NVARCHAR(255) NOT NULL,
-    Description NVARCHAR(MAX) NULL,
+    Description NVARCHAR(MAX) NULL, --optional
+    -- Automatic Generated Fields
+    CreatedBy NVARCHAR(100) NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME NULL,
+    -- AI Generates the following fields
+    AssignedAgent NVARCHAR(100) NULL, --manual/auto
+    Skills NVARCHAR(MAX) NULL, --manual/auto
     Category NVARCHAR(100) NULL,
-    Priority NVARCHAR(50) NULL, --all the above
     Status NVARCHAR(50) NULL,
-    Skills NVARCHAR(MAX) NULL,     
-    EstimatedDuration NVARCHAR(50) NULL 
-    AssignedAgent NVARCHAR(100) NULL, --optional
+    EstimatedDuration NVARCHAR(50) NULL,
     AgentMatchScore INT NULL,
     AgentProgress INT NULL,
     Dependencies NVARCHAR(MAX) NULL,        
-    CreatedBy NVARCHAR(100) NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    UpdatedAt DATETIME NULL
 );
 
 

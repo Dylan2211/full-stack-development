@@ -6,7 +6,7 @@ function runAICommand(command) {
       resolve({
         success: !error,
         stdout,
-        stderr
+        stderr,
       });
     });
   });

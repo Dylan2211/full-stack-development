@@ -47,8 +47,9 @@ async function aiAssignAgent(task) {
   if (!bestMatch || bestMatch.name === "Ollama") {
     const analysisPrompt = `
     You are an AI agent assigner.
+    Available agents: ${JSON.stringify(agents)}
     Given this task:
-    Description: ${task.description}
+    Description: ${task.description || "N/A"}
     Required skills: ${taskSkills.join(", ")}
     Respond ONLY in JSON format with these exact keys:
     {
@@ -81,5 +82,26 @@ async function aiAssignAgent(task) {
 
     return parsed;
   }
+  // Agent other than Ollama was chosen
+  return {
+    assignedAgent: bestMatch.name,
+    agentMatchScore: Math.round(bestScore),
+    agentProgress: 0,
+    status: "Pending"
+  };
 }
 module.exports = { aiAssignAgent, queryOllama };
+
+// Assign Default Position Value
+// SELECT ISNULL(MAX(Position), 0) + 1
+// FROM Tasks
+// WHERE BoardId = @BoardId;
+
+// ORDER BY Position ASC
+
+// SELECT BoardId 
+// FROM Boards 
+// WHERE DashboardId = @DashboardId AND Name = 'To Do';
+
+// INSERT INTO Tasks (BoardId, Position, Title, Description, CreatedBy)
+// VALUES (@ToDoBoardId, @Position, @Title, @Description, @UserId);
