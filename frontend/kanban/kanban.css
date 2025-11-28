@@ -1,3 +1,4 @@
+/* #region root variables */
 :root {
   --page-bg: #f2f4f8;
   --board-bg: #ffffff;
@@ -23,13 +24,17 @@ body {
   color: var(--text-main);
 }
 
-/* layout shell */
+/* #endregion root variables */
+
+/* #region layout shell */
 
 .page {
   width: 100%;
 }
 
-/* header bar */
+/* #endregion layout shell */
+
+/* #region header bar */
 
 .board-header {
   background: var(--board-bg);
@@ -53,7 +58,9 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* right header */
+/* #endregion header bar */
+
+/* #region right header */
 
 .board-right {
   display: flex;
@@ -96,7 +103,9 @@ body {
   background: var(--purple-dark);
 }
 
-/* board frame */
+/* #endregion right header */
+
+/* #region board frame */
 
 .board-shell {
   padding: 24px 24px 32px 24px;
@@ -115,7 +124,9 @@ body {
   gap: 18px;
 }
 
-/* columns */
+/* #endregion board frame */
+
+/* #region columns */
 
 .column {
   display: flex;
@@ -141,7 +152,9 @@ body {
   color: #4b5563;
 }
 
-/* list area */
+/* #endregion columns */
+
+/* #region list area */
 
 .list {
   flex: 1;
@@ -153,7 +166,9 @@ body {
   overflow-y: auto;
 }
 
-/* cards */
+/* #endregion list area */
+
+/* #region cards */
 
 .card {
   background: #ffffff;
@@ -185,7 +200,9 @@ body {
   margin-top: 4px;
 }
 
-/* drag states */
+/* #endregion cards */
+
+/* #region drag states */
 
 .card.dragging {
   opacity: 0.8;
@@ -202,7 +219,53 @@ body {
   outline-offset: 4px;
 }
 
-/* small screens */
+/* #endregion drag states */
+
+/* #region add task */
+
+#newTaskDialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+/* dialog window styling */
+.task-dialog {
+  position: fixed;
+  top: 0;
+  right: 0;
+  border: none;
+  padding: 0;
+  border-radius: 12px;
+  min-width: 300px;
+  max-width: 420px;
+  height: 100%;
+  margin: 0;
+  transform: none;
+}
+
+/* inside content */
+.dialog-content {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.close-btn {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+/* #endregion add task */
+
+/* #region small screens */
 
 @media (max-width: 960px) {
   .board-shell {
@@ -220,3 +283,5 @@ body {
     min-height: 400px;
   }
 }
+
+/* #endregion small screens */

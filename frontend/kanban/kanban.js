@@ -73,17 +73,97 @@ function init_drag_and_drop() {
   });
 }
 
-function init_navigation() {
-  const add_button = document.getElementById("new-task-trigger");
-  if (add_button) {
-    add_button.addEventListener("click", () => {
-      // go to the new task overlay page
-      window.location.href = "newtask.html";
-    });
-  }
+function init_add_task() {
+  const dialog = document.getElementById("newTaskDialog");
+  const open_btn = document.getElementById("new-task-trigger");
+  const close_btn = document.getElementById("closeTask");
+  const cancel_btn = document.getElementById("cancelTask");
+  const form = document.getElementById("taskForm");
+
+  open_btn.addEventListener("click", () => {
+    dialog.show();
+  });
+
+  close_btn.addEventListener("click", () => dialog.close());
+  cancel_btn.addEventListener("click", () => dialog.close());
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const title = document.getElementById("taskTitle").value.trim();
+    const description = document.getElementById("taskDesc").value.trim();
+
+    const agentSelect = document.getElementById("taskAgents");
+    const assignedAgents = Array.from(agentSelect.selectedOptions).map(
+      (o) => o.value
+    );
+    const skills = document.getElementById("taskSkills").value.trim();
+
+    add_task({ title, description, assignedAgents, skills });
+    dialog.close();
+  });
 }
 
+async function populateAgents() {
+  const agentSelect = document.getElementById("taskAgents");
+
+  const agents = await loadAgents();
+
+  agentSelect.innerHTML = ""; // clear old options
+
+  agents.forEach((a) => {
+    const opt = document.createElement("option");
+    opt.value = a.name;
+    opt.textContent = a.name;
+    agentSelect.appendChild(opt);
+  });
+}
+
+async function loadTasks(boardId) {
+  const res = await fetch(`../../backend/routes/taskRoutes/tasks/${boardId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      // Include authentication token if required
+    },
+  });
+  const tasks = await res.json();
+
+  tasks.forEach((task) => {
+    addTaskToColumn(task);
+  });
+}
+
+function addTaskToColumn(task) {
+  const column = document.getElementById(task.Status);
+  if (!column) return;
+
+  const card = document.createElement("div");
+  card.classList.add("card");
+  card.setAttribute("draggable", "true");
+  card.dataset.id = task.TaskId;
+
+  card.innerHTML = `
+      <div class="card-title">${task.Title}</div>
+      <div class="card-text">${task.Description || ""}</div>
+  `;
+
+  attach_card_drag_events(card);
+  column.appendChild(card);
+}
+
+async function loadAgents() {
+  const res = await fetch("/api/agents");
+  return await res.json();
+}
+
+// #region Initialization
 document.addEventListener("DOMContentLoaded", () => {
   init_drag_and_drop();
-  init_navigation();
+  agents = loadAgents();
+  populateAgents();
+  init_add_task();
+  const boardId = 1; // Replace with actual board ID as needed
+  loadTasks(boardId);
 });
+// #endregion Initialization

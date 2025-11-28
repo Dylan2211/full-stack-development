@@ -16,24 +16,27 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/no_login_routes", no_login_routes);
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.join(__dirname, "../../frontend")));
 app.use("/api", taskRoutes);
 
 //  #region Frontend routes
 app.get("/", (req, res) => {
-  res.redirect("/ai-files");
-});
-app.get("/test", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/test/task.html"));
-});
-app.get("/ai-files", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/ai-files/ai-files.html"));
+  res.redirect("/kanban");
 });
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/login/login.html"));
 });
+app.get("/kanban", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/kanban/kanban.html"));
+});
+app.get("/ai-files", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/ai-files/ai-files.html"));
+});
 app.get("/profile", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/profile/profile.html"));
+});
+app.get("/test", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/test/task.html"));
 });
 //  #endregion
 

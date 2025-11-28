@@ -87,10 +87,10 @@ async function aiAssignAgent(task) {
     assignedAgent: bestMatch.name,
     agentMatchScore: Math.round(bestScore),
     agentProgress: 0,
-    status: "Pending"
+    status: "Pending",
   };
 }
-module.exports = { aiAssignAgent, queryOllama };
+module.exports = { aiAssignAgent, queryOllama, agents };
 
 // Assign Default Position Value
 // SELECT ISNULL(MAX(Position), 0) + 1
@@ -99,8 +99,8 @@ module.exports = { aiAssignAgent, queryOllama };
 
 // ORDER BY Position ASC
 
-// SELECT BoardId 
-// FROM Boards 
+// SELECT BoardId
+// FROM Boards
 // WHERE DashboardId = @DashboardId AND Name = 'To Do';
 
 // INSERT INTO Tasks (BoardId, Position, Title, Description, CreatedBy)

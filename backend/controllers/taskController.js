@@ -17,14 +17,28 @@ async function createTask(req, res) {
   }
 }
 
-async function getAllTasks(req, res) {
+// async function getAllTasks(req, res) {
+//   try {
+//     const { status, priority } = req.query;
+//     const tasks = await taskModel.getAllTasks({ status, priority });
+//     res.json(tasks);
+//   } catch (error) {
+//     console.error(`Error getting tasks:${error}`);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// }
+
+async function getTaskByBoardId(req, res) {
   try {
-    const { status, priority } = req.query;
-    const tasks = await taskModel.getAllTasks({ status, priority });
+    const boardId = parseInt(req.params.boardId);
+    const tasks = await taskModel.getTasksByBoardId(boardId);
+    if (!boardId) {
+      return res.status(404).json({ error: "No tasks found for this board" });
+    }
     res.json(tasks);
   } catch (error) {
-    console.error(`Error getting tasks:${error}`);
-    res.status(500).json({ message: "Internal server error" });
+    console.error(`Error getting tasks by board id: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
@@ -35,7 +49,6 @@ async function getTaskById(req, res) {
     if (!task) {
       return res.status(404).json({ error: "Task not found" });
     }
-
     res.json(task);
   } catch (error) {
     console.error(`Error getting task by id: ${error}`);
@@ -83,7 +96,8 @@ async function deleteTask(req, res) {
 
 module.exports = {
   createTask,
-  getAllTasks,
+  // getAllTasks,
+  getTaskByBoardId,
   getTaskById,
   updateTask,
   deleteTask,

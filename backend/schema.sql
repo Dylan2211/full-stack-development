@@ -37,7 +37,7 @@ CREATE TABLE Tasks (
     TaskId INT IDENTITY(100,1) PRIMARY KEY,
     BoardId INT FOREIGN KEY REFERENCES Boards(BoardId) NOT NULL,
     
-    Position INT NOT NULL DEFaULT 0, --for ordering
+    Position INT NOT NULL DEFAULT 0, --for ordering
     -- User Provided Fields
     Title NVARCHAR(255) NOT NULL,
     Description NVARCHAR(MAX) NULL, --optional
@@ -46,7 +46,7 @@ CREATE TABLE Tasks (
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     -- AI Generates the following fields
-    AssignedAgent NVARCHAR(100) NULL, --manual/auto
+    AssignedAgent NVARCHAR(MAX) NULL, --manual/auto (csv)
     Skills NVARCHAR(MAX) NULL, --manual/auto
     Category NVARCHAR(100) NULL,
     Status NVARCHAR(50) NULL,

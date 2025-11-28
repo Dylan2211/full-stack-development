@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!-- TODO: REMOVE HARDCODED PART BELOW -->
     <title>egra team project – kanban</title>
-    <link rel="stylesheet" href="kanban.css" />
+    <link rel="stylesheet" href="/kanban/kanban.css" />
   </head>
   <body>
     <div class="page">
       <header class="board-header">
         <div class="board-left">
+          <!-- TODO: REMOVE HARDCODED PART BELOW -->
           <h1 class="board-title">EGRA TEAM PROJECT</h1>
         </div>
         <div class="board-right">
@@ -27,14 +29,7 @@
             <header class="column-header">
               <div class="column-name">to do</div>
             </header>
-            <div class="list" id="todo">
-              <div class="card" draggable="true" data-id="t1">
-                <div class="card-title">notebook</div>
-                <div class="card-text">
-                  to create a notebook for personal use
-                </div>
-              </div>
-            </div>
+            <div class="list" id="todo"></div>
           </section>
 
           <!-- in progress -->
@@ -71,6 +66,29 @@
         </div>
       </main>
     </div>
+    <dialog id="newTaskDialog" class="task-dialog">
+      <form id="taskForm" method="dialog" class="dialog-content">
+        <button id="closeTask" class="close-btn" type="button">&times;</button>
+        <h2>New Task</h2>
+
+        <label>Task Title</label>
+        <input type="text" id="taskTitle" required />
+
+        <label>Description</label>
+        <textarea id="taskDesc" rows="3"></textarea>
+
+        <label>Assign Agent(s)</label>
+        <select id="taskAgents" multiple></select>
+
+        <label>Skills</label>
+        <input type="text" id="taskSkills" />
+
+        <div class="form-buttons">
+          <button id="cancelTask" type="button">Cancel</button>
+          <button id="createTask" type="submit">Create Task</button>
+        </div>
+      </form>
+    </dialog>
   </body>
-  <script defer src="kanban.js"></script>
+  <script defer src="/kanban/kanban.js"></script>
 </html>
