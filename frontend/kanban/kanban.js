@@ -119,14 +119,18 @@ async function populateAgents() {
   });
 }
 
+// no_login_routes
 async function loadTasks(boardId) {
-  const res = await fetch(`../../backend/routes/taskRoutes/tasks/${boardId}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      // Include authentication token if required
-    },
-  });
+  const res = await fetch(
+    `../../backend/routes/no_login_routes/tasks/${boardId}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        // Include authentication token if required
+      },
+    }
+  );
   const tasks = await res.json();
 
   tasks.forEach((task) => {
