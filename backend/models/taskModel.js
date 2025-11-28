@@ -6,18 +6,18 @@ async function createTask(task) {
     const {
       title,
       description,
-      category, // Frontend, backend, DevOps, etc., Python, JavaScript, HTML etc.
+      category = null, // Frontend, backend, DevOps, etc., Python, JavaScript, HTML etc.
       position = 0,
-      status, // To Do, In Progress, Done
-      skills, // Required skills for the task
+      status = "To Do", // To Do, In Progress, Done
+      skills = [], // Required skills for the task
       assignedAgent, // Possible assigned AI agent
       boardId,
-      estimatedDuration,
-      agentMatchScore,
-      agentProgress,
-      dependencies,
-      createdBy,
-      createdAt,
+      estimatedDuration = null,
+      agentMatchScore = null,
+      agentProgress = 0,
+      dependencies = [], // Other task IDs that this task depends on
+      createdBy = null,
+      createdAt = new Date(),
     } = task;
 
     const pool = await dbConfig;
@@ -35,7 +35,7 @@ async function createTask(task) {
       .input("agentMatchScore", sql.Int, agentMatchScore)
       .input("agentProgress", sql.Int, agentProgress)
       .input("dependencies", sql.NVarChar, JSON.stringify(dependencies))
-      .input("createdBy", sql.NVarChar, createdBy)
+      .input("createdBy", sql.Int, createdBy)
       .input("createdAt", sql.DateTime, createdAt || new Date()).query(`
         INSERT INTO Tasks (
           Title, Description, Category, Position, Status, BoardId, Skills, EstimatedDuration,

@@ -57,9 +57,11 @@ async function aiAssignAgent(task) {
       "agentMatchScore": number,
       "agentProgress": number,
       "status": "string"
+      "category": "string"
+      "estimatedDuration": "string"
     }
     Example:
-    {"assignedAgent": "Ollama", "agentMatchScore": 90, "agentProgress": 0, "status": "Pending"}
+    {"assignedAgent": "Ollama", "agentMatchScore": 90, "agentProgress": 0, "status": "Pending", "category": "Analysis", "estimatedDuration": "2 hours"}
   `;
 
     const raw = await queryOllama(analysisPrompt);

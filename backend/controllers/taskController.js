@@ -3,6 +3,12 @@ const ai = require("../ai/aiAssignAgent");
 
 async function createTask(req, res) {
   try {
+    if (!req.body.boardId) {
+      return res.status(400).json({ error: "BoardId is required" });
+    }
+    if (req.body.position == undefined) {
+      return res.status(400).json({ error: "Position is required" });
+    }
     const aiData = await ai.aiAssignAgent(req.body);
     const task = { ...req.body, ...aiData };
     const taskId = await taskModel.createTask(task);

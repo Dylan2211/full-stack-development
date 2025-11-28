@@ -94,7 +94,7 @@ async function loadTasks(boardId) {
 // #endregion Tasks
 
 // #region Add Task
-function init_add_task() {
+function init_add_task(boardId,userId) {
   const dialog = document.getElementById("newTaskDialog");
   const open_btn = document.getElementById("new-task-trigger");
   const close_btn = document.getElementById("closeTask");
@@ -120,11 +120,20 @@ function init_add_task() {
     );
     const skills = document.getElementById("taskSkills").value.trim();
 
-    add_task({ title, description, assignedAgents, skills });
+    add_task({
+      title,
+      description,
+      assignedAgents,
+      skills,
+      boardId: boardId, // ← required
+      createdBy: userId, // ← required
+      position: 0,
+    });
     dialog.close();
   });
 }
 
+// No_login_routes
 async function add_task(taskData) {
   // POST the task to your backend API
   const res = await fetch("/no_login_routes/tasks", {
@@ -184,8 +193,9 @@ document.addEventListener("DOMContentLoaded", () => {
   init_drag_and_drop();
   agents = loadAgents();
   populateAgents();
-  init_add_task();
   const boardId = 1; // Replace with actual board ID as needed
+  const userId = 1; // Replace with actual user ID as needed
+  init_add_task(boardId, userId);
   loadTasks(boardId);
 });
 // #endregion Initialization

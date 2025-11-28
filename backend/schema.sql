@@ -37,10 +37,10 @@ CREATE TABLE Tasks (
     
     Position INT NOT NULL DEFAULT 0, --for ordering
     -- User Provided Fields
-    Title NVARCHAR(255) NOT NULL,
+    Title NVARCHAR(255) NULL,
     Description NVARCHAR(MAX) NULL, --optional
     -- Automatic Generated Fields
-    CreatedBy NVARCHAR(100) NULL,
+    CreatedBy INT NULL, -- UserId of creator
     CreatedAt DATETIME DEFAULT GETDATE(),
     UpdatedAt DATETIME NULL,
     -- AI Generates the following fields
@@ -51,5 +51,5 @@ CREATE TABLE Tasks (
     EstimatedDuration NVARCHAR(50) NULL,
     AgentMatchScore INT NULL,
     AgentProgress INT NULL,
-    Dependencies NVARCHAR(MAX) NULL        
+    Dependencies NVARCHAR(MAX) NULL  --csv of TaskIds
 );
