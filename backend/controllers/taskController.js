@@ -3,9 +3,6 @@ const ai = require("../ai/aiAssignAgent");
 
 async function createTask(req, res) {
   try {
-    if (!req.body.title) {
-      return res.json({ error: "No title!" });
-    }
     const aiData = await ai.aiAssignAgent(req.body);
     const task = { ...req.body, ...aiData };
     const taskId = await taskModel.createTask(task);
@@ -28,7 +25,7 @@ async function createTask(req, res) {
 //   }
 // }
 
-async function getTaskByBoardId(req, res) {
+async function getTasksByBoardId(req, res) {
   try {
     const boardId = parseInt(req.params.boardId);
     const tasks = await taskModel.getTasksByBoardId(boardId);
@@ -97,7 +94,7 @@ async function deleteTask(req, res) {
 module.exports = {
   createTask,
   // getAllTasks,
-  getTaskByBoardId,
+  getTasksByBoardId,
   getTaskById,
   updateTask,
   deleteTask,

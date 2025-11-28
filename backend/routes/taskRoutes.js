@@ -20,7 +20,7 @@ router.put("/users/:id", authMiddleware, userController.updateUser);
 router.delete("/users/:id", authMiddleware, userController.deleteUser);
 
 // Task routes
-router.get("/tasks/:boardId", authMiddleware, taskController.getTaskByBoardId);
+router.get("/tasks/:boardId", authMiddleware, taskController.getTasksByBoardId);
 router.get("/tasks/:id", authMiddleware, taskController.getTaskById);
 router.post("/tasks", authMiddleware, taskController.createTask);
 router.put("/tasks/:id", authMiddleware, taskController.updateTask);

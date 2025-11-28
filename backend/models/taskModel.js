@@ -7,7 +7,7 @@ async function createTask(task) {
       title,
       description,
       category, // Frontend, backend, DevOps, etc., Python, JavaScript, HTML etc.
-      priority, // Low, Medium, High
+      position = 0,
       status, // To Do, In Progress, Done
       skills, // Required skills for the task
       assignedAgent, // Possible assigned AI agent
@@ -26,7 +26,7 @@ async function createTask(task) {
       .input("title", sql.NVarChar, title)
       .input("description", sql.NVarChar, description)
       .input("category", sql.NVarChar, category)
-      .input("priority", sql.NVarChar, priority)
+      .input("position", sql.Int, position)
       .input("status", sql.NVarChar, status)
       .input("assignedAgent", sql.NVarChar, assignedAgent)
       .input("boardId", sql.Int, boardId)
@@ -38,12 +38,12 @@ async function createTask(task) {
       .input("createdBy", sql.NVarChar, createdBy)
       .input("createdAt", sql.DateTime, createdAt || new Date()).query(`
         INSERT INTO Tasks (
-          Title, Description, Category, Priority, Status, BoardId, Skills, EstimatedDuration,
+          Title, Description, Category, Position, Status, BoardId, Skills, EstimatedDuration,
           AssignedAgent, AgentMatchScore, AgentProgress, Dependencies, CreatedBy, CreatedAt
         )
         OUTPUT INSERTED.TaskId AS TaskId
         VALUES (
-          @title, @description, @category, @priority, @status, @boardId, @skills, @estimatedDuration,
+          @title, @description, @category, @position, @status, @boardId, @skills, @estimatedDuration,
           @assignedAgent, @agentMatchScore, @agentProgress, @dependencies, @createdBy, @createdAt
         )
       `);
@@ -55,25 +55,16 @@ async function createTask(task) {
   }
 }
 
-async function getAllTasks({ status, priority }) {
+async function getTasksByBoardId(boardId) {
   try {
     const pool = await dbConfig;
-    let query = `SELECT * FROM Tasks WHERE 1 = 1`;
-    const request = pool.request();
-
-    if (status) {
-      query += " AND Status = @status";
-      request.input("status", sql.NVarChar, status);
-    }
-    if (priority) {
-      query += " AND Priority = @priority";
-      request.input("priority", sql.NVarChar, priority);
-    }
-
-    const result = await request.query(query);
+    const result = await pool
+      .request()
+      .input("boardId", sql.Int, boardId)
+      .query(`SELECT * FROM Tasks WHERE BoardId = @boardId`);
     return result.recordset;
-  } catch (error) {
-    console.error("Error in getAllTasks:", error.message);
+  } catch (err) {
+    console.error("Error getting tasks by board id:", err.message);
     throw new Error("Database query failed");
   }
 }
@@ -95,29 +86,37 @@ async function getTaskById(taskId) {
 async function updateTask({ taskId, taskData }) {
   try {
     const {
+      //
+      boardId,
+      position,
+      //
       title,
       description,
-      category,
-      priority,
-      status,
-      boardId,
-      estimatedDuration,
+      //
+      createdBy,
+      createdAt,
       assignedAgent,
+      skills,
+      category,
+      status,
+      estimatedDuration,
       agentMatchScore,
       agentProgress,
       dependencies,
-      createdBy,
-      createdAt,
     } = taskData;
     const pool = await dbConfig;
     const result = await pool
       .request()
+      .input("boardId", sql.Int, boardId)
+      .input("position", sql.Int, position)
       .input("title", sql.NVarChar, title)
       .input("description", sql.NVarChar, description)
+      //
+      .input("createdBy", sql.NVarChar, createdBy)
+      .input("createdAt", sql.DateTime, createdAt)
+      .input("updatedAt", sql.DateTime, new Date())
       .input("category", sql.NVarChar, category)
-      .input("priority", sql.NVarChar, priority)
       .input("skills", sql.NVarChar, skills)
-      .input("boardId", sql.Int, boardId)
       .input("taskId", sql.Int, taskId)
       .input("status", sql.NVarChar, status)
       .input("estimatedDuration", sql.NVarChar, estimatedDuration)
@@ -125,13 +124,11 @@ async function updateTask({ taskId, taskData }) {
       .input("agentMatchScore", sql.Int, agentMatchScore)
       .input("agentProgress", sql.Int, agentProgress)
       .input("dependencies", sql.NVarChar, JSON.stringify(dependencies))
-      .input("createdBy", sql.NVarChar, createdBy)
-      .input("createdAt", sql.DateTime, createdAt)
       .query(
         `UPDATE Tasks 
-        SET Title = @title, Description = @description, Category = @category, Priority = @priority, Skills = @skills, Status = @status, BoardId = @boardId, EstimatedDuration = @estimatedDuration,
+        SET Title = @title, Description = @description, Category = @category, Position = @position, Skills = @skills, Status = @status, BoardId = @boardId, EstimatedDuration = @estimatedDuration,
             AssignedAgent = @assignedAgent, AgentMatchScore = @agentMatchScore, AgentProgress = @agentProgress,
-            Dependencies = @dependencies, CreatedBy = @createdBy, CreatedAt = @createdAt
+            Dependencies = @dependencies, CreatedBy = @createdBy, CreatedAt = @createdAt, UpdatedAt = @updatedAt
         WHERE TaskId = @taskId`
       );
 
@@ -160,7 +157,8 @@ async function deleteTask(taskId) {
 
 module.exports = {
   createTask,
-  getAllTasks,
+  // getAllTasks,
+  getTasksByBoardId,
   getTaskById,
   updateTask,
   deleteTask,

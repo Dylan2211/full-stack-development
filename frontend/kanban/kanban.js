@@ -1,3 +1,5 @@
+// #region Tasks
+
 function attach_card_drag_events(card) {
   card.addEventListener("dragstart", () => {
     card.classList.add("dragging");
@@ -73,6 +75,25 @@ function init_drag_and_drop() {
   });
 }
 
+// no_login_routes
+async function loadTasks(boardId) {
+  const res = await fetch(`/no_login_routes/tasks/${boardId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      // Include authentication token if required
+    },
+  });
+  const tasks = await res.json();
+
+  tasks.forEach((task) => {
+    addTaskToColumn(task);
+  });
+}
+
+// #endregion Tasks
+
+// #region Add Task
 function init_add_task() {
   const dialog = document.getElementById("newTaskDialog");
   const open_btn = document.getElementById("new-task-trigger");
@@ -104,38 +125,18 @@ function init_add_task() {
   });
 }
 
-async function populateAgents() {
-  const agentSelect = document.getElementById("taskAgents");
-
-  const agents = await loadAgents();
-
-  agentSelect.innerHTML = ""; // clear old options
-
-  agents.forEach((a) => {
-    const opt = document.createElement("option");
-    opt.value = a.name;
-    opt.textContent = a.name;
-    agentSelect.appendChild(opt);
+async function add_task(taskData) {
+  // POST the task to your backend API
+  const res = await fetch("/no_login_routes/tasks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(taskData),
   });
-}
 
-// no_login_routes
-async function loadTasks(boardId) {
-  const res = await fetch(
-    `../../backend/routes/no_login_routes/tasks/${boardId}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        // Include authentication token if required
-      },
-    }
-  );
-  const tasks = await res.json();
+  const saved = await res.json();
 
-  tasks.forEach((task) => {
-    addTaskToColumn(task);
-  });
+  // Add it to UI
+  addTaskToColumn(saved);
 }
 
 function addTaskToColumn(task) {
@@ -156,10 +157,27 @@ function addTaskToColumn(task) {
   column.appendChild(card);
 }
 
+async function populateAgents() {
+  const agentSelect = document.getElementById("taskAgents");
+
+  const agents = await loadAgents();
+
+  agentSelect.innerHTML = ""; // clear old options
+
+  agents.forEach((a) => {
+    const opt = document.createElement("option");
+    opt.value = a.name;
+    opt.textContent = a.name;
+    agentSelect.appendChild(opt);
+  });
+}
+
 async function loadAgents() {
   const res = await fetch("/api/agents");
   return await res.json();
 }
+
+// #endregion Add Task
 
 // #region Initialization
 document.addEventListener("DOMContentLoaded", () => {
