@@ -1,3 +1,50 @@
+// #region loading
+// no_login_routes
+async function fetchBoards(dashboardId) {
+  const res = await fetch(`/no_login_routes/dashboards/${dashboardId}/boards`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      // Include authentication token if required
+    },
+  });
+  return await res.json();
+}
+
+// no_login_routes
+async function loadBoardName(boardId) {
+  const res = await fetch(`/no_login_routes/boards/${boardId}/tasks`);
+  const board = await res.json();
+
+  // UPDATE THE TITLE
+  document.getElementById("boardTitle").textContent = board.Name;
+}
+
+// no_login_routes
+async function loadTasks(boardId) {
+  console.log("Loading tasks for board:", boardId);
+  const res = await fetch(`/no_login_routes/tasks/${boardId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      // Include authentication token if required
+    },
+  });
+  const tasks = await res.json();
+
+  tasks.forEach((task) => {
+    addTaskToColumn(task);
+    console.log("Loaded task:", task);
+  });
+}
+
+async function loadAgents() {
+  const res = await fetch("/api/agents");
+  return await res.json();
+}
+
+// #endregion loading
+
 // #region Tasks
 
 function attach_card_drag_events(card) {
@@ -75,26 +122,10 @@ function init_drag_and_drop() {
   });
 }
 
-// no_login_routes
-async function loadTasks(boardId) {
-  const res = await fetch(`/no_login_routes/tasks/${boardId}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      // Include authentication token if required
-    },
-  });
-  const tasks = await res.json();
-
-  tasks.forEach((task) => {
-    addTaskToColumn(task);
-  });
-}
-
 // #endregion Tasks
 
 // #region Add Task
-function init_add_task(boardId,userId) {
+function init_add_task(boardId, userId) {
   const dialog = document.getElementById("newTaskDialog");
   const open_btn = document.getElementById("new-task-trigger");
   const close_btn = document.getElementById("closeTask");
@@ -128,6 +159,7 @@ function init_add_task(boardId,userId) {
       boardId: boardId, // ← required
       createdBy: userId, // ← required
       position: 0,
+      status: "todo",
     });
     dialog.close();
   });
@@ -149,7 +181,14 @@ async function add_task(taskData) {
 }
 
 function addTaskToColumn(task) {
-  const column = document.getElementById(task.Status);
+  const statusMap = {
+    todo: "todo",
+    "in-progress": "inprogress",
+    completed: "completed",
+    errors: "errors",
+  };
+  const columnId = statusMap[task.Status];
+  const column = document.getElementById(columnId);
   if (!column) return;
 
   const card = document.createElement("div");
@@ -181,11 +220,6 @@ async function populateAgents() {
   });
 }
 
-async function loadAgents() {
-  const res = await fetch("/api/agents");
-  return await res.json();
-}
-
 // #endregion Add Task
 
 // #region Initialization
@@ -193,9 +227,9 @@ document.addEventListener("DOMContentLoaded", () => {
   init_drag_and_drop();
   agents = loadAgents();
   populateAgents();
-  const boardId = 1; // Replace with actual board ID as needed
+  const dashboardId = 1; // Replace with actual board ID as needed
   const userId = 1; // Replace with actual user ID as needed
-  init_add_task(boardId, userId);
+  init_add_task(userId);
   loadTasks(boardId);
 });
 // #endregion Initialization

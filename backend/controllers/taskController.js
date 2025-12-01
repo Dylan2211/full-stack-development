@@ -20,16 +20,19 @@ async function createTask(req, res) {
   }
 }
 
-// async function getAllTasks(req, res) {
-//   try {
-//     const { status, priority } = req.query;
-//     const tasks = await taskModel.getAllTasks({ status, priority });
-//     res.json(tasks);
-//   } catch (error) {
-//     console.error(`Error getting tasks:${error}`);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// }
+async function getBoardByDashboardId(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId);
+    const boards = await taskModel.getBoardByDashboardId(dashboardId);
+    if (!boards) {
+      console.write("No boards found for this dashboard");
+    }
+    res.json(boards);
+  } catch (error) {
+    console.error(`Error getting boards by dashboard id: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
 
 async function getTasksByBoardId(req, res) {
   try {
@@ -100,6 +103,7 @@ async function deleteTask(req, res) {
 module.exports = {
   createTask,
   // getAllTasks,
+  getBoardByDashboardId,
   getTasksByBoardId,
   getTaskById,
   updateTask,

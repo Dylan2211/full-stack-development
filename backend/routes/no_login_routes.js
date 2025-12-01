@@ -16,8 +16,9 @@ router.post("/login", userController.loginUser);
 router.put("/users/:id", userController.updateUser);
 router.delete("/users/:id", userController.deleteUser);
 
-// Task routes
-router.get("/tasks/:boardId", taskController.getTasksByBoardId);
+// Task
+router.get("/dashboards/:dashboardId/boards", taskController.getBoardByDashboardId);
+router.get("/boards/:boardId/tasks", taskController.getTasksByBoardId);
 router.get("/tasks/:id", taskController.getTaskById);
 router.post("/tasks", taskController.createTask);
 router.put("/tasks/:id", taskController.updateTask);
@@ -26,4 +27,5 @@ router.delete("/tasks/:id", taskController.deleteTask);
 router.get("/agents", (req, res) => {
   res.json(agents);
 });
+
 module.exports = router;
