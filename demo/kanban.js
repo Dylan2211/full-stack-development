@@ -16,26 +16,14 @@ const COLUMN_CONFIG = {
   [STATUS.TODO]: { id: STATUS.TODO, title: 'To Do' },
   [STATUS.IN_PROGRESS]: { id: STATUS.IN_PROGRESS, title: 'In Progress' },
   [STATUS.COMPLETED]: { id: STATUS.COMPLETED, title: 'Completed' },
-  [STATUS.ERROR]: { id: STATUS.ERROR, title: 'Error' }
+  [STATUS.ERROR]: { id: STATUS.ERROR, title: 'Errors' }
 };
 
 const AGENTS = {
-  'Claude-Code-v2': {
-    label: 'Claude Code v2',
-    icon: '🤖'
-  },
-  'Gemini-CLI': {
-    label: 'Gemini CLI',
-    icon: '✨'
-  },
-  'Amp-Agent': {
-    label: 'Amp Agent',
-    icon: '⚡'
-  },
-  'AutoDev-Pro': {
-    label: 'AutoDev Pro',
-    icon: '🛠️'
-  }
+  'Claude-Code-v2': { label: 'Claude Code v2', icon: '🤖' },
+  'Gemini-CLI': { label: 'Gemini CLI', icon: '✨' },
+  'Amp-Agent': { label: 'Amp Agent', icon: '⚡' },
+  'AutoDev-Pro': { label: 'AutoDev Pro', icon: '🛠️' }
 };
 
 let tasks = [
@@ -48,7 +36,9 @@ let tasks = [
     status: STATUS.TODO,
     progress: 0,
     category: 'Backend',
-    skills: ['Node.js', 'JWT', 'Security']
+    skills: ['Node.js', 'JWT', 'Security'],
+    result: '',
+    errorLog: ''
   },
   {
     id: '2',
@@ -59,7 +49,9 @@ let tasks = [
     status: STATUS.IN_PROGRESS,
     progress: 65,
     category: 'Testing',
-    skills: ['Jest', 'Testing', 'JavaScript']
+    skills: ['Jest', 'Testing', 'JavaScript'],
+    result: 'All critical payment paths covered.\n\nSummary:\n- 32 tests added\n- 100% coverage for refund logic\n- Idempotency key collisions handled.',
+    errorLog: ''
   },
   {
     id: '3',
@@ -70,7 +62,9 @@ let tasks = [
     status: STATUS.COMPLETED,
     progress: 100,
     category: 'Backend',
-    skills: ['SQL', 'Performance', 'Optimization']
+    skills: ['SQL', 'Performance', 'Optimization'],
+    result: 'Latency reduced from 420ms to 160ms (P95).\n\nChanges:\n- Added composite index on (tenant_id, created_at)\n- Replaced N+1 queries with single aggregated query\n- Introduced read replica for analytics traffic.',
+    errorLog: ''
   },
   {
     id: '4',
@@ -81,31 +75,48 @@ let tasks = [
     status: STATUS.ERROR,
     progress: 100,
     category: 'Documentation',
-    skills: ['OpenAPI', 'Documentation']
+    skills: ['OpenAPI', 'Documentation'],
+    result: '',
+    errorLog: 'Generation failed\n\nError code: OPENAPI-422\nMessage: Non-JSON error responses detected on 3 endpoints.\n\nNext steps:\n- Normalize error response schema\n- Regenerate specification.'
   }
 ];
 
-const kanbanBoard = document.getElementById('kanbanBoard');
-const detailModal = document.getElementById('detailModal');
-const detailModalTitle = document.getElementById('detailModalTitle');
-const detailModalBody = document.getElementById('detailModalBody');
-const closeDetailModal = document.getElementById('closeDetailModal');
-const createModal = document.getElementById('createModal');
-const openCreateModal = document.getElementById('openCreateModal');
-const closeCreateModal = document.getElementById('closeCreateModal');
-const createTaskForm = document.getElementById('createTaskForm');
-const cancelCreate = document.getElementById('cancelCreate');
-const agentCountEl = document.getElementById('agentCount');
-const taskCountEl = document.getElementById('taskCount');
-const agentUtilizationEl = document.getElementById('agentUtilization');
-const taskAgentSelect = document.getElementById('taskAgent');
+let kanbanBoard;
+let detailModal;
+let detailModalTitle;
+let detailModalBody;
+let closeDetailModal;
+let createModal;
+let openCreateModal;
+let closeCreateModal;
+let createTaskForm;
+let cancelCreate;
+let createAndStartBtn;
+let agentCountEl;
+let taskCountEl;
+let agentUtilizationEl;
+let taskAgentSelect;
+let detailToggleButton;
+let resultModal;
+let resultModalBody;
+let resultModalTitle;
+let closeResultModal;
+
+let lastSelectedTaskId = null;
+let draggedTask = null;
 
 function formatStatus(statusId) {
   const cfg = COLUMN_CONFIG[statusId];
   if (cfg) return cfg.title;
-  return statusId
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase());
+  return statusId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function statusKey(statusId) {
+  if (statusId === STATUS.TODO) return 'todo';
+  if (statusId === STATUS.IN_PROGRESS) return 'in-progress';
+  if (statusId === STATUS.COMPLETED) return 'review';
+  if (statusId === STATUS.ERROR) return 'done';
+  return 'todo';
 }
 
 function getAgentMeta(agentId) {
@@ -114,15 +125,15 @@ function getAgentMeta(agentId) {
 }
 
 function renderBoard() {
+  if (!kanbanBoard || !agentCountEl || !taskCountEl) return;
+
   const counts = {};
   COLUMN_ORDER.forEach(id => {
     counts[id] = 0;
   });
 
   tasks.forEach(task => {
-    if (counts[task.status] !== undefined) {
-      counts[task.status]++;
-    }
+    if (counts[task.status] !== undefined) counts[task.status]++;
   });
 
   const activeAgents = new Set(
@@ -147,8 +158,7 @@ function renderBoard() {
 
     if (colTasks.length === 0) {
       boardHTML += `
-        <div class="empty-placeholder"
-             style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;">
+        <div class="empty-placeholder">
           Drag tasks here
         </div>
       `;
@@ -157,23 +167,22 @@ function renderBoard() {
         const agentMeta = getAgentMeta(task.agent);
         const agentLabel = agentMeta ? agentMeta.label : 'Auto';
         const agentIcon = agentMeta ? agentMeta.icon : '🎯';
-
         const agentDisplay = `
           <span class="agent-chip" title="${task.agent ? agentLabel : 'Auto-assigned'}">
             <span class="agent-icon">${agentIcon}</span>
             <span class="agent-name">${agentLabel}</span>
           </span>
         `;
-
         const skillsHTML = task.skills && task.skills.length
-          ? `<div class="skills-list">${task.skills
-              .map(s => `<span class="skills-tag">${s}</span>`)
-              .join('')}</div>`
+          ? `<div class="skills-list">${task.skills.map(s => `<span class="skills-tag">${s}</span>`).join('')}</div>`
           : '';
+        const canDrag = task.status !== STATUS.COMPLETED;
+        const dragAttr = canDrag ? 'true' : 'false';
+        const extraClass = canDrag ? '' : ' non-draggable';
 
         boardHTML += `
-          <div class="task-card"
-               draggable="true"
+          <div class="task-card${extraClass}"
+               draggable="${dragAttr}"
                data-task-id="${task.id}"
                data-status="${task.status}">
             <div class="task-title">${task.title}</div>
@@ -197,14 +206,16 @@ function renderBoard() {
   kanbanBoard.innerHTML = boardHTML;
 
   document.querySelectorAll('.task-card').forEach(card => {
+    const taskId = card.getAttribute('data-task-id');
     card.addEventListener('click', () => {
-      const taskId = card.getAttribute('data-task-id');
       const task = tasks.find(t => t.id === taskId);
       if (task) openTaskDetail(task);
     });
 
-    card.addEventListener('dragstart', handleDragStart);
-    card.addEventListener('dragend', handleDragEnd);
+    if (card.draggable) {
+      card.addEventListener('dragstart', handleDragStart);
+      card.addEventListener('dragend', handleDragEnd);
+    }
   });
 
   document.querySelectorAll('.column').forEach(col => {
@@ -218,6 +229,8 @@ function renderBoard() {
 }
 
 function renderAgentUtilization() {
+  if (!agentUtilizationEl) return;
+
   const agentCounts = {};
   let totalAgentTasks = 0;
 
@@ -258,8 +271,6 @@ function renderAgentUtilization() {
   `;
 }
 
-let draggedTask = null;
-
 function handleDragStart(e) {
   draggedTask = this;
   this.classList.add('dragging');
@@ -274,23 +285,36 @@ function handleDragEnd() {
   });
 }
 
+function isLockedColumn(colStatus) {
+  return colStatus === STATUS.COMPLETED || colStatus === STATUS.ERROR;
+}
+
 function handleDragOver(e) {
+  const colStatus = this.getAttribute('data-column');
+  if (isLockedColumn(colStatus)) return;
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
 }
 
 function handleDragEnter(e) {
+  const colStatus = this.getAttribute('data-column');
+  if (isLockedColumn(colStatus)) return;
   e.preventDefault();
   this.classList.add('drag-over');
 }
 
 function handleDragLeave(e) {
+  const colStatus = this.getAttribute('data-column');
+  if (isLockedColumn(colStatus)) return;
   if (!this.contains(e.relatedTarget)) {
     this.classList.remove('drag-over');
   }
 }
 
 function handleDrop(e) {
+  const colStatus = this.getAttribute('data-column');
+  if (isLockedColumn(colStatus)) return;
+
   e.preventDefault();
   this.classList.remove('drag-over');
 
@@ -313,86 +337,206 @@ function handleDrop(e) {
   draggedTask = null;
 }
 
+function buildLogText(task) {
+  if (task.status === STATUS.TODO) {
+    return 'Task created and queued. Waiting for an available agent to start executing.';
+  }
+  if (task.status === STATUS.IN_PROGRESS) {
+    return 'Agent started executing this task. Streaming intermediate outputs and checking for errors.';
+  }
+  if (task.status === STATUS.COMPLETED) {
+    return 'Task completed successfully. All subtasks have finished and results are available.';
+  }
+  if (task.status === STATUS.ERROR) {
+    return 'Task moved to the error queue. Review error log for details.';
+  }
+  return 'Task state updated.';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function openResultModal(task, mode) {
+  if (!resultModal || !resultModalBody || !resultModalTitle) return;
+
+  const isError = mode === 'error';
+  const title = isError ? 'Error Log' : 'AI Task Result';
+
+  const agentMeta = getAgentMeta(task.agent);
+  const agentLabel = agentMeta ? agentMeta.label : 'Auto-assigned';
+  const metaText = `${agentLabel} • ${formatStatus(task.status)}`;
+
+  const sourceText = isError ? task.errorLog : task.result;
+  const bodyHtml = sourceText && sourceText.trim().length > 0
+    ? `<pre class="result-pre">${escapeHtml(sourceText)}</pre>`
+    : `<div class="result-empty">${isError ? 'No error details available yet for this task.' : 'Result is not available yet for this task.'}</div>`;
+
+  resultModalTitle.textContent = title;
+
+  resultModalBody.innerHTML = `
+    <div class="result-header-row">
+      <div class="result-task-title">${task.title}</div>
+      <div class="result-meta">${metaText}</div>
+    </div>
+    <div class="result-content">
+      ${bodyHtml}
+    </div>
+  `;
+
+  resultModal.classList.add('active');
+}
+
 function openTaskDetail(task) {
-  detailModalTitle.textContent = task.title;
+  if (!detailModal || !detailModalTitle || !detailModalBody) return;
+
+  lastSelectedTaskId = task.id;
 
   const agentMeta = getAgentMeta(task.agent);
   const agentLabel = agentMeta ? agentMeta.label : 'Auto-assigned';
   const agentIcon = agentMeta ? agentMeta.icon : '🎯';
+  const agentDisplay = task.agent ? `${agentIcon} ${agentLabel}` : agentLabel;
 
-  const agentDisplay = `
-    <span class="agent-chip">
-      <span class="agent-icon">${agentIcon}</span>
-      <span class="agent-name">${agentLabel}</span>
-    </span>
-  `;
+  const modelLoad = task.agent ? Math.max(50, Math.min(95, Math.round(task.progress + 20))) : 0;
+  const progressPct = Math.round(task.progress);
+  const startedValue = '19/11/2025';
+  const elapsedValue = progressPct === 0 ? '–' : '5 min';
+  const etaValue = task.status === STATUS.IN_PROGRESS ? '6 min' : progressPct === 100 ? 'Done' : '–';
+  const logText = buildLogText(task);
+  const statusClass = statusKey(task.status);
 
-  const skillsHTML = task.skills && task.skills.length
-    ? `<div class="skills-list">${task.skills.map(s => `<span class="skills-tag">${s}</span>`).join('')}</div>`
-    : '<em>None specified</em>';
+  const showStop = task.status === STATUS.IN_PROGRESS;
+  const showResult = task.status === STATUS.COMPLETED;
+  const showErrorLog = task.status === STATUS.ERROR;
+  const showDelete = task.status === STATUS.TODO || task.status === STATUS.ERROR;
 
-  let progressHTML = '';
-  if (task.status === STATUS.IN_PROGRESS || task.status === STATUS.COMPLETED) {
-    progressHTML = `
-      <div class="progress-section">
-        <div class="progress-labels">
-          <span>AI Execution Progress</span>
-          <span>${Math.round(task.progress)}%</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${Math.round(task.progress)}%"></div>
-        </div>
+  const stopButtonHtml = showStop
+    ? `<button type="button" class="stop-task-btn" id="stopTaskButton">Stop Task</button>`
+    : '';
+
+  let secondaryButtonHtml = '';
+  if (showResult) {
+    secondaryButtonHtml = `
+      <div class="result-link-row">
+        <button type="button" class="result-link-btn" id="viewResultButton">View AI result</button>
+      </div>
+    `;
+  } else if (showErrorLog) {
+    secondaryButtonHtml = `
+      <div class="result-link-row">
+        <button type="button" class="result-link-btn" id="viewErrorButton">Error Log</button>
       </div>
     `;
   }
 
+  const deleteButtonHtml = showDelete
+    ? `
+      <div class="delete-task-row">
+        <button type="button" class="delete-task-btn" id="deleteTaskButton">Delete Task</button>
+      </div>
+    `
+    : '';
+
+  detailModalTitle.innerHTML = `Update <span class="highlight-word">Task</span>`;
+
   detailModalBody.innerHTML = `
-    <div class="form-group">
-      <label class="form-label">Description</label>
-      <div class="text-sm">${task.description}</div>
+    <div class="detail-status-row">
+      <div class="status-pill ${statusClass}">${formatStatus(task.status)}</div>
+      <div class="detail-subtitle">${task.title}</div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Priority</label>
+    <div class="detail-meta-card">
+      <div class="detail-meta-tabs">
+        <div class="detail-tab active">Task Details</div>
+      </div>
+      <div class="task-meta-grid">
         <div>
-          <span class="priority-badge priority-${task.priority}">
-            ${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-          </span>
+          <div class="meta-label">Started</div>
+          <div class="meta-value">${startedValue}</div>
+        </div>
+        <div>
+          <div class="meta-label">Agent</div>
+          <div class="meta-value">${agentDisplay}</div>
+        </div>
+        <div>
+          <div class="meta-label">Model Load</div>
+          <div class="meta-value">${task.agent ? modelLoad + '%' : '–'}</div>
+        </div>
+        <div>
+          <div class="meta-label">Progress</div>
+          <div class="meta-value">${progressPct}%</div>
+        </div>
+        <div>
+          <div class="meta-label">Elapsed</div>
+          <div class="meta-value">${elapsedValue}</div>
+        </div>
+        <div>
+          <div class="meta-label">ETA</div>
+          <div class="meta-value">${etaValue}</div>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Assigned Agent</label>
-        <div>${agentDisplay}</div>
+      <div class="workspace-row">
+        <div class="workspace-label">Workspace Path</div>
+        <div class="workspace-line">
+          <div class="workspace-path">/Synapse/EGRA Team Project</div>
+          ${stopButtonHtml}
+        </div>
+        <div class="detail-progress-track">
+          <div class="detail-progress-fill" style="width: ${progressPct}%;"></div>
+        </div>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Category</label>
-      <div>${task.category || '<em>Not specified</em>'}</div>
+    <div class="log-section">
+      <div class="log-title">Logs</div>
+      <div class="log-entry">${logText}</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Required Skills</label>
-      <div>${skillsHTML}</div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Status</label>
-      <div class="text-sm">${formatStatus(task.status)}</div>
-    </div>
-    ${progressHTML}
-    <div class="btn-group mt-4">
-      <button class="btn btn-outline btn-sm" type="button">Reassign Agent</button>
-      <button class="btn btn-outline btn-sm" type="button">View Logs</button>
-      <button class="btn btn-outline btn-sm" type="button">Edit Task</button>
-    </div>
+    ${secondaryButtonHtml}
+    ${deleteButtonHtml}
   `;
+
+  const stopBtn = document.getElementById('stopTaskButton');
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      task.status = STATUS.TODO;
+      task.progress = 0;
+      renderBoard();
+      detailModal.classList.remove('active');
+    });
+  }
+
+  const viewResultButton = document.getElementById('viewResultButton');
+  if (viewResultButton) {
+    viewResultButton.addEventListener('click', () => openResultModal(task, 'result'));
+  }
+
+  const viewErrorButton = document.getElementById('viewErrorButton');
+  if (viewErrorButton) {
+    viewErrorButton.addEventListener('click', () => openResultModal(task, 'error'));
+  }
+
+  const deleteTaskButton = document.getElementById('deleteTaskButton');
+  if (deleteTaskButton) {
+    deleteTaskButton.addEventListener('click', () => {
+      tasks = tasks.filter(t => t.id !== task.id);
+      if (lastSelectedTaskId === task.id) lastSelectedTaskId = null;
+      renderBoard();
+      detailModal.classList.remove('active');
+    });
+  }
 
   detailModal.classList.add('active');
 }
 
 function openCreateTaskModal() {
+  if (!createModal) return;
   createModal.classList.add('active');
 }
 
 function closeCreateTaskModal() {
+  if (!createModal || !createTaskForm) return;
   createModal.classList.remove('active');
   createTaskForm.reset();
 }
@@ -412,57 +556,155 @@ function initializeAgentSelect() {
   });
 }
 
-closeDetailModal.addEventListener('click', () => {
-  detailModal.classList.remove('active');
-});
-
-detailModal.addEventListener('click', e => {
-  if (e.target === detailModal) detailModal.classList.remove('active');
-});
-
-openCreateModal.addEventListener('click', openCreateTaskModal);
-closeCreateModal.addEventListener('click', closeCreateTaskModal);
-cancelCreate.addEventListener('click', closeCreateTaskModal);
-
-createModal.addEventListener('click', e => {
-  if (e.target === createModal) closeCreateTaskModal();
-});
-
-createTaskForm.addEventListener('submit', e => {
-  e.preventDefault();
+function createTaskFromForm(startImmediately) {
+  if (!createTaskForm.reportValidity()) return;
 
   let skills = [];
-  const skillsInput = document.getElementById('taskSkills').value.trim();
+  const skillsInputElement = document.getElementById('taskSkills');
+  const skillsInput = skillsInputElement ? skillsInputElement.value.trim() : '';
   if (skillsInput) {
     skills = skillsInput.split(',').map(s => s.trim()).filter(s => s);
   }
+
+  const status = startImmediately ? STATUS.IN_PROGRESS : STATUS.TODO;
+  const progress = startImmediately ? 5 : 0;
 
   const newTask = {
     id: 'task-' + Date.now(),
     title: document.getElementById('taskTitle').value,
     description: document.getElementById('taskDesc').value,
     priority: document.getElementById('taskPriority').value,
-    agent: taskAgentSelect.value || null,
-    status: STATUS.TODO,
-    progress: 0,
+    agent: taskAgentSelect && taskAgentSelect.value ? taskAgentSelect.value : null,
+    status: status,
+    progress: progress,
     category: document.getElementById('taskCategory').value || null,
-    skills: skills
+    skills: skills,
+    result: '',
+    errorLog: ''
   };
 
   tasks.push(newTask);
   renderBoard();
   closeCreateTaskModal();
-});
+}
 
-document.addEventListener('DOMContentLoaded', () => {
+function wireEvents() {
+  if (closeDetailModal) {
+    closeDetailModal.addEventListener('click', () => {
+      detailModal.classList.remove('active');
+    });
+  }
+
+  if (detailModal) {
+    detailModal.addEventListener('click', e => {
+      if (e.target === detailModal) detailModal.classList.remove('active');
+    });
+  }
+
+  if (closeResultModal) {
+    closeResultModal.addEventListener('click', () => {
+      resultModal.classList.remove('active');
+    });
+  }
+
+  if (resultModal) {
+    resultModal.addEventListener('click', e => {
+      if (e.target === resultModal) resultModal.classList.remove('active');
+    });
+  }
+
+  if (detailToggleButton) {
+    detailToggleButton.addEventListener('click', () => {
+      if (!detailModal) return;
+      if (detailModal.classList.contains('active')) {
+        detailModal.classList.remove('active');
+        return;
+      }
+      let task = null;
+      if (lastSelectedTaskId) {
+        task = tasks.find(t => t.id === lastSelectedTaskId);
+      }
+      if (!task && tasks.length > 0) {
+        task = tasks[0];
+      }
+      if (task) openTaskDetail(task);
+    });
+  }
+
+  if (openCreateModal) {
+    openCreateModal.addEventListener('click', openCreateTaskModal);
+  }
+  if (closeCreateModal) {
+    closeCreateModal.addEventListener('click', closeCreateTaskModal);
+  }
+  if (cancelCreate) {
+    cancelCreate.addEventListener('click', closeCreateTaskModal);
+  }
+
+  if (createModal) {
+    createModal.addEventListener('click', e => {
+      if (e.target === createModal) closeCreateTaskModal();
+    });
+  }
+
+  if (createTaskForm) {
+    createTaskForm.addEventListener('submit', e => {
+      e.preventDefault();
+      createTaskFromForm(false);
+    });
+  }
+
+  if (createAndStartBtn) {
+    createAndStartBtn.addEventListener('click', e => {
+      e.preventDefault();
+      createTaskFromForm(true);
+    });
+  }
+}
+
+function init() {
+  kanbanBoard = document.getElementById('kanbanBoard');
+  detailModal = document.getElementById('detailModal');
+  detailModalTitle = document.getElementById('detailModalTitle');
+  detailModalBody = document.getElementById('detailModalBody');
+  closeDetailModal = document.getElementById('closeDetailModal');
+  createModal = document.getElementById('createModal');
+  openCreateModal = document.getElementById('openCreateModal');
+  closeCreateModal = document.getElementById('closeCreateModal');
+  createTaskForm = document.getElementById('createTaskForm');
+  cancelCreate = document.getElementById('cancelCreate');
+  createAndStartBtn = document.getElementById('createAndStart');
+  agentCountEl = document.getElementById('agentCount');
+  taskCountEl = document.getElementById('taskCount');
+  agentUtilizationEl = document.getElementById('agentUtilization');
+  taskAgentSelect = document.getElementById('taskAgent');
+  detailToggleButton = document.getElementById('detailToggleButton');
+  resultModal = document.getElementById('resultModal');
+  resultModalBody = document.getElementById('resultModalBody');
+  resultModalTitle = document.getElementById('resultModalTitle');
+  closeResultModal = document.getElementById('closeResultModal');
+
   initializeAgentSelect();
+  wireEvents();
   renderBoard();
-});
 
-setInterval(() => {
-  tasks.forEach(task => {
-    if (task.status === STATUS.IN_PROGRESS && task.progress < 95) {
-      task.progress = Math.min(95, task.progress + Math.random() * 3);
-    }
-  });
-}, 4000);
+  setInterval(() => {
+    tasks.forEach(task => {
+      if (task.status === STATUS.IN_PROGRESS) {
+        if (task.progress < 95) {
+          task.progress = Math.min(95, task.progress + Math.random() * 3);
+        } else if (task.progress < 100) {
+          task.progress = 100;
+          task.status = STATUS.COMPLETED;
+        }
+      }
+    });
+    renderBoard();
+  }, 4000);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

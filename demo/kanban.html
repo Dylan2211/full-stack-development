@@ -11,26 +11,23 @@
 <body>
   <main class="main">
     <div class="topbar">
-      <div class="project-title">EGRA Team Project</div>
-      <div class="top-actions">
-        <button class="top-btn" onclick="window.location.href='../dashboard/dashboard.html'">
-          Dashboard
-        </button>
+      <div class="topbar-left">
+        <div class="company-avatar"></div>
+        <div class="project-title">EGRA Team Project</div>
+      </div>
+      <div class="topbar-right">
         <button id="openCreateModal" class="top-btn">
-          + New Task
+          <span class="btn-label">Add</span>
+          <span class="btn-highlight">Task</span>
         </button>
-        <button class="top-btn" onclick="window.location.href='../analytics/analytics.html'">
-          Analytics
-        </button>
-        <button class="top-btn" onclick="window.location.href='profile.html'">
-          My Profile
-        </button>
-        <div class="profile">AS</div>
       </div>
     </div>
 
     <div class="board-wrap">
       <div class="board" id="kanbanBoard"></div>
+      <button id="detailToggleButton" class="detail-toggle-button">
+        <span class="detail-toggle-icon">❯</span>
+      </button>
     </div>
 
     <div class="status-bar">
@@ -48,28 +45,40 @@
   <div class="modal-overlay" id="detailModal">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title" id="detailModalTitle">Task Details</div>
+        <div class="modal-title" id="detailModalTitle"></div>
         <button class="modal-close" id="closeDetailModal">&times;</button>
       </div>
       <div class="modal-body" id="detailModalBody"></div>
     </div>
   </div>
 
-  <div class="modal-overlay" id="createModal">
-    <div class="modal">
+  <div class="modal-overlay" id="resultModal">
+    <div class="modal result-modal">
       <div class="modal-header">
-        <div class="modal-title">Create New AI Task</div>
+        <div class="modal-title" id="resultModalTitle"></div>
+        <button class="modal-close" id="closeResultModal">&times;</button>
+      </div>
+      <div class="modal-body" id="resultModalBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="createModal">
+    <div class="modal create-modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          Create a new <span class="highlight-word">task</span>
+        </div>
         <button class="modal-close" id="closeCreateModal">&times;</button>
       </div>
       <div class="modal-body">
         <form id="createTaskForm">
           <div class="form-group">
-            <label class="form-label" for="taskTitle">Task Title</label>
-            <input type="text" id="taskTitle" class="form-control" placeholder="e.g., Implement user auth API" required>
+            <label class="form-label" for="taskTitle">Title</label>
+            <input type="text" id="taskTitle" class="form-control" placeholder="e.g., Write an essay" required>
           </div>
           <div class="form-group">
             <label class="form-label" for="taskDesc">Description &amp; Acceptance Criteria</label>
-            <textarea id="taskDesc" class="form-control" placeholder="Describe what the AI agent should do..." required></textarea>
+            <textarea id="taskDesc" class="form-control" placeholder="Describe what the agent should do..." required></textarea>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -94,18 +103,15 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label" for="taskSkills">Required Skills (comma-separated)</label>
-            <input type="text" id="taskSkills" class="form-control" placeholder="e.g., React, TypeScript, REST API">
-          </div>
-          <div class="form-group">
             <label class="form-label" for="taskAgent">Assign Agent (Optional)</label>
             <select id="taskAgent" class="form-control">
-              <option value="">— Auto-assign —</option>
+              <option value="">--Automatic--</option>
             </select>
           </div>
-          <div class="btn-group">
-            <button type="submit" class="btn btn-primary">Create Task</button>
-            <button type="button" class="btn btn-outline" id="cancelCreate">Cancel</button>
+          <div class="btn-group create-btn-group">
+            <button type="button" class="btn btn-create-cancel" id="cancelCreate">Cancel</button>
+            <button type="submit" class="btn btn-create-add">Add Task</button>
+            <button type="button" class="btn btn-create-start" id="createAndStart">Create and Start</button>
           </div>
         </form>
       </div>
