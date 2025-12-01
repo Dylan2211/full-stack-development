@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add People</title>
+    <link rel="stylesheet" href="addpeople.css">
+</head>
+<body>
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Add People</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="search-section">
+                    <label for="searchUser">Search by name or email</label>
+                    <input 
+                        type="text" 
+                        id="searchUser" 
+                        class="search-input" 
+                        placeholder="Enter name or email address"
+                        oninput="searchUsers(this.value)"
+                    >
+                </div>
+
+                <div class="role-section">
+                    <label for="roleSelect">Select Role</label>
+                    <select id="roleSelect" class="role-select">
+                        <option value="viewer">Viewer - Can view only</option>
+                        <option value="editor">Editor - Can view and edit</option>
+                        <option value="admin">Admin - Full access</option>
+                    </select>
+                </div>
+
+                <div class="permissions-section">
+                    <h3>Permissions</h3>
+                    <div class="permission-item">
+                        <input type="checkbox" id="canEdit" checked>
+                        <label for="canEdit">Can edit tasks</label>
+                    </div>
+                    <div class="permission-item">
+                        <input type="checkbox" id="canDelete">
+                        <label for="canDelete">Can delete tasks</label>
+                    </div>
+                    <div class="permission-item">
+                        <input type="checkbox" id="canInvite">
+                        <label for="canInvite">Can invite others</label>
+                    </div>
+                </div>
+
+                <div class="suggestions-section" id="suggestionsSection">
+                    <h3>Suggested People</h3>
+                    <div class="suggestions-list" id="suggestionsList">
+                        <div class="suggestion-item" data-name="Frieren" data-email="Frieren@example.com" data-avatar="">
+                            <img src="" alt="Frieren" class="suggestion-avatar">
+                            <div class="suggestion-info">
+                                <div class="suggestion-name">Frieren</div>
+                                <div class="suggestion-email">Frieren@example.com</div>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); selectUser('Frieren', 'Frieren@example.com', '', this)">Add</button>
+                        </div>
+                        <div class="suggestion-item" data-name="Stark" data-email="Stark@example.com" data-avatar="">
+                            <img src="" alt="Stark" class="suggestion-avatar">
+                            <div class="suggestion-info">
+                                <div class="suggestion-name">Stark</div>
+                                <div class="suggestion-email">Stark@example.com</div>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); selectUser('Stark', 'Stark@example.com', '', this)">Add</button>
+                        </div>
+                        <div class="suggestion-item" data-name="Heiter" data-email="Heiter@example.com" data-avatar="">
+                            <img src="" alt="Heiter" class="suggestion-avatar">
+                            <div class="suggestion-info">
+                                <div class="suggestion-name">Heiter</div>
+                                <div class="suggestion-email">Heiter@example.com</div>
+                            </div>
+                            <button class="add-btn" onclick="event.stopPropagation(); selectUser('Heiter', 'Heiter@example.com', '', this)">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="selected-section" id="selectedSection" style="display: none;">
+                    <h3>Selected People</h3>
+                    <div class="selected-list" id="selectedList"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="send-invite-btn" onclick="sendInvites()">Send Invites</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="addpeople.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Creator</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 40px auto;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+      }
+      button {
+        margin-top: 15px;
+        padding: 10px 15px;
+      }
+      pre {
+        background: #f4f4f4;
+        padding: 10px;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Create Task</h2>
+    <form id="taskForm">
+      <label>Title</label>
+      <input type="text" id="title" required />
+
+      <label>Description</label>
+      <textarea id="description" rows="3"></textarea>
+
+      <label>Required Skills (comma-separated)</label>
+      <input
+        type="text"
+        id="skills"
+        placeholder="e.g., Node.js, Express, JWT"
+      />
+
+      <button type="submit">Create Task</button>
+    </form>
+
+    <h3>Response</h3>
+    <pre id="responseBox">Waiting for submission...</pre>
+
+    <script>
+      const form = document.getElementById("taskForm");
+      const responseBox = document.getElementById("responseBox");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        responseBox.textContent = "Sending request...";
+
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value;
+        const skills = document
+          .getElementById("skills")
+          .value.split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        const task = {
+          title,
+          description,
+          requiredSkills: skills,
+          category: "Testing",
+          priority: "Medium",
+          status: "Pending",
+          createdBy: "Frontend Tester",
+        };
+
+        try {
+          const res = await fetch("http://localhost:3000/no_login_routes/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(task),
+          });
+
+          const data = await res.json();
+          responseBox.textContent = JSON.stringify(data, null, 2);
+        } catch (err) {
+          responseBox.textContent = "Error: " + err.message;
+        }
+      });
+    </script>
+  </body>
+</html>

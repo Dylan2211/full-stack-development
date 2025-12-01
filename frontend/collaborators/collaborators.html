@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborators and Teams</title>
+    <link rel="stylesheet" href="collaborators.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-button" onclick="goBack()">‹</button>
+                <h1>Collaborators and Teams</h1>
+            </div>
+            <button class="settings-icon" onclick="openSettings()">⚙</button>
+        </div>
+
+        <div class="manage-section">
+            <div class="manage-header">
+                <h2>Manage access</h2>
+                <button class="add-people-btn" onclick="addPeople()">Add People</button>
+            </div>
+
+            <div class="collaborators-box">
+                <div class="select-all">
+                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                    <label for="selectAll">Select all</label>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Search for a collaborator" oninput="searchCollaborators(this.value)">
+                </div>
+
+                <div id="collaboratorsList">
+                    <div class="collaborator-item" data-name="fern">
+                        <div class="collaborator-left">
+                            <input type="checkbox" class="collaborator-checkbox">
+                            <img src="" alt="Fern" class="avatar">
+                            <span class="collaborator-name">Fern</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeCollaborator(this)">Remove</button>
+                    </div>
+
+                    <div class="collaborator-item" data-name="aura">
+                        <div class="collaborator-left">
+                            <input type="checkbox" class="collaborator-checkbox">
+                            <img src="" alt="Aura" class="avatar">
+                            <span class="collaborator-name">Aura</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeCollaborator(this)">Remove</button>
+                    </div>
+
+                    <div class="collaborator-item" data-name="himmel">
+                        <div class="collaborator-left">
+                            <input type="checkbox" class="collaborator-checkbox">
+                            <img src="" alt="Himmel" class="avatar">
+                            <span class="collaborator-name">Himmel</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeCollaborator(this)">Remove</button>
+                    </div>
+
+                    <div class="collaborator-item" data-name="eisen">
+                        <div class="collaborator-left">
+                            <input type="checkbox" class="collaborator-checkbox">
+                            <img src="" alt="Eisen" class="avatar">
+                            <span class="collaborator-name">Eisen</span>
+                        </div>
+                        <button class="remove-btn" onclick="removeCollaborator(this)">Remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="collaborators.js"></script>
+</body>
+</html>
