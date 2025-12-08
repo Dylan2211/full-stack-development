@@ -13,7 +13,7 @@ async function fetchBoards(dashboardId) {
 
 // no_login_routes
 async function loadBoardName(boardId) {
-  const res = await fetch(`/no_login_routes/boards/${boardId}/tasks`);
+  const res = await fetch(`/no_login_routes/boards/${boardId}`);
   const board = await res.json();
 
   // UPDATE THE TITLE
@@ -23,7 +23,7 @@ async function loadBoardName(boardId) {
 // no_login_routes
 async function loadTasks(boardId) {
   console.log("Loading tasks for board:", boardId);
-  const res = await fetch(`/no_login_routes/tasks/${boardId}`, {
+  const res = await fetch(`/no_login_routes/tasks/${boardId}/tasks`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -230,6 +230,5 @@ document.addEventListener("DOMContentLoaded", () => {
   const dashboardId = 1; // Replace with actual board ID as needed
   const userId = 1; // Replace with actual user ID as needed
   init_add_task(userId);
-  loadTasks(boardId);
 });
 // #endregion Initialization

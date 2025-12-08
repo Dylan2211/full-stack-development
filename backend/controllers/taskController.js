@@ -34,6 +34,20 @@ async function getBoardByDashboardId(req, res) {
   }
 }
 
+async function getBoardById(req, res) {
+  try {
+    const boardId = parseInt(req.params.boardId);
+    const board = await taskModel.getBoardById(boardId);
+    if (!board) {
+      return res.status(404).json({ error: "Board not found" });
+    }
+    res.json(board);
+  } catch (error) {
+    console.error(`Error getting board by id: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 async function getTasksByBoardId(req, res) {
   try {
     const boardId = parseInt(req.params.boardId);
@@ -104,6 +118,7 @@ module.exports = {
   createTask,
   // getAllTasks,
   getBoardByDashboardId,
+  getBoardById,
   getTasksByBoardId,
   getTaskById,
   updateTask,

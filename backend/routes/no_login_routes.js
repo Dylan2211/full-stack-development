@@ -19,6 +19,7 @@ router.delete("/users/:id", userController.deleteUser);
 // Task
 router.get("/dashboards/:dashboardId/boards", taskController.getBoardByDashboardId);
 router.get("/boards/:boardId/tasks", taskController.getTasksByBoardId);
+router.get("/boards/:boardId", taskController.getBoardById);
 router.get("/tasks/:id", taskController.getTaskById);
 router.post("/tasks", taskController.createTask);
 router.put("/tasks/:id", taskController.updateTask);

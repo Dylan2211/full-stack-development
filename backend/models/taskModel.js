@@ -69,6 +69,20 @@ async function getBoardByDashboardId(dashboardId) {
   }
 }
 
+async function getBoardById(boardId) {
+  try {
+    const pool = await dbConfig;
+    const result = await pool
+      .request()
+      .input("boardId", sql.Int, boardId)
+      .query(`SELECT * FROM Boards WHERE BoardId = @boardId`);
+    return result.recordset[0] || null;
+  } catch (err) {
+    console.error("Error getting board by id:", err.message);
+    throw new Error("Database query failed");
+  }
+}
+
 async function getTasksByBoardId(boardId) {
   try {
     const pool = await dbConfig;
@@ -173,6 +187,7 @@ module.exports = {
   createTask,
   // getAllTasks,
   getBoardByDashboardId,
+  getBoardById,
   getTasksByBoardId,
   getTaskById,
   updateTask,
