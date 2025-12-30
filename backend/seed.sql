@@ -4,15 +4,16 @@ VALUES
 ('Ariel Tan', 'ariel@example.com', 'hashed_password_456', 'User'),
 ('Falak A.', 'falak@example.com', 'hashed_password_789', 'User');
 
+INSERT INTO Dashboards (Name, Description)
+VALUES
+('Project Alpha', 'Main dashboard for Project Alpha');
+
 -- Admin = Owner, Regular User = Viewer
 INSERT INTO UserDashboards (UserId, DashboardId, Role)
 VALUES
 (1, 1, 'Owner'),
 (2, 1, 'Viewer');
 
-INSERT INTO Dashboards (Name, Description)
-VALUES
-('Project Alpha', 'Main dashboard for Project Alpha');
 
 INSERT INTO Boards (DashboardId, Name)
 VALUES
