@@ -25,7 +25,7 @@ app.use(helmet());
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/no_login_routes", no_login_routes);
+app.use("/no_login_api", no_login_routes);
 app.use(express.static(frontendPath));
 app.use("/api", taskRoutes);
 
@@ -40,7 +40,7 @@ const ROUTES = {
 };
 //  #region Frontend routes
 app.get(ROUTES.HOME, (req, res) => {
-  res.redirect(ROUTES.KANBAN);
+  res.redirect(ROUTES.DASHBOARD);
 });
 app.get(ROUTES.LOGIN, (req, res) => {
   res.sendFile(path.join(frontendPath, "login/login.html"));

@@ -2,7 +2,7 @@
 :root {
   --page-bg: #f2f4f8;
   --board-bg: #ffffff;
-  --border-blue: #3385ff;
+  --border-blue: #2d3748;
   --column-border: #dde3f0;
   --text-main: #111111;
   --text-muted: #7a8191;
@@ -73,7 +73,7 @@ body {
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: var(--purple);
+  background: white;
   position: relative;
   cursor: pointer;
 }
@@ -84,15 +84,15 @@ body {
   position: absolute;
   inset: 10px;
   border-radius: 999px;
-  border: 2px solid #ffffff;
+  border: 2px solid #775FFF;
 }
 
 .add-task-button {
   border-radius: 999px;
   padding: 8px 20px;
   border: none;
-  background: var(--purple);
-  color: #ffffff;
+  background: white;
+  color: #775FFF;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -108,16 +108,18 @@ body {
 /* #region board frame */
 
 .board-shell {
-  padding: 24px 24px 32px 24px;
+  padding: 0;
+  height: calc(100vh - 64px);
 }
 
 .board-frame {
   width: 100%;
-  border-radius: 12px;
+  height: 100%;
+  border-radius: 0;
   background: var(--board-bg);
   /* removed the big blue border */
   border: none;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  box-shadow: none;
   padding: 18px 22px 24px 22px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -132,9 +134,10 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 460px;
+  height: 100%;
   background: #f7f9fc;
   border-radius: 10px;
-  /* blue outline per column instead of whole section */
+  /* dark grey/black outline per column */
   border: 2px solid var(--border-blue);
   padding: 10px 10px 14px 10px;
 }

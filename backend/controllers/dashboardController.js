@@ -1,5 +1,15 @@
 const dashboardModel = require("../models/dashboardModel");
 
+// Get all dashboards
+async function getAllDashboards(req, res) {
+  try {
+    const dashboards = await dashboardModel.getAllDashboards();
+    res.status(200).json(dashboards);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 // Get all users in a dashboard
 async function getUsersByDashboard(req, res) {
   try {
@@ -41,6 +51,7 @@ async function removeUser(req, res) {
 }
 
 module.exports = {
+  getAllDashboards,
   getUsersByDashboard,
   addUser,
   removeUser,

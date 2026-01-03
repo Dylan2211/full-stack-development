@@ -1,7 +1,7 @@
 // #region loading
-// no_login_routes
+// no_login_api
 async function fetchBoards(dashboardId) {
-  const res = await fetch(`/no_login_routes/dashboards/${dashboardId}/boards`, {
+  const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -11,19 +11,19 @@ async function fetchBoards(dashboardId) {
   return await res.json();
 }
 
-// no_login_routes
+// no_login_api
 async function loadBoardName(boardId) {
-  const res = await fetch(`/no_login_routes/boards/${boardId}`);
+  const res = await fetch(`/no_login_api/boards/${boardId}`);
   const board = await res.json();
 
   // UPDATE THE TITLE
   document.getElementById("boardTitle").textContent = board.Name;
 }
 
-// no_login_routes
+// no_login_api
 async function loadTasks(boardId) {
   console.log("Loading tasks for board:", boardId);
-  const res = await fetch(`/no_login_routes/tasks/${boardId}/tasks`, {
+  const res = await fetch(`/no_login_api/boards/${boardId}/tasks`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -38,9 +38,17 @@ async function loadTasks(boardId) {
   });
 }
 
+// no_login_api
 async function loadAgents() {
-  const res = await fetch("/api/agents");
+  const res = await fetch("/no_login_api/agents");
   return await res.json();
+}
+
+function getDashboardId() {
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get("id");
+  if (!id || isNaN(id)) return null;
+  return Number(id);
 }
 
 // #endregion loading
@@ -165,10 +173,10 @@ function init_add_task(boardId, userId) {
   });
 }
 
-// No_login_routes
+// no_login_api
 async function add_task(taskData) {
   // POST the task to your backend API
-  const res = await fetch("/no_login_routes/tasks", {
+  const res = await fetch("/no_login_api/tasks", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(taskData),
@@ -181,14 +189,8 @@ async function add_task(taskData) {
 }
 
 function addTaskToColumn(task) {
-  const statusMap = {
-    todo: "todo",
-    "in-progress": "inprogress",
-    completed: "completed",
-    errors: "errors",
-  };
-  const columnId = statusMap[task.Status];
-  const column = document.getElementById(columnId);
+  var targetListId = "board-" + (task.BoardId || "");
+  var column = document.getElementById(targetListId);
   if (!column) return;
 
   const card = document.createElement("div");
@@ -220,15 +222,75 @@ async function populateAgents() {
   });
 }
 
+function renderBoardColumns(boards) {
+  var frame = document.querySelector(".board-frame");
+  if (!frame) return;
+  frame.innerHTML = "";
+  boards.forEach(function (board) {
+    var section = document.createElement("section");
+    section.className = "column";
+    section.dataset.boardId = board.BoardId;
+
+    var header = document.createElement("header");
+    header.className = "column-header";
+    var name = document.createElement("div");
+    name.className = "column-name";
+    name.textContent = board.Name;
+    header.appendChild(name);
+
+    var list = document.createElement("div");
+    list.className = "list";
+    list.id = "board-" + board.BoardId;
+
+    section.appendChild(header);
+    section.appendChild(list);
+    frame.appendChild(section);
+  });
+}
+
 // #endregion Add Task
 
 // #region Initialization
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  var dashboardId = getDashboardId();
+  if (dashboardId === null) {
+    console.error("Invalid dashboard ID");
+    document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
+    return;
+  }
+  try {
+  // Fetch boards for this dashboard
+  const boards = await fetchBoards(dashboardId);
+
+  // Check if boards exist
+  if (!boards || boards.length === 0) {
+    console.log("No boards found for this dashboard");
+    return;
+  }
+
+  // Render columns from board names
+  renderBoardColumns(boards);
+
+  // Use the first board for title/load
+  const boardId = boards[0].BoardId;
+
+  // Load board data
+  await loadBoardName(boardId);
+
+  // Load tasks for each board
+  for (const b of boards) {
+    await loadTasks(b.BoardId);
+  }
+
+  // Initialize UI
   init_drag_and_drop();
-  agents = loadAgents();
-  populateAgents();
-  const dashboardId = 1; // Replace with actual board ID as needed
+  await populateAgents();
+  
   const userId = 1; // Replace with actual user ID as needed
-  init_add_task(userId);
+  init_add_task(boardId, userId);
+  } catch (error) {
+    console.error("Error during initialization:", error);
+    document.body.innerHTML = "<h2>Error: Unable to load dashboard data</h2>";
+  }
 });
 // #endregion Initialization

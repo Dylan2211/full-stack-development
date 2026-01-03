@@ -6,13 +6,27 @@ VALUES
 
 INSERT INTO Dashboards (Name, Description)
 VALUES
-('Project Alpha', 'Main dashboard for Project Alpha');
+('EGRA Team Project', 'EGRA Dashboard for collaboration for work projects.'),
+('Holiday Planning', 'Dashboard used to plan our holiday in December!'),
+('Daily Task Manager', 'Keep track of daily tasks and provide suggestions on how to improve'),
+('Gaming Checklist', 'Dashboard to check for optimizations for gaming performance'),
+('Dashmi Task Board', 'Dashmi task board with Alison for weekend planning'),
+('Assignment 1 FSDP', 'Dashboard to help provide help for Full Stack Development Assignment 1'),
+('Dashboard 7', 'This dashboard is used for interesting purposes');
 
 -- Admin = Owner, Regular User = Viewer
 INSERT INTO UserDashboards (UserId, DashboardId, Role)
 VALUES
 (1, 1, 'Owner'),
-(2, 1, 'Viewer');
+(1, 2, 'Owner'),
+(1, 3, 'Owner'),
+(1, 4, 'Owner'),
+(1, 5, 'Owner'),
+(1, 6, 'Owner'),
+(1, 7, 'Owner'),
+(2, 1, 'Viewer'),
+(2, 2, 'Viewer'),
+(3, 3, 'Viewer');
 
 
 INSERT INTO Boards (DashboardId, Name)
@@ -55,4 +69,3 @@ VALUES
  NULL, NULL, 'Design', 'Done', '1h', NULL, 100, NULL);
 
 -- #endregion Kanban Board
-

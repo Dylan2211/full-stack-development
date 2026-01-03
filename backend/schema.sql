@@ -1,3 +1,8 @@
+CREATE DATABASE FullStack;
+GO
+USE FullStack;
+GO
+
 CREATE TABLE Users (
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     FullName NVARCHAR(100) NOT NULL,

@@ -1,6 +1,16 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 
+// Get all dashboards
+async function getAllDashboards() {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request().query(`
+    SELECT DashboardId, Name, Description, CreatedAt
+    FROM Dashboards
+  `);
+  return result.recordset;
+}
+
 // Get all users linked to a dashboard
 async function getUsersByDashboardId(dashboardId) {
   const pool = await sql.connect(dbConfig);
@@ -41,6 +51,7 @@ async function removeUserFromDashboard(userId, dashboardId) {
 }
 
 module.exports = {
+  getAllDashboards,
   getUsersByDashboardId,
   addUserToDashboard,
   removeUserFromDashboard,

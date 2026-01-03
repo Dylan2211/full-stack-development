@@ -4,6 +4,7 @@ const router = express.Router();
 // Controllers
 const taskController = require("../controllers/taskController");
 const userController = require("../controllers/userController");
+const dashboardController = require("../controllers/dashboardController");
 const { agents } = require("../ai/aiAssignAgent");
 // Middleware
 // No login required
@@ -15,6 +16,9 @@ router.post("/register", userController.registerUser);
 router.post("/login", userController.loginUser);
 router.put("/users/:id", userController.updateUser);
 router.delete("/users/:id", userController.deleteUser);
+
+// Dashboard
+router.get("/dashboards", dashboardController.getAllDashboards);
 
 // Task
 router.get("/dashboards/:dashboardId/boards", taskController.getBoardByDashboardId);
