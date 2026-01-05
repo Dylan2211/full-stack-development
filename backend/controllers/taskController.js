@@ -34,10 +34,31 @@ async function getBoardByDashboardId(req, res) {
   }
 }
 
-async function getBoardById(req, res) {
+async function createBoard(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId || req.body.dashboardId);
+    const name = (req.body.name || "").trim();
+
+    if (!dashboardId || Number.isNaN(dashboardId)) {
+      return res.status(400).json({ error: "DashboardId is required" });
+    }
+
+    if (!name) {
+      return res.status(400).json({ error: "Board name is required" });
+    }
+
+    const board = await taskModel.createBoard({ dashboardId, name });
+    res.status(201).json(board);
+  } catch (error) {
+    console.error("Error creating board:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+async function getBoardByBoardId(req, res) {
   try {
     const boardId = parseInt(req.params.boardId);
-    const board = await taskModel.getBoardById(boardId);
+    const board = await taskModel.getBoardByBoardId(boardId);
     if (!board) {
       return res.status(404).json({ error: "Board not found" });
     }
@@ -118,7 +139,8 @@ module.exports = {
   createTask,
   // getAllTasks,
   getBoardByDashboardId,
-  getBoardById,
+  getBoardByBoardId,
+  createBoard,
   getTasksByBoardId,
   getTaskById,
   updateTask,

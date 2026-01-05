@@ -69,7 +69,28 @@ async function getBoardByDashboardId(dashboardId) {
   }
 }
 
-async function getBoardById(boardId) {
+async function createBoard({ dashboardId, name }) {
+  try {
+    const pool = await dbConfig;
+    const result = await pool
+      .request()
+      .input("dashboardId", sql.Int, dashboardId)
+      .input("name", sql.NVarChar, name)
+      .input("createdAt", sql.DateTime, new Date())
+      .query(
+        `INSERT INTO Boards (DashboardId, Name, CreatedAt)
+         OUTPUT INSERTED.BoardId, INSERTED.DashboardId, INSERTED.Name, INSERTED.CreatedAt
+         VALUES (@dashboardId, @name, @createdAt)`
+      );
+
+    return result.recordset[0];
+  } catch (err) {
+    console.error("Error creating board:", err.message);
+    throw new Error("Database query failed");
+  }
+}
+
+async function getBoardByBoardId(boardId) {
   try {
     const pool = await dbConfig;
     const result = await pool
@@ -187,7 +208,8 @@ module.exports = {
   createTask,
   // getAllTasks,
   getBoardByDashboardId,
-  getBoardById,
+  getBoardByBoardId,
+  createBoard,
   getTasksByBoardId,
   getTaskById,
   updateTask,

@@ -22,8 +22,9 @@ router.get("/dashboards", dashboardController.getAllDashboards);
 
 // Task
 router.get("/dashboards/:dashboardId/boards", taskController.getBoardByDashboardId);
+router.post("/dashboards/:dashboardId/boards", taskController.createBoard);
 router.get("/boards/:boardId/tasks", taskController.getTasksByBoardId);
-router.get("/boards/:boardId", taskController.getBoardById);
+router.get("/boards/:boardId", taskController.getBoardByBoardId);
 router.get("/tasks/:id", taskController.getTaskById);
 router.post("/tasks", taskController.createTask);
 router.put("/tasks/:id", taskController.updateTask);

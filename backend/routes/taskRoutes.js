@@ -21,6 +21,7 @@ router.delete("/users/:id", authMiddleware, userController.deleteUser);
 
 // Task routes
 router.get("/dashboards/:dashboardId/boards", taskController.getBoardByDashboardId);
+router.post("/dashboards/:dashboardId/boards", taskController.createBoard);
 router.get("/boards/:boardId/tasks", authMiddleware, taskController.getTasksByBoardId);
 router.get("/tasks/:id", authMiddleware, taskController.getTaskById);
 router.post("/tasks", authMiddleware, taskController.createTask);

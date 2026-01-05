@@ -1,3 +1,5 @@
+let currentDashboardId = null;
+
 // #region loading
 // no_login_api
 async function fetchBoards(dashboardId) {
@@ -44,6 +46,22 @@ async function loadAgents() {
   return await res.json();
 }
 
+// no_login_api
+async function createBoardRequest(dashboardId, name) {
+  const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!res.ok) {
+    const message = await res.text();
+    throw new Error(message || "Unable to create board");
+  }
+
+  return await res.json();
+}
+
 function getDashboardId() {
   var params = new URLSearchParams(window.location.search);
   var id = params.get("id");
@@ -83,51 +101,55 @@ function get_drag_after_element(list, mouse_y) {
   ).element;
 }
 
+function bind_column_drag_events(column) {
+  if (column.classList.contains("add-board-column")) return;
+  if (column.dataset.dndBound === "1") return;
+
+  const list = column.querySelector(".list");
+  if (!list) return;
+
+  column.dataset.dndBound = "1";
+
+  column.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    const dragging = document.querySelector(".card.dragging");
+    if (!dragging) {
+      return;
+    }
+
+    const after_element = get_drag_after_element(list, event.clientY);
+    if (after_element == null) {
+      list.appendChild(dragging);
+    } else {
+      list.insertBefore(dragging, after_element);
+    }
+
+    column.classList.add("drag-over");
+  });
+
+  column.addEventListener("dragenter", (event) => {
+    event.preventDefault();
+    column.classList.add("drag-over");
+  });
+
+  column.addEventListener("dragleave", (event) => {
+    const dragging = document.querySelector(".card.dragging");
+    if (!column.contains(event.relatedTarget) && dragging) {
+      column.classList.remove("drag-over");
+    }
+  });
+
+  column.addEventListener("drop", () => {
+    column.classList.remove("drag-over");
+  });
+}
+
 function init_drag_and_drop() {
   const cards = document.querySelectorAll(".card");
   const columns = document.querySelectorAll(".column");
 
   cards.forEach(attach_card_drag_events);
-
-  columns.forEach((column) => {
-    const list = column.querySelector(".list");
-    if (!list) {
-      return;
-    }
-
-    column.addEventListener("dragover", (event) => {
-      event.preventDefault();
-      const dragging = document.querySelector(".card.dragging");
-      if (!dragging) {
-        return;
-      }
-
-      const after_element = get_drag_after_element(list, event.clientY);
-      if (after_element == null) {
-        list.appendChild(dragging);
-      } else {
-        list.insertBefore(dragging, after_element);
-      }
-
-      column.classList.add("drag-over");
-    });
-
-    column.addEventListener("dragenter", (event) => {
-      event.preventDefault();
-      column.classList.add("drag-over");
-    });
-
-    column.addEventListener("dragleave", (event) => {
-      const dragging = document.querySelector(".card.dragging");
-      if (!column.contains(event.relatedTarget) && dragging) {
-        column.classList.remove("drag-over");
-      }
-    });
-
-    column.addEventListener("drop", () => {
-      column.classList.remove("drag-over");
-    });
-  });
+  columns.forEach(bind_column_drag_events);
 }
 
 // #endregion Tasks
@@ -222,30 +244,106 @@ async function populateAgents() {
   });
 }
 
-function renderBoardColumns(boards) {
+function buildBoardColumn(board) {
+  var section = document.createElement("section");
+  section.className = "column";
+  section.dataset.boardId = board.BoardId;
+
+  var header = document.createElement("header");
+  header.className = "column-header";
+  var name = document.createElement("div");
+  name.className = "column-name";
+  name.textContent = board.Name;
+  header.appendChild(name);
+
+  var list = document.createElement("div");
+  list.className = "list";
+  list.id = "board-" + board.BoardId;
+
+  section.appendChild(header);
+  section.appendChild(list);
+  bind_column_drag_events(section);
+
+  return section;
+}
+
+function buildAddBoardColumn(dashboardId) {
+  var section = document.createElement("section");
+  section.className = "column add-board-column";
+
+  var header = document.createElement("header");
+  header.className = "column-header";
+  var name = document.createElement("div");
+  name.className = "column-name";
+  name.textContent = "new board";
+  header.appendChild(name);
+
+  var form = document.createElement("form");
+  form.className = "add-board-form";
+  form.innerHTML = `
+    <label class="sr-only" for="newBoardName">Board name</label>
+    <input id="newBoardName" class="add-board-input" type="text" name="boardName" placeholder="Name" required />
+    <button class="add-board-submit" type="submit">Create</button>
+    <div class="add-board-hint">Creates a fresh column for this dashboard.</div>
+  `;
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    var input = form.querySelector(".add-board-input");
+    var hint = form.querySelector(".add-board-hint");
+    if (!input) return;
+
+    var nameValue = input.value.trim();
+    if (!nameValue) return;
+
+    try {
+      form.classList.add("is-loading");
+      hint.textContent = "Creating...";
+      const board = await createBoardRequest(dashboardId, nameValue);
+      input.value = "";
+      hint.textContent = "Board created";
+
+      var frame = document.querySelector(".board-frame");
+      var addColumn = frame ? frame.querySelector(".add-board-column") : null;
+      var newCol = buildBoardColumn(board);
+      if (frame && addColumn) {
+        frame.insertBefore(newCol, addColumn);
+      } else if (frame) {
+        frame.appendChild(newCol);
+      }
+
+      var boardTitle = document.getElementById("boardTitle");
+       if (boardTitle && (!boardTitle.textContent || boardTitle.textContent === "Create your first board")) {
+        boardTitle.textContent = board.Name;
+      }
+    } catch (error) {
+      if (hint) {
+        hint.textContent = "Could not create board";
+      }
+      console.error("Failed to create board:", error);
+    } finally {
+      form.classList.remove("is-loading");
+      input.focus();
+      setTimeout(function () {
+        if (hint) hint.textContent = "Creates a fresh column for this dashboard.";
+      }, 1500);
+    }
+  });
+
+  section.appendChild(header);
+  section.appendChild(form);
+  return section;
+}
+
+function renderBoardColumns(boards, dashboardId) {
   var frame = document.querySelector(".board-frame");
   if (!frame) return;
   frame.innerHTML = "";
   boards.forEach(function (board) {
-    var section = document.createElement("section");
-    section.className = "column";
-    section.dataset.boardId = board.BoardId;
-
-    var header = document.createElement("header");
-    header.className = "column-header";
-    var name = document.createElement("div");
-    name.className = "column-name";
-    name.textContent = board.Name;
-    header.appendChild(name);
-
-    var list = document.createElement("div");
-    list.className = "list";
-    list.id = "board-" + board.BoardId;
-
-    section.appendChild(header);
-    section.appendChild(list);
-    frame.appendChild(section);
+    frame.appendChild(buildBoardColumn(board));
   });
+
+  frame.appendChild(buildAddBoardColumn(dashboardId));
 }
 
 // #endregion Add Task
@@ -258,18 +356,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
     return;
   }
+  currentDashboardId = dashboardId;
   try {
   // Fetch boards for this dashboard
-  const boards = await fetchBoards(dashboardId);
+  const boards = (await fetchBoards(dashboardId)) || [];
 
-  // Check if boards exist
-  if (!boards || boards.length === 0) {
-    console.log("No boards found for this dashboard");
+  // Render columns from board names (always include the add-board column)
+  renderBoardColumns(boards, dashboardId);
+
+  if (!boards.length) {
+    document.getElementById("boardTitle").textContent = "Create your first board";
+    init_drag_and_drop();
+    await populateAgents();
     return;
   }
-
-  // Render columns from board names
-  renderBoardColumns(boards);
 
   // Use the first board for title/load
   const boardId = boards[0].BoardId;
