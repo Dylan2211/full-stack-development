@@ -20,16 +20,54 @@ async function createTask(req, res) {
   }
 }
 
-// async function getAllTasks(req, res) {
-//   try {
-//     const { status, priority } = req.query;
-//     const tasks = await taskModel.getAllTasks({ status, priority });
-//     res.json(tasks);
-//   } catch (error) {
-//     console.error(`Error getting tasks:${error}`);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// }
+async function getBoardByDashboardId(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId);
+    const boards = await taskModel.getBoardByDashboardId(dashboardId);
+    if (!boards) {
+      console.write("No boards found for this dashboard");
+    }
+    res.json(boards);
+  } catch (error) {
+    console.error(`Error getting boards by dashboard id: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+async function createBoard(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId || req.body.dashboardId);
+    const name = (req.body.name || "").trim();
+
+    if (!dashboardId || Number.isNaN(dashboardId)) {
+      return res.status(400).json({ error: "DashboardId is required" });
+    }
+
+    if (!name) {
+      return res.status(400).json({ error: "Board name is required" });
+    }
+
+    const board = await taskModel.createBoard({ dashboardId, name });
+    res.status(201).json(board);
+  } catch (error) {
+    console.error("Error creating board:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+async function getBoardByBoardId(req, res) {
+  try {
+    const boardId = parseInt(req.params.boardId);
+    const board = await taskModel.getBoardByBoardId(boardId);
+    if (!board) {
+      return res.status(404).json({ error: "Board not found" });
+    }
+    res.json(board);
+  } catch (error) {
+    console.error(`Error getting board by id: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
 
 async function getTasksByBoardId(req, res) {
   try {
@@ -62,12 +100,52 @@ async function getTaskById(req, res) {
 async function updateTask(req, res) {
   try {
     const taskId = parseInt(req.params.id);
+    const existing = await taskModel.getTaskById(taskId);
+    if (!existing) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    // Allow partial updates by merging incoming values with the existing task.
+    const mergedDependencies = (() => {
+      if (Array.isArray(req.body.dependencies)) return req.body.dependencies;
+      if (typeof req.body.dependencies === "string") {
+        try {
+          return JSON.parse(req.body.dependencies);
+        } catch (_) {
+          return [];
+        }
+      }
+      if (typeof existing.Dependencies === "string") {
+        try {
+          return JSON.parse(existing.Dependencies);
+        } catch (_) {
+          return [];
+        }
+      }
+      return existing.Dependencies || [];
+    })();
+
+    const mergedSkills = (() => {
+      if (Array.isArray(req.body.skills)) return JSON.stringify(req.body.skills);
+      if (typeof req.body.skills === "string") return req.body.skills;
+      return existing.Skills || "[]";
+    })();
+
     const taskData = {
-      title: req.body.title,
-      description: req.body.description || "",
-      category: req.body.category || "",
-      priority: req.body.priority || "",
-      skills: req.body.skills || "",
+      title: req.body.title ?? existing.Title,
+      description: req.body.description ?? existing.Description,
+      category: req.body.category ?? existing.Category,
+      status: req.body.status ?? existing.Status,
+      boardId: req.body.boardId ?? existing.BoardId,
+      position: req.body.position ?? existing.Position,
+      skills: mergedSkills,
+      estimatedDuration: req.body.estimatedDuration ?? existing.EstimatedDuration,
+      assignedAgent: req.body.assignedAgent ?? existing.AssignedAgent,
+      agentMatchScore: req.body.agentMatchScore ?? existing.AgentMatchScore,
+      agentProgress: req.body.agentProgress ?? existing.AgentProgress,
+      dependencies: mergedDependencies,
+      createdBy: existing.CreatedBy,
+      createdAt: existing.CreatedAt,
     };
 
     const { updated } = await taskModel.updateTask({ taskId, taskData });
@@ -100,6 +178,9 @@ async function deleteTask(req, res) {
 module.exports = {
   createTask,
   // getAllTasks,
+  getBoardByDashboardId,
+  getBoardByBoardId,
+  createBoard,
   getTasksByBoardId,
   getTaskById,
   updateTask,

@@ -1,3 +1,4 @@
+// #region Value helpers
 function clampPercent(value) {
   if (typeof value !== "number" || isNaN(value)) return 0;
   if (value < 0) return 0;
@@ -5,6 +6,27 @@ function clampPercent(value) {
   return value;
 }
 
+function readMetricNumber(params, key) {
+  var raw = params.get(key);
+  if (raw === null || raw === "") return null;
+  var v = Number(raw);
+  if (!isFinite(v)) return null;
+  return v;
+}
+
+function readList(params, key) {
+  var all = params.getAll(key);
+  var values = [];
+  for (var i = 0; i < all.length; i++) {
+    var v = Number(all[i]);
+    if (!isFinite(v)) continue;
+    values.push(v);
+  }
+  return values;
+}
+// #endregion
+
+// #region DOM helpers
 function setText(id, value, suffix) {
   var el = document.getElementById(id);
   if (!el) return;
@@ -26,6 +48,14 @@ function setPercentBar(barId, value) {
   bar.style.width = v + "%";
 }
 
+function clearChildren(node) {
+  while (node && node.firstChild) {
+    node.removeChild(node.firstChild);
+  }
+}
+// #endregion
+
+// #region Label and status helpers
 function badgeFromAcceptance(value) {
   var v = clampPercent(value);
   if (!value && value !== 0) return "unknown";
@@ -61,7 +91,9 @@ function statusClassFromText(text) {
   if (t === "offline" || t === "disabled") return "agent-status-offline";
   return "";
 }
+// #endregion
 
+// #region Renderers
 function applyAgentStatus(id, statusText) {
   var el = document.getElementById(id);
   if (!el) return;
@@ -69,12 +101,6 @@ function applyAgentStatus(id, statusText) {
   el.classList.remove("agent-status-online", "agent-status-busy", "agent-status-offline");
   var cls = statusClassFromText(statusText);
   if (cls) el.classList.add(cls);
-}
-
-function clearChildren(node) {
-  while (node && node.firstChild) {
-    node.removeChild(node.firstChild);
-  }
 }
 
 function renderUsageBars(values) {
@@ -138,25 +164,6 @@ function renderEvents(events) {
     row.appendChild(tag);
     list.appendChild(row);
   });
-}
-
-function readMetricNumber(params, key) {
-  var raw = params.get(key);
-  if (raw === null || raw === "") return null;
-  var v = Number(raw);
-  if (!isFinite(v)) return null;
-  return v;
-}
-
-function readList(params, key) {
-  var all = params.getAll(key);
-  var values = [];
-  for (var i = 0; i < all.length; i++) {
-    var v = Number(all[i]);
-    if (!isFinite(v)) continue;
-    values.push(v);
-  }
-  return values;
 }
 
 function applyMetrics(data) {
@@ -259,13 +266,14 @@ function applyMetrics(data) {
     renderEvents(data.events);
   }
 }
+// #endregion
 
+// #region Query parsing
 function metricsFromQuery() {
   var params = new URLSearchParams(window.location.search);
   var usage = readList(params, "usage");
   var events = [];
-  var i = 1;
-  while (true) {
+  for (var i = 1; ; i += 1) {
     var msg = params.get("event" + i);
     if (!msg) break;
     events.push({
@@ -273,7 +281,6 @@ function metricsFromQuery() {
       message: msg,
       type: params.get("event" + i + "_type") || "info"
     });
-    i += 1;
   }
   var agents = {
     gemini: params.get("agent_gemini") || null,
@@ -300,21 +307,42 @@ function metricsFromQuery() {
     events: events
   };
 }
+// #endregion
 
-document.addEventListener("DOMContentLoaded", function () {
-  var data = metricsFromQuery();
-  applyMetrics(data);
-  var snapshotButton = document.getElementById("snapshot-button");
-  if (snapshotButton) {
-    snapshotButton.addEventListener("click", function () {
-      var now = new Date();
-      var label = now.toISOString().slice(0, 19).replace("T", " ");
-      var title = "dashboard snapshot " + label;
-      alert(title);
+// #region UI wiring
+async function loadDashboards() {
+  try {
+    const response = await fetch("/no_login_api/dashboards");
+    const dashboards = await response.json();
+
+    const grid = document.querySelector(".dashboard-grid");
+    dashboards.forEach((dashboard) => {
+      const card = document.createElement("a");
+      card.href = `/kanban/kanban.html?id=${dashboard.DashboardId}`;
+      card.className = "card";
+      card.innerHTML = `
+        <h3>${dashboard.Name}</h3>
+        <p>${dashboard.Description || "No description provided."}</p>
+      `;
+      grid.appendChild(card);
     });
+  } catch (error) {
+    console.error("Failed to load dashboards:", error);
   }
-  window.updateDashboard = applyMetrics;
+}
 
+function setupSnapshotButton() {
+  var snapshotButton = document.getElementById("snapshot-button");
+  if (!snapshotButton) return;
+  snapshotButton.addEventListener("click", function () {
+    var now = new Date();
+    var label = now.toISOString().slice(0, 19).replace("T", " ");
+    var title = "dashboard snapshot " + label;
+    alert(title);
+  });
+}
+
+function setupOverlay() {
   var createCard = document.getElementById("create-dashboard-card");
   var overlay = document.getElementById("new-dashboard-overlay");
   var overlayBackdrop = document.getElementById("overlay-backdrop");
@@ -396,4 +424,14 @@ document.addEventListener("DOMContentLoaded", function () {
       closeOverlay();
     }
   });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadDashboards();
+  var data = metricsFromQuery();
+  applyMetrics(data);
+  window.updateDashboard = applyMetrics;
+  setupSnapshotButton();
+  setupOverlay();
 });
+// #endregion

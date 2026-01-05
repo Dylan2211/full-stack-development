@@ -1,10 +1,11 @@
+<!-- I need a back button -->
+ <!-- The styling has too much blue, looks better with black and white (simple) -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <!-- TODO: REMOVE HARDCODED PART BELOW -->
-    <title>egra team project – kanban</title>
+    <title><!--Title to be populated dynamically-->Loading...</title>
     <link rel="stylesheet" href="/kanban/kanban.css" />
     <link rel="icon" type="image/png" href="/favicon.png" />
   </head>
@@ -12,11 +13,13 @@
     <div class="page">
       <header class="board-header">
         <div class="board-left">
-          <!-- TODO: REMOVE HARDCODED PART BELOW -->
-          <h1 class="board-title">EGRA TEAM PROJECT</h1>
+          <a class="back-button" href="/dashboard/dashboard.html" aria-label="Back to dashboards">Back</a>
+          <h1 id="boardTitle" class="board-title" aria-live="polite"></h1>
         </div>
         <div class="board-right">
-          <button class="settings-button" aria-label="settings"></button>
+          <button class="settings-button" aria-label="settings">
+            <img src="/Settings.png" alt="Settings" />
+          </button>
           <button id="new-task-trigger" class="add-task-button">
             add task
           </button>
@@ -25,45 +28,7 @@
 
       <main class="board-shell">
         <div class="board-frame">
-          <!-- to do -->
-          <section class="column" data-status="todo" aria-label="to do">
-            <header class="column-header">
-              <div class="column-name">to do</div>
-            </header>
-            <div class="list" id="todo"></div>
-          </section>
-
-          <!-- in progress -->
-          <section
-            class="column"
-            data-status="in-progress"
-            aria-label="in progress"
-          >
-            <header class="column-header">
-              <div class="column-name">in progress</div>
-            </header>
-            <div class="list" id="inprogress"></div>
-          </section>
-
-          <!-- completed -->
-          <section
-            class="column"
-            data-status="completed"
-            aria-label="completed"
-          >
-            <header class="column-header">
-              <div class="column-name">completed</div>
-            </header>
-            <div class="list" id="completed"></div>
-          </section>
-
-          <!-- errors -->
-          <section class="column" data-status="errors" aria-label="errors">
-            <header class="column-header">
-              <div class="column-name">errors</div>
-            </header>
-            <div class="list" id="errors"></div>
-          </section>
+          <!-- Boards to be populated dynamically -->
         </div>
       </main>
     </div>

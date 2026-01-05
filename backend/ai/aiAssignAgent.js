@@ -7,24 +7,29 @@ const agents = [
 ];
 
 async function queryOllama(prompt, model = "gemma3:4b") {
-  const response = await fetch("http://localhost:11434/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model,
-      prompt,
-      stream: false,
-    }),
-  });
+  try {
+    const response = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        prompt,
+        stream: false,
+      }),
+    });
 
-  const data = await response.json();
-  console.log("Ollama response:", data);
+    const data = await response.json();
+    console.log("Ollama response:", data);
 
-  if (!data || !data.response) {
-    throw new Error("Invalid response from Ollama");
+    if (!data || !data.response) {
+      throw new Error("Invalid response from Ollama");
+    }
+
+    return data.response.trim();
+  } catch (error) {
+    console.warn("Ollama not available, using fallback:", error.message);
+    return null;
   }
-
-  return data.response.trim();
 }
 
 async function aiAssignAgent(task) {
@@ -67,6 +72,19 @@ async function aiAssignAgent(task) {
     const raw = await queryOllama(analysisPrompt);
     console.log("Ollama raw response:", raw);
 
+    // If Ollama is not available, use fallback values
+    if (raw === null) {
+      console.log("Using fallback values since Ollama is unavailable");
+      return {
+        assignedAgent: "Manual",
+        agentMatchScore: 0,
+        agentProgress: 0,
+        status: "Pending",
+        category: "General",
+        estimatedDuration: "Not estimated",
+      };
+    }
+
     // Try to parse JSON safely
     let parsed;
     try {
@@ -79,6 +97,8 @@ async function aiAssignAgent(task) {
         agentMatchScore: Math.round(bestScore),
         agentProgress: 0,
         status: "Pending",
+        category: "General",
+        estimatedDuration: "Not estimated",
       };
     }
 
