@@ -139,10 +139,29 @@ function bind_column_drag_events(column) {
     }
   });
 
-  column.addEventListener("drop", () => {
+  column.addEventListener("drop", async () => {
     column.classList.remove("drag-over");
+    const dragged = document.querySelector(".card.dragging");
+    if (!dragged) return;
+
+    const targetBoardId = column.dataset.boardId;
+    const ordered = [...column.querySelectorAll(".card")];
+
+    // persist board + position for every card now in this column
+    await Promise.all(
+      ordered.map((card, idx) =>
+        fetch(`/no_login_api/tasks/${card.dataset.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boardId: targetBoardId,
+            position: idx,
+          }),
+        })
+      )
+    );
   });
-}
+};
 
 function init_drag_and_drop() {
   const cards = document.querySelectorAll(".card");
@@ -349,19 +368,21 @@ function renderBoardColumns(boards, dashboardId) {
 // #endregion Add Task
 
 // #region Initialization
-document.addEventListener("DOMContentLoaded", async () => {
-  var dashboardId = getDashboardId();
+function ensureDashboardId() {
+  const dashboardId = getDashboardId();
   if (dashboardId === null) {
     console.error("Invalid dashboard ID");
     document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
-    return;
+    return null;
   }
   currentDashboardId = dashboardId;
-  try {
-  // Fetch boards for this dashboard
+  return dashboardId;
+}
+
+async function InitializeDashboard(dashboardId) {
+  // Gives boards or gives create your first board
   const boards = (await fetchBoards(dashboardId)) || [];
 
-  // Render columns from board names (always include the add-board column)
   renderBoardColumns(boards, dashboardId);
 
   if (!boards.length) {
@@ -371,23 +392,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Use the first board for title/load
   const boardId = boards[0].BoardId;
-
-  // Load board data
   await loadBoardName(boardId);
 
-  // Load tasks for each board
   for (const b of boards) {
     await loadTasks(b.BoardId);
   }
 
-  // Initialize UI
   init_drag_and_drop();
   await populateAgents();
-  
+
   const userId = 1; // Replace with actual user ID as needed
   init_add_task(boardId, userId);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const dashboardId = ensureDashboardId();
+  if (dashboardId === null) return;
+
+  try {
+    await InitializeDashboard(dashboardId);
   } catch (error) {
     console.error("Error during initialization:", error);
     document.body.innerHTML = "<h2>Error: Unable to load dashboard data</h2>";

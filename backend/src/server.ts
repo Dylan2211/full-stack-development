@@ -10,6 +10,9 @@ const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
 const defaultPort = 3000;
 
+// cd backend
+// npx tsc
+// npm run dev
 //  #region Environment Variable Validation
 dotenv.config();
 const requiredEnvVars = ["DB_USER", "DB_PASSWORD", "DB_SERVER", "DB_DATABASE", "DB_PORT"];

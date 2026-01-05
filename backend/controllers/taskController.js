@@ -100,12 +100,52 @@ async function getTaskById(req, res) {
 async function updateTask(req, res) {
   try {
     const taskId = parseInt(req.params.id);
+    const existing = await taskModel.getTaskById(taskId);
+    if (!existing) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    // Allow partial updates by merging incoming values with the existing task.
+    const mergedDependencies = (() => {
+      if (Array.isArray(req.body.dependencies)) return req.body.dependencies;
+      if (typeof req.body.dependencies === "string") {
+        try {
+          return JSON.parse(req.body.dependencies);
+        } catch (_) {
+          return [];
+        }
+      }
+      if (typeof existing.Dependencies === "string") {
+        try {
+          return JSON.parse(existing.Dependencies);
+        } catch (_) {
+          return [];
+        }
+      }
+      return existing.Dependencies || [];
+    })();
+
+    const mergedSkills = (() => {
+      if (Array.isArray(req.body.skills)) return JSON.stringify(req.body.skills);
+      if (typeof req.body.skills === "string") return req.body.skills;
+      return existing.Skills || "[]";
+    })();
+
     const taskData = {
-      title: req.body.title,
-      description: req.body.description || "",
-      category: req.body.category || "",
-      priority: req.body.priority || "",
-      skills: req.body.skills || "",
+      title: req.body.title ?? existing.Title,
+      description: req.body.description ?? existing.Description,
+      category: req.body.category ?? existing.Category,
+      status: req.body.status ?? existing.Status,
+      boardId: req.body.boardId ?? existing.BoardId,
+      position: req.body.position ?? existing.Position,
+      skills: mergedSkills,
+      estimatedDuration: req.body.estimatedDuration ?? existing.EstimatedDuration,
+      assignedAgent: req.body.assignedAgent ?? existing.AssignedAgent,
+      agentMatchScore: req.body.agentMatchScore ?? existing.AgentMatchScore,
+      agentProgress: req.body.agentProgress ?? existing.AgentProgress,
+      dependencies: mergedDependencies,
+      createdBy: existing.CreatedBy,
+      createdAt: existing.CreatedAt,
     };
 
     const { updated } = await taskModel.updateTask({ taskId, taskData });
