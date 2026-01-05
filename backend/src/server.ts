@@ -32,12 +32,13 @@ app.get("/kanban", (req, res) => {
 app.get("/ai-files", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/ai-files/ai-files.html"));
 });
-app.get("/profile", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/profile/profile.html"));
+app.get("/settings", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/settings/profile.html"));
 });
 app.get("/test", (req, res) => {
   res.sendFile(path.join(__dirname, "../../frontend/test/task.html"));
 });
+
 //  #endregion
 
 // #region Error handling middleware
