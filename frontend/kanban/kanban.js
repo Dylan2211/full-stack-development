@@ -2,6 +2,8 @@ let currentDashboardId = null;
 
 // #region loading
 // no_login_api
+// Safe setter to avoid null element crashes
+
 async function fetchBoards(dashboardId) {
   const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
     method: "GET",
@@ -31,7 +33,7 @@ async function loadBoardName(dashboardId) {
     console.error("Dashboard not found");
     throw new Error("Dashboard not found");
   }
-  document.getElementById("dashboardTitle").textContent = dashboard.Name;
+  setText("dashboardTitle", dashboard.Name);
 }
 
 // no_login_api
@@ -85,12 +87,72 @@ function getDashboardId() {
 
 // #region Tasks
 
+let hiddenDragImage = null;
+function getHiddenDragImage() {
+  if (hiddenDragImage) return hiddenDragImage;
+  const img = document.createElement("div");
+  img.style.width = "1px";
+  img.style.height = "1px";
+  img.style.opacity = "0";
+  img.style.position = "absolute";
+  img.style.pointerEvents = "none";
+  document.body.appendChild(img);
+  hiddenDragImage = img;
+  return img;
+}
+
+// lightweight preview that follows the cursor during native drag
+let dragPreview = null;
+let dragPreviewOffset = { x: 0, y: 0 };
+
+function moveDragPreview(event) {
+  if (!dragPreview) return;
+  dragPreview.style.transform = `translate(${event.clientX - dragPreviewOffset.x}px, ${event.clientY - dragPreviewOffset.y}px)`;
+}
+
+function handleDragOver(event) {
+  // ensure dragover keeps firing even over non-drop targets
+  event.preventDefault();
+  moveDragPreview(event);
+}
+
+function createDragPreview(card, event) {
+  removeDragPreview();
+  const rect = card.getBoundingClientRect();
+  dragPreview = card.cloneNode(true);
+  dragPreview.classList.add("drag-preview");
+  dragPreview.style.width = `${rect.width}px`;
+  dragPreview.style.height = `${rect.height}px`;
+  document.body.appendChild(dragPreview);
+
+  dragPreviewOffset = {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+  };
+
+  moveDragPreview(event);
+  document.addEventListener("drag", moveDragPreview);
+  document.addEventListener("dragover", handleDragOver, { passive: false });
+}
+
+function removeDragPreview() {
+  if (!dragPreview) return;
+  dragPreview.remove();
+  dragPreview = null;
+  document.removeEventListener("drag", moveDragPreview);
+  document.removeEventListener("dragover", handleDragOver);
+}
+
 function attach_card_drag_events(card) {
-  card.addEventListener("dragstart", () => {
+  card.addEventListener("dragstart", (event) => {
+    const hidden = getHiddenDragImage();
+    event.dataTransfer?.setDragImage(hidden, 0, 0);
+    createDragPreview(card, event);
     card.classList.add("dragging");
   });
 
   card.addEventListener("dragend", () => {
+    removeDragPreview();
     card.classList.remove("dragging");
   });
 }
@@ -172,6 +234,14 @@ function bind_column_drag_events(column) {
         })
       )
     );
+
+    // trigger a quick settle animation on the dropped card
+    dragged.classList.add("card-drop");
+    dragged.addEventListener(
+      "animationend",
+      () => dragged.classList.remove("card-drop"),
+      { once: true }
+    );
   });
 };
 
@@ -184,6 +254,18 @@ function init_drag_and_drop() {
 }
 
 // #endregion Tasks
+
+// #region Helper functions
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (!el) {
+    console.warn(`[setText] Missing element #${id}`);
+    return false;
+  }
+  el.textContent = text;
+  return true;
+}
+// #endregion Helper functions
 
 // #region Add Task
 function init_add_task(boardId, userId) {
@@ -389,7 +471,7 @@ async function InitializeDashboard(dashboardId) {
   renderBoardColumns(boards, dashboardId);
 
   if (!boards.length) {
-    document.getElementById("boardTitle").textContent = "Create your first board";
+    setText("boardTitle", "Create your first board");
     init_drag_and_drop();
     await populateAgents();
     return;

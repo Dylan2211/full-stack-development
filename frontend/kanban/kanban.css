@@ -296,6 +296,32 @@
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.3);
 }
 
+.card.card-drop {
+  animation: card-drop 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+@keyframes card-drop {
+  0% {
+    transform: scale(0.97) translateY(-4px);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+  }
+  60% {
+    transform: scale(1.02) translateY(3px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+.drag-preview {
+  position: fixed;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.95;
+  transform-origin: center;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
+}
+
 .column.drag-over {
   box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.25);
 }
