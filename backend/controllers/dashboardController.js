@@ -1,5 +1,20 @@
 const dashboardModel = require("../models/dashboardModel");
 
+
+async function getDashboard(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId);
+    const dashboard = await require("../models/dashboardModel").getDashboard(dashboardId);
+    if (!dashboard) {
+      return res.status(404).json({ error: "Dashboard not found" });
+    }
+    res.json(dashboard);
+  } catch (error) {
+    console.error(`Error getting dashboard by id: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 // Get all dashboards
 async function getAllDashboards(req, res) {
   try {
@@ -50,7 +65,10 @@ async function removeUser(req, res) {
   }
 }
 
+
+
 module.exports = {
+  getDashboard,
   getAllDashboards,
   getUsersByDashboard,
   addUser,

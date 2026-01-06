@@ -13,10 +13,22 @@ async function fetchBoards(dashboardId) {
   return await res.json();
 }
 
+function loadDashboardId() {
+  const dashboardId = getDashboardId();
+  if (dashboardId === null) {
+    console.error("Invalid dashboard ID");
+    document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
+    return null;
+  }
+  currentDashboardId = dashboardId;
+  return dashboardId;
+}
+
 // no_login_api
 async function loadBoardName(dashboardId) {
   const dashboard = await (await fetch(`/no_login_api/dashboards/${dashboardId}`)).json();
   if (!dashboard) {
+    console.error("Dashboard not found");
     throw new Error("Dashboard not found");
   }
   document.getElementById("dashboardTitle").textContent = dashboard.Name;
@@ -368,16 +380,7 @@ function renderBoardColumns(boards, dashboardId) {
 // #endregion Add Task
 
 // #region Initialization
-function ensureDashboardId() {
-  const dashboardId = getDashboardId();
-  if (dashboardId === null) {
-    console.error("Invalid dashboard ID");
-    document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
-    return null;
-  }
-  currentDashboardId = dashboardId;
-  return dashboardId;
-}
+
 
 async function InitializeDashboard(dashboardId) {
   // Gives boards or gives create your first board
@@ -402,11 +405,11 @@ async function InitializeDashboard(dashboardId) {
   await populateAgents();
 
   const userId = 1; // Replace with actual user ID as needed
-  init_add_task(boardId, userId);
+  init_add_task(boards[0].BoardId, userId);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const dashboardId = ensureDashboardId();
+  const dashboardId = loadDashboardId();
   if (dashboardId === null) return;
 
   try {
@@ -417,4 +420,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 // #endregion Initialization
-  
