@@ -38,7 +38,7 @@ const ROUTES = {
   KANBAN: "/kanban",
   DASHBOARD: "/dashboard",
   AI_FILES: "/ai-files",
-  PROFILE: "/profile",
+  SETTINGS: "/settings",
   TEST: "/test"
 };
 //  #region Frontend routes
@@ -57,12 +57,13 @@ app.get(ROUTES.DASHBOARD, (req, res) => {
 app.get(ROUTES.AI_FILES, (req, res) => {
   res.sendFile(path.join(frontendPath, "ai-files/ai-files.html"));
 });
-app.get(ROUTES.PROFILE, (req, res) => {
-  res.sendFile(path.join(frontendPath, "profile/profile.html"));
+app.get(ROUTES.SETTINGS, (req, res) => {
+  res.sendFile(path.join(frontendPath, "settings/profile.html"));
 });
 app.get(ROUTES.TEST, (req, res) => {
   res.sendFile(path.join(frontendPath, "test/task.html"));
 });
+
 //  #endregion
 
 // #region Error handling middleware

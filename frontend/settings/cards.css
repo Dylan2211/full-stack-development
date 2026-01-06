@@ -1,0 +1,253 @@
+* {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background: #f5f5f8;
+}
+
+.container {
+  display: flex;
+}
+
+.sidebar {
+  width: 200px;
+  background: #d8c8ff;
+  height: 100vh;
+  padding-top: 20px;
+  position: fixed;
+}
+
+.logo {
+  margin-left: 20px;
+  margin-bottom: 20px;
+}
+
+.logo-icon {
+  font-size: 28px;
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-item {
+  display: block;
+  padding: 12px 20px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  border-radius: 0;
+  transition: background 0.2s;
+}
+
+.nav-item.active,
+.nav-item:hover {
+  background: #bca5ff;
+  border-radius: 8px;
+  margin: 0 10px;
+}
+
+.page {
+  margin-left: 220px;
+  padding: 30px;
+  flex: 1;
+}
+
+.content-header h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.tab-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.tab-btn.active {
+  background: #a270ff;
+  color: white;
+}
+
+.activity-container {
+  min-height: 400px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 16px;
+  color: #999;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activity-card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.activity-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.activity-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.activity-info {
+  flex: 1;
+}
+
+.activity-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c2c2c;
+  margin-bottom: 4px;
+}
+
+.activity-user {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.activity-time {
+  font-size: 13px;
+  color: #999;
+}
+
+.activity-badge {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.activity-badge.warning {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.activity-badge.error {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.activity-description {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.activity-details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #777;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 80px;
+  }
+  
+  .main-content {
+    margin-left: 100px;
+    padding: 20px;
+  }
+  
+  .filter-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .activity-card-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+body.dark-mode {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+body.dark-mode .sidebar {
+  background: #2d2d2d;
+}
+
+body.dark-mode .sidebar a {
+  color: #e0e0e0;
+}
+
+body.dark-mode .sidebar a.active,
+body.dark-mode .sidebar a:hover {
+  background: #3d3d3d;
+}
+
+body.dark-mode input,
+body.dark-mode textarea {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+body.dark-mode button {
+  background: #6b4fc4;
+}
+
+body.dark-mode button:hover {
+  background: #5a3fb0;
+}
+
+body.dark-mode .toggle input {
+  background: #444;
+}
