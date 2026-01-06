@@ -11,6 +11,19 @@ async function getAllDashboards() {
   return result.recordset;
 }
 
+// Get a single dashboard by ID
+async function getDashboard(dashboardId) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .query(`
+      SELECT DashboardId, Name, Description, CreatedAt
+      FROM Dashboards
+      WHERE DashboardId = @DashboardId
+    `);
+  return result.recordset[0];
+}
+
 // Get all users linked to a dashboard
 async function getUsersByDashboardId(dashboardId) {
   const pool = await sql.connect(dbConfig);
@@ -52,6 +65,7 @@ async function removeUserFromDashboard(userId, dashboardId) {
 
 module.exports = {
   getAllDashboards,
+  getDashboard,
   getUsersByDashboardId,
   addUserToDashboard,
   removeUserFromDashboard,

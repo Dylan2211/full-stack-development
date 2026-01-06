@@ -1,0 +1,36 @@
+body.dark-mode {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+body.dark-mode .sidebar {
+  background: #d8c8ff;
+}
+
+body.dark-mode .sidebar a {
+  color: #e0e0e0;
+}
+
+body.dark-mode .sidebar a.active,
+body.dark-mode .sidebar a:hover {
+  background: #bca5ff;
+}
+
+body.dark-mode input,
+body.dark-mode textarea {
+  background: #2d2d2d;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+body.dark-mode button {
+  background: #6b4fc4;
+}
+
+body.dark-mode button:hover {
+  background: #5a3fb0;
+}
+
+body.dark-mode .toggle input {
+  background: #444;
+}

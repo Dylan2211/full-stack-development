@@ -2,6 +2,8 @@ let currentDashboardId = null;
 
 // #region loading
 // no_login_api
+// Safe setter to avoid null element crashes
+
 async function fetchBoards(dashboardId) {
   const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
     method: "GET",
@@ -13,18 +15,29 @@ async function fetchBoards(dashboardId) {
   return await res.json();
 }
 
-// no_login_api
-async function loadBoardName(boardId) {
-  const res = await fetch(`/no_login_api/boards/${boardId}`);
-  const board = await res.json();
+function loadDashboardId() {
+  const dashboardId = getDashboardId();
+  if (dashboardId === null) {
+    console.error("Invalid dashboard ID");
+    document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
+    return null;
+  }
+  currentDashboardId = dashboardId;
+  return dashboardId;
+}
 
-  // UPDATE THE TITLE
-  document.getElementById("boardTitle").textContent = board.Name;
+// no_login_api
+async function loadBoardName(dashboardId) {
+  const dashboard = await (await fetch(`/no_login_api/dashboards/${dashboardId}`)).json();
+  if (!dashboard) {
+    console.error("Dashboard not found");
+    throw new Error("Dashboard not found");
+  }
+  setText("dashboardTitle", dashboard.Name);
 }
 
 // no_login_api
 async function loadTasks(boardId) {
-  console.log("Loading tasks for board:", boardId);
   const res = await fetch(`/no_login_api/boards/${boardId}/tasks`, {
     method: "GET",
     headers: {
@@ -36,7 +49,6 @@ async function loadTasks(boardId) {
 
   tasks.forEach((task) => {
     addTaskToColumn(task);
-    console.log("Loaded task:", task);
   });
 }
 
@@ -69,16 +81,78 @@ function getDashboardId() {
   return Number(id);
 }
 
+
+
 // #endregion loading
 
 // #region Tasks
 
+let hiddenDragImage = null;
+function getHiddenDragImage() {
+  if (hiddenDragImage) return hiddenDragImage;
+  const img = document.createElement("div");
+  img.style.width = "1px";
+  img.style.height = "1px";
+  img.style.opacity = "0";
+  img.style.position = "absolute";
+  img.style.pointerEvents = "none";
+  document.body.appendChild(img);
+  hiddenDragImage = img;
+  return img;
+}
+
+// lightweight preview that follows the cursor during native drag
+let dragPreview = null;
+let dragPreviewOffset = { x: 0, y: 0 };
+
+function moveDragPreview(event) {
+  if (!dragPreview) return;
+  dragPreview.style.transform = `translate(${event.clientX - dragPreviewOffset.x}px, ${event.clientY - dragPreviewOffset.y}px)`;
+}
+
+function handleDragOver(event) {
+  // ensure dragover keeps firing even over non-drop targets
+  event.preventDefault();
+  moveDragPreview(event);
+}
+
+function createDragPreview(card, event) {
+  removeDragPreview();
+  const rect = card.getBoundingClientRect();
+  dragPreview = card.cloneNode(true);
+  dragPreview.classList.add("drag-preview");
+  dragPreview.style.width = `${rect.width}px`;
+  dragPreview.style.height = `${rect.height}px`;
+  document.body.appendChild(dragPreview);
+
+  dragPreviewOffset = {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+  };
+
+  moveDragPreview(event);
+  document.addEventListener("drag", moveDragPreview);
+  document.addEventListener("dragover", handleDragOver, { passive: false });
+}
+
+function removeDragPreview() {
+  if (!dragPreview) return;
+  dragPreview.remove();
+  dragPreview = null;
+  document.removeEventListener("drag", moveDragPreview);
+  document.removeEventListener("dragover", handleDragOver);
+}
+
 function attach_card_drag_events(card) {
-  card.addEventListener("dragstart", () => {
+  card.addEventListener("dragstart", (event) => {
+    const hidden = getHiddenDragImage();
+    event.dataTransfer?.setDragImage(hidden, 0, 0);
+    createDragPreview(card, event);
     card.classList.add("dragging");
   });
 
   card.addEventListener("dragend", () => {
+    removeDragPreview();
     card.classList.remove("dragging");
   });
 }
@@ -139,10 +213,37 @@ function bind_column_drag_events(column) {
     }
   });
 
-  column.addEventListener("drop", () => {
+  column.addEventListener("drop", async () => {
     column.classList.remove("drag-over");
+    const dragged = document.querySelector(".card.dragging");
+    if (!dragged) return;
+
+    const targetBoardId = column.dataset.boardId;
+    const ordered = [...column.querySelectorAll(".card")];
+
+    // persist board + position for every card now in this column
+    await Promise.all(
+      ordered.map((card, idx) =>
+        fetch(`/no_login_api/tasks/${card.dataset.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            boardId: targetBoardId,
+            position: idx,
+          }),
+        })
+      )
+    );
+
+    // trigger a quick settle animation on the dropped card
+    dragged.classList.add("card-drop");
+    dragged.addEventListener(
+      "animationend",
+      () => dragged.classList.remove("card-drop"),
+      { once: true }
+    );
   });
-}
+};
 
 function init_drag_and_drop() {
   const cards = document.querySelectorAll(".card");
@@ -153,6 +254,18 @@ function init_drag_and_drop() {
 }
 
 // #endregion Tasks
+
+// #region Helper functions
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (!el) {
+    console.warn(`[setText] Missing element #${id}`);
+    return false;
+  }
+  el.textContent = text;
+  return true;
+}
+// #endregion Helper functions
 
 // #region Add Task
 function init_add_task(boardId, userId) {
@@ -349,45 +462,40 @@ function renderBoardColumns(boards, dashboardId) {
 // #endregion Add Task
 
 // #region Initialization
-document.addEventListener("DOMContentLoaded", async () => {
-  var dashboardId = getDashboardId();
-  if (dashboardId === null) {
-    console.error("Invalid dashboard ID");
-    document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
-    return;
-  }
-  currentDashboardId = dashboardId;
-  try {
-  // Fetch boards for this dashboard
+
+
+async function InitializeDashboard(dashboardId) {
+  // Gives boards or gives create your first board
   const boards = (await fetchBoards(dashboardId)) || [];
 
-  // Render columns from board names (always include the add-board column)
   renderBoardColumns(boards, dashboardId);
 
   if (!boards.length) {
-    document.getElementById("boardTitle").textContent = "Create your first board";
+    setText("boardTitle", "Create your first board");
     init_drag_and_drop();
     await populateAgents();
     return;
   }
 
-  // Use the first board for title/load
-  const boardId = boards[0].BoardId;
+  await loadBoardName(dashboardId);
 
-  // Load board data
-  await loadBoardName(boardId);
-
-  // Load tasks for each board
   for (const b of boards) {
     await loadTasks(b.BoardId);
   }
 
-  // Initialize UI
   init_drag_and_drop();
   await populateAgents();
-  
+
   const userId = 1; // Replace with actual user ID as needed
-  init_add_task(boardId, userId);
+  init_add_task(boards[0].BoardId, userId);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const dashboardId = loadDashboardId();
+  if (dashboardId === null) return;
+
+  try {
+    await InitializeDashboard(dashboardId);
   } catch (error) {
     console.error("Error during initialization:", error);
     document.body.innerHTML = "<h2>Error: Unable to load dashboard data</h2>";
