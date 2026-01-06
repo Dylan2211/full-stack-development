@@ -5,6 +5,7 @@ import cors from "cors";
 import path from "path";
 import helmet from "helmet";
 import taskRoutes from "../routes/taskRoutes";
+import userRoutes from "../routes/userRoutes";
 import no_login_routes from "../routes/no_login_routes";
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
@@ -25,9 +26,11 @@ app.use(helmet());
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use("/no_login_api", no_login_routes);
 app.use(express.static(frontendPath));
 app.use("/api", taskRoutes);
+app.use("/api/users", userRoutes);
 
 const ROUTES = {
   HOME: "/",
