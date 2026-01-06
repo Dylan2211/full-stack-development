@@ -14,17 +14,16 @@ async function fetchBoards(dashboardId) {
 }
 
 // no_login_api
-async function loadBoardName(boardId) {
-  const res = await fetch(`/no_login_api/boards/${boardId}`);
-  const board = await res.json();
-
-  // UPDATE THE TITLE
-  document.getElementById("boardTitle").textContent = board.Name;
+async function loadBoardName(dashboardId) {
+  const dashboard = await (await fetch(`/no_login_api/dashboards/${dashboardId}`)).json();
+  if (!dashboard) {
+    throw new Error("Dashboard not found");
+  }
+  document.getElementById("dashboardTitle").textContent = dashboard.Name;
 }
 
 // no_login_api
 async function loadTasks(boardId) {
-  console.log("Loading tasks for board:", boardId);
   const res = await fetch(`/no_login_api/boards/${boardId}/tasks`, {
     method: "GET",
     headers: {
@@ -36,7 +35,6 @@ async function loadTasks(boardId) {
 
   tasks.forEach((task) => {
     addTaskToColumn(task);
-    console.log("Loaded task:", task);
   });
 }
 
@@ -68,6 +66,8 @@ function getDashboardId() {
   if (!id || isNaN(id)) return null;
   return Number(id);
 }
+
+
 
 // #endregion loading
 
@@ -392,8 +392,7 @@ async function InitializeDashboard(dashboardId) {
     return;
   }
 
-  const boardId = boards[0].BoardId;
-  await loadBoardName(boardId);
+  await loadBoardName(dashboardId);
 
   for (const b of boards) {
     await loadTasks(b.BoardId);
@@ -418,3 +417,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 // #endregion Initialization
+  
