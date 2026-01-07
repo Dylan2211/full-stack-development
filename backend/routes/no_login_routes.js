@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 
 // Controllers
-const taskController = require("../controllers/taskController");
 const userController = require("../controllers/userController");
+const taskController = require("../controllers/taskController");
+const boardController = require("../controllers/boardController");
 const dashboardController = require("../controllers/dashboardController");
 const { agents } = require("../ai/aiAssignAgent");
 // Middleware
@@ -19,13 +20,17 @@ router.delete("/users/:id", userController.deleteUser);
 
 // Dashboard
 router.get("/dashboards", dashboardController.getAllDashboards);
+router.get ("/dashboards/:dashboardId", dashboardController.getDashboard);
+
+// Board
+router.get("/dashboards/:dashboardId/boards", boardController.getBoardByDashboardId);
+router.post("/dashboards/:dashboardId/boards", boardController.createBoard);
+router.get("/boards/:boardId", boardController.getBoard);
+router.post("/boards/:boardId", boardController.updateBoard);
+router.delete("/boards/:boardId", boardController.deleteBoard);
 
 // Task
-router.get ("/dashboards/:dashboardId", taskController.getDashboard);
-router.get("/dashboards/:dashboardId/boards", taskController.getBoardByDashboardId);
-router.post("/dashboards/:dashboardId/boards", taskController.createBoard);
 router.get("/boards/:boardId/tasks", taskController.getTasksByBoardId);
-router.get("/boards/:boardId", taskController.getBoard);
 router.get("/tasks/:id", taskController.getTask);
 router.post("/tasks", taskController.createTask);
 router.put("/tasks/:id", taskController.updateTask);

@@ -1,64 +1,7 @@
 let currentDashboardId = null;
 
-// #region loading
-// no_login_api
-// Safe setter to avoid null element crashes
-
-async function fetchBoards(dashboardId) {
-  const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      // Include authentication token if required
-    },
-  });
-  return await res.json();
-}
-
-function loadDashboardId() {
-  const dashboardId = getDashboardId();
-  if (dashboardId === null) {
-    console.error("Invalid dashboard ID");
-    document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
-    return null;
-  }
-  currentDashboardId = dashboardId;
-  return dashboardId;
-}
-
-// no_login_api
-async function loadBoardName(dashboardId) {
-  const dashboard = await (await fetch(`/no_login_api/dashboards/${dashboardId}`)).json();
-  if (!dashboard) {
-    console.error("Dashboard not found");
-    throw new Error("Dashboard not found");
-  }
-  setText("dashboardTitle", dashboard.Name);
-}
-
-// no_login_api
-async function loadTasks(boardId) {
-  const res = await fetch(`/no_login_api/boards/${boardId}/tasks`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      // Include authentication token if required
-    },
-  });
-  const tasks = await res.json();
-
-  tasks.forEach((task) => {
-    addTaskToColumn(task);
-  });
-}
-
-// no_login_api
-async function loadAgents() {
-  const res = await fetch("/no_login_api/agents");
-  return await res.json();
-}
-
-// no_login_api
+// #region Data Access
+// Boards
 async function createBoardRequest(dashboardId, name) {
   const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
     method: "POST",
@@ -74,19 +17,107 @@ async function createBoardRequest(dashboardId, name) {
   return await res.json();
 }
 
+async function loadBoards(dashboardId) {
+  const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+  return await res.json();
+}
+
+async function loadBoardName(dashboardId) {
+  const dashboard = await (await fetch(`/no_login_api/dashboards/${dashboardId}`)).json();
+  if (!dashboard) {
+    console.error("Dashboard not found");
+    throw new Error("Dashboard not found");
+  }
+  setText("dashboardTitle", dashboard.Name);
+}
+
+function updateBoardName(boardId, nameElement) {
+  const currentName = nameElement.textContent;
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = currentName;
+  input.className = "board-name-input";
+
+  input.addEventListener("blur", async () => {
+    const newName = input.value.trim();
+    if (newName && newName !== currentName) {
+      try {
+        const res = await fetch(`/no_login_api/boards/${boardId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newName }),
+        });
+        if (!res.ok) {
+          throw new Error("Failed to update board name");
+        }
+        nameElement.textContent = newName;
+      } catch (error) {
+        console.error(error);
+        nameElement.textContent = currentName;
+      }
+    } else {
+      nameElement.textContent = currentName;
+    }
+  });
+
+  nameElement.textContent = "";
+  nameElement.appendChild(input);
+  input.focus();
+}
+
+// Tasks
+async function createTask(taskData) {
+  const res = await fetch("/no_login_api/tasks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(taskData),
+  });
+  const saved = await res.json();
+  addTaskToColumn(saved);
+}
+
+async function loadTasks(boardId) {
+  const res = await fetch(`/no_login_api/boards/${boardId}/tasks`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+  const tasks = await res.json();
+  tasks.forEach(addTaskToColumn);
+}
+
+async function updateTaskPositions(boardId, orderedCards) {
+  await Promise.all(
+    orderedCards.map((card, idx) =>
+      fetch(`/no_login_api/tasks/${card.dataset.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          boardId,
+          position: idx,
+        }),
+      })
+    )
+  );
+}
+
+// Agents
+async function loadAgents() {
+  const res = await fetch("/no_login_api/agents");
+  return await res.json();
+}
+
 function getDashboardId() {
-  var params = new URLSearchParams(window.location.search);
-  var id = params.get("id");
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
   if (!id || isNaN(id)) return null;
   return Number(id);
 }
+// #endregion Data Access
 
-
-
-// #endregion loading
-
-// #region Tasks
-
+// #region Drag & Drop
 let hiddenDragImage = null;
 function getHiddenDragImage() {
   if (hiddenDragImage) return hiddenDragImage;
@@ -111,7 +142,6 @@ function moveDragPreview(event) {
 }
 
 function handleDragOver(event) {
-  // ensure dragover keeps firing even over non-drop targets
   event.preventDefault();
   moveDragPreview(event);
 }
@@ -143,20 +173,6 @@ function removeDragPreview() {
   document.removeEventListener("dragover", handleDragOver);
 }
 
-function attach_card_drag_events(card) {
-  card.addEventListener("dragstart", (event) => {
-    const hidden = getHiddenDragImage();
-    event.dataTransfer?.setDragImage(hidden, 0, 0);
-    createDragPreview(card, event);
-    card.classList.add("dragging");
-  });
-
-  card.addEventListener("dragend", () => {
-    removeDragPreview();
-    card.classList.remove("dragging");
-  });
-}
-
 function get_drag_after_element(list, mouse_y) {
   const cards = [...list.querySelectorAll(".card:not(.dragging)")];
 
@@ -175,6 +191,20 @@ function get_drag_after_element(list, mouse_y) {
   ).element;
 }
 
+function attach_card_drag_events(card) {
+  card.addEventListener("dragstart", (event) => {
+    const hidden = getHiddenDragImage();
+    event.dataTransfer?.setDragImage(hidden, 0, 0);
+    createDragPreview(card, event);
+    card.classList.add("dragging");
+  });
+
+  card.addEventListener("dragend", () => {
+    removeDragPreview();
+    card.classList.remove("dragging");
+  });
+}
+
 function bind_column_drag_events(column) {
   if (column.classList.contains("add-board-column")) return;
   if (column.dataset.dndBound === "1") return;
@@ -187,9 +217,7 @@ function bind_column_drag_events(column) {
   column.addEventListener("dragover", (event) => {
     event.preventDefault();
     const dragging = document.querySelector(".card.dragging");
-    if (!dragging) {
-      return;
-    }
+    if (!dragging) return;
 
     const after_element = get_drag_after_element(list, event.clientY);
     if (after_element == null) {
@@ -221,21 +249,8 @@ function bind_column_drag_events(column) {
     const targetBoardId = column.dataset.boardId;
     const ordered = [...column.querySelectorAll(".card")];
 
-    // persist board + position for every card now in this column
-    await Promise.all(
-      ordered.map((card, idx) =>
-        fetch(`/no_login_api/tasks/${card.dataset.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            boardId: targetBoardId,
-            position: idx,
-          }),
-        })
-      )
-    );
+    await updateTaskPositions(targetBoardId, ordered);
 
-    // trigger a quick settle animation on the dropped card
     dragged.classList.add("card-drop");
     dragged.addEventListener(
       "animationend",
@@ -243,7 +258,7 @@ function bind_column_drag_events(column) {
       { once: true }
     );
   });
-};
+}
 
 function init_drag_and_drop() {
   const cards = document.querySelectorAll(".card");
@@ -252,10 +267,133 @@ function init_drag_and_drop() {
   cards.forEach(attach_card_drag_events);
   columns.forEach(bind_column_drag_events);
 }
+// #endregion Drag & Drop
 
-// #endregion Tasks
+// #region UI Builders
+function addTaskToColumn(task) {
+  const targetListId = "board-" + (task.BoardId || "");
+  const column = document.getElementById(targetListId);
+  if (!column) return;
 
-// #region Helper functions
+  const card = document.createElement("div");
+  card.classList.add("card");
+  card.setAttribute("draggable", "true");
+  card.dataset.id = task.TaskId;
+
+  card.innerHTML = `
+      <div class="card-title">${task.Title}</div>
+      <div class="card-text">${task.Description || ""}</div>
+  `;
+
+  attach_card_drag_events(card);
+  column.appendChild(card);
+}
+
+function buildBoardColumn(board) {
+  const section = document.createElement("section");
+  section.className = "column";
+  section.dataset.boardId = board.BoardId;
+
+  const header = document.createElement("header");
+  header.className = "column-header";
+  const name = document.createElement("div");
+  name.className = "column-name";
+  name.textContent = board.Name;
+  name.addEventListener("click", () => {
+    updateBoardName(board.BoardId, name);
+  });
+  header.appendChild(name);
+
+  const list = document.createElement("div");
+  list.className = "list";
+  list.id = "board-" + board.BoardId;
+
+  section.appendChild(header);
+  section.appendChild(list);
+  bind_column_drag_events(section);
+
+  return section;
+}
+
+function buildAddBoardColumn(dashboardId) {
+  const section = document.createElement("section");
+  section.className = "column add-board-column";
+
+  const header = document.createElement("header");
+  header.className = "column-header";
+  const name = document.createElement("div");
+  name.className = "column-name";
+  name.textContent = "new board";
+  header.appendChild(name);
+
+  const form = document.createElement("form");
+  form.className = "add-board-form";
+  form.innerHTML = `
+    <label class="sr-only" for="newBoardName">Board name</label>
+    <input id="newBoardName" class="add-board-input" type="text" name="boardName" placeholder="Name" required />
+    <button class="add-board-submit" type="submit">Create</button>
+    <div class="add-board-hint">Creates a fresh column for this dashboard.</div>
+  `;
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const input = form.querySelector(".add-board-input");
+    const hint = form.querySelector(".add-board-hint");
+    if (!input) return;
+
+    const nameValue = input.value.trim();
+    if (!nameValue) return;
+
+    try {
+      form.classList.add("is-loading");
+      hint.textContent = "Creating...";
+      const board = await createBoardRequest(dashboardId, nameValue);
+      input.value = "";
+      hint.textContent = "Board created";
+
+      const frame = document.querySelector(".board-frame");
+      const addColumn = frame ? frame.querySelector(".add-board-column") : null;
+      const newCol = buildBoardColumn(board);
+      if (frame && addColumn) {
+        frame.insertBefore(newCol, addColumn);
+      } else if (frame) {
+        frame.appendChild(newCol);
+      }
+
+      const boardTitle = document.getElementById("boardTitle");
+      if (boardTitle && (!boardTitle.textContent || boardTitle.textContent === "Create your first board")) {
+        boardTitle.textContent = board.Name;
+      }
+    } catch (error) {
+      if (hint) hint.textContent = "Could not create board";
+      console.error("Failed to create board:", error);
+    } finally {
+      form.classList.remove("is-loading");
+      input.focus();
+      setTimeout(function () {
+        if (hint) hint.textContent = "Creates a fresh column for this dashboard.";
+      }, 1500);
+    }
+  });
+
+  section.appendChild(header);
+  section.appendChild(form);
+  return section;
+}
+
+function renderBoardColumns(boards, dashboardId) {
+  const frame = document.querySelector(".board-frame");
+  if (!frame) return;
+  frame.innerHTML = "";
+  boards.forEach((board) => {
+    frame.appendChild(buildBoardColumn(board));
+  });
+
+  frame.appendChild(buildAddBoardColumn(dashboardId));
+}
+// #endregion UI Builders
+
+// #region Helpers
 function setText(id, text) {
   const el = document.getElementById(id);
   if (!el) {
@@ -265,9 +403,22 @@ function setText(id, text) {
   el.textContent = text;
   return true;
 }
-// #endregion Helper functions
 
-// #region Add Task
+async function populateAgents() {
+  const agentSelect = document.getElementById("taskAgents");
+  const agents = await loadAgents();
+
+  agentSelect.innerHTML = "";
+  agents.forEach((a) => {
+    const opt = document.createElement("option");
+    opt.value = a.name;
+    opt.textContent = a.name;
+    agentSelect.appendChild(opt);
+  });
+}
+// #endregion Helpers
+
+// #region Add Task Dialog
 function init_add_task(boardId, userId) {
   const dialog = document.getElementById("newTaskDialog");
   const open_btn = document.getElementById("new-task-trigger");
@@ -287,186 +438,39 @@ function init_add_task(boardId, userId) {
 
     const title = document.getElementById("taskTitle").value.trim();
     const description = document.getElementById("taskDesc").value.trim();
-
     const agentSelect = document.getElementById("taskAgents");
-    const assignedAgents = Array.from(agentSelect.selectedOptions).map(
-      (o) => o.value
-    );
+    const assignedAgents = Array.from(agentSelect.selectedOptions).map((o) => o.value);
     const skills = document.getElementById("taskSkills").value.trim();
 
-    add_task({
+    createTask({
       title,
       description,
       assignedAgents,
       skills,
-      boardId: boardId, // ← required
-      createdBy: userId, // ← required
+      boardId,
+      createdBy: userId,
       position: 0,
       status: "todo",
     });
     dialog.close();
   });
 }
-
-// no_login_api
-async function add_task(taskData) {
-  // POST the task to your backend API
-  const res = await fetch("/no_login_api/tasks", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(taskData),
-  });
-
-  const saved = await res.json();
-
-  // Add it to UI
-  addTaskToColumn(saved);
-}
-
-function addTaskToColumn(task) {
-  var targetListId = "board-" + (task.BoardId || "");
-  var column = document.getElementById(targetListId);
-  if (!column) return;
-
-  const card = document.createElement("div");
-  card.classList.add("card");
-  card.setAttribute("draggable", "true");
-  card.dataset.id = task.TaskId;
-
-  card.innerHTML = `
-      <div class="card-title">${task.Title}</div>
-      <div class="card-text">${task.Description || ""}</div>
-  `;
-
-  attach_card_drag_events(card);
-  column.appendChild(card);
-}
-
-async function populateAgents() {
-  const agentSelect = document.getElementById("taskAgents");
-
-  const agents = await loadAgents();
-
-  agentSelect.innerHTML = ""; // clear old options
-
-  agents.forEach((a) => {
-    const opt = document.createElement("option");
-    opt.value = a.name;
-    opt.textContent = a.name;
-    agentSelect.appendChild(opt);
-  });
-}
-
-function buildBoardColumn(board) {
-  var section = document.createElement("section");
-  section.className = "column";
-  section.dataset.boardId = board.BoardId;
-
-  var header = document.createElement("header");
-  header.className = "column-header";
-  var name = document.createElement("div");
-  name.className = "column-name";
-  name.textContent = board.Name;
-  header.appendChild(name);
-
-  var list = document.createElement("div");
-  list.className = "list";
-  list.id = "board-" + board.BoardId;
-
-  section.appendChild(header);
-  section.appendChild(list);
-  bind_column_drag_events(section);
-
-  return section;
-}
-
-function buildAddBoardColumn(dashboardId) {
-  var section = document.createElement("section");
-  section.className = "column add-board-column";
-
-  var header = document.createElement("header");
-  header.className = "column-header";
-  var name = document.createElement("div");
-  name.className = "column-name";
-  name.textContent = "new board";
-  header.appendChild(name);
-
-  var form = document.createElement("form");
-  form.className = "add-board-form";
-  form.innerHTML = `
-    <label class="sr-only" for="newBoardName">Board name</label>
-    <input id="newBoardName" class="add-board-input" type="text" name="boardName" placeholder="Name" required />
-    <button class="add-board-submit" type="submit">Create</button>
-    <div class="add-board-hint">Creates a fresh column for this dashboard.</div>
-  `;
-
-  form.addEventListener("submit", async function (event) {
-    event.preventDefault();
-    var input = form.querySelector(".add-board-input");
-    var hint = form.querySelector(".add-board-hint");
-    if (!input) return;
-
-    var nameValue = input.value.trim();
-    if (!nameValue) return;
-
-    try {
-      form.classList.add("is-loading");
-      hint.textContent = "Creating...";
-      const board = await createBoardRequest(dashboardId, nameValue);
-      input.value = "";
-      hint.textContent = "Board created";
-
-      var frame = document.querySelector(".board-frame");
-      var addColumn = frame ? frame.querySelector(".add-board-column") : null;
-      var newCol = buildBoardColumn(board);
-      if (frame && addColumn) {
-        frame.insertBefore(newCol, addColumn);
-      } else if (frame) {
-        frame.appendChild(newCol);
-      }
-
-      var boardTitle = document.getElementById("boardTitle");
-       if (boardTitle && (!boardTitle.textContent || boardTitle.textContent === "Create your first board")) {
-        boardTitle.textContent = board.Name;
-      }
-    } catch (error) {
-      if (hint) {
-        hint.textContent = "Could not create board";
-      }
-      console.error("Failed to create board:", error);
-    } finally {
-      form.classList.remove("is-loading");
-      input.focus();
-      setTimeout(function () {
-        if (hint) hint.textContent = "Creates a fresh column for this dashboard.";
-      }, 1500);
-    }
-  });
-
-  section.appendChild(header);
-  section.appendChild(form);
-  return section;
-}
-
-function renderBoardColumns(boards, dashboardId) {
-  var frame = document.querySelector(".board-frame");
-  if (!frame) return;
-  frame.innerHTML = "";
-  boards.forEach(function (board) {
-    frame.appendChild(buildBoardColumn(board));
-  });
-
-  frame.appendChild(buildAddBoardColumn(dashboardId));
-}
-
-// #endregion Add Task
+// #endregion Add Task Dialog
 
 // #region Initialization
-
+function loadDashboardId() {
+  const dashboardId = getDashboardId();
+  if (dashboardId === null) {
+    console.error("Invalid dashboard ID");
+    document.body.innerHTML = "<h2>Error: Invalid dashboard ID</h2>";
+    return null;
+  }
+  currentDashboardId = dashboardId;
+  return dashboardId;
+}
 
 async function InitializeDashboard(dashboardId) {
-  // Gives boards or gives create your first board
-  const boards = (await fetchBoards(dashboardId)) || [];
+  const boards = (await loadBoards(dashboardId)) || [];
 
   renderBoardColumns(boards, dashboardId);
 
