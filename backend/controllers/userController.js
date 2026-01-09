@@ -4,7 +4,13 @@ const userModel = require("../models/userModel");
 
 async function registerUser(req, res) {
   try {
-    const { fullName, email, password } = req.validatedBody;
+    console.log('registerUser called', req.method, req.path, 'body:', req.body);
+    const payload = req.validatedBody || req.body;
+    const { fullName, email, password } = payload;
+
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ message: "Missing registration fields" });
+    }
 
     const existing = await userModel.findByEmail(email);
     if (existing.recordset.length > 0)

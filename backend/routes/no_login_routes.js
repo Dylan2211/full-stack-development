@@ -7,12 +7,13 @@ const userController = require("../controllers/userController");
 const dashboardController = require("../controllers/dashboardController");
 const { agents } = require("../ai/aiAssignAgent");
 // Middleware
+const { validateRegistration } = require("../middleware/registerValidation");
 // No login required
 
 // User routes
 router.get("/users", userController.getAllUsers);
 router.get("/users/:id", userController.getUserById);
-router.post("/register", userController.registerUser);
+router.post("/register", validateRegistration, userController.registerUser);
 router.post("/login", userController.loginUser);
 router.put("/users/:id", userController.updateUser);
 router.delete("/users/:id", userController.deleteUser);

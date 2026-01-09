@@ -93,6 +93,13 @@ input::placeholder {
     color: #d1d1d1;
 }
 
+.error-message { color: #c0392b; font-size: 0.9rem; margin-top: 6px; min-height: 1em; }
+.input-invalid { border-color: #c0392b; box-shadow: 0 0 0 3px rgba(192,57,43,0.06); }
+.form-message { margin-top: 12px; padding: 10px 12px; border-radius: 6px; font-size: 0.95rem; display:none; }
+.form-message.visible { display:block; }
+.form-message.error { background:#feeaea; color:#b71c1c; border:1px solid #f5c6cb; }
+.form-message.success { background:#e8f6ee; color:#115740; border:1px solid #cde7d5; }
+
 .forgot-password {
     display: block;
     text-align: right;
