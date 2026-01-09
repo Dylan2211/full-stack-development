@@ -182,6 +182,26 @@
   font-weight: 600;
   text-transform: lowercase;
   color: #2e3138;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.column-name:hover {
+  background-color: #c6deff;
+}
+
+.column-name-edit {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: lowercase;
+  border: 2px solid #111111;
+  border-radius: 4px;
+  padding: 4px 6px;
+  outline: none;
+  background: #fff;
+  width: 100%;
 }
 
 /* #endregion columns */

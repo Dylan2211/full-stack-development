@@ -1,7 +1,6 @@
 const taskModel = require("../models/taskModel");
 const ai = require("../ai/aiAssignAgent");
 
-// #region Task 
 async function createTask(req, res) {
   try {
     if (!req.body.boardId) {
@@ -127,83 +126,10 @@ async function getTasksByBoardId(req, res) {
   }
 }
 
-// #endregion Task
-
-// #region Board
-
-async function createBoard(req, res) {
-  try {
-    const dashboardId = parseInt(req.params.dashboardId || req.body.dashboardId);
-    const name = (req.body.name || "").trim();
-
-    if (!dashboardId || Number.isNaN(dashboardId)) {
-      return res.status(400).json({ error: "DashboardId is required" });
-    }
-
-    if (!name) {
-      return res.status(400).json({ error: "Board name is required" });
-    }
-
-    const board = await taskModel.createBoard({ dashboardId, name });
-    res.status(201).json(board);
-  } catch (error) {
-    console.error("Error creating board:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-}
-
-async function getBoard(req, res) {
-  try {
-    const boardId = parseInt(req.params.boardId);
-    const board = await taskModel.getBoard(boardId);
-    if (!board) {
-      return res.status(404).json({ error: "Board not found" });
-    }
-    res.json(board);
-  } catch (error) {
-    console.error(`Error getting board by id: ${error}`);
-    res.status(500).json({ error: "Internal server error" });
-  }
-}
-
-async function getBoardByDashboardId(req, res) {
-  try {
-    const dashboardId = parseInt(req.params.dashboardId);
-    const boards = await taskModel.getBoardByDashboardId(dashboardId);
-    if (!boards) {
-      console.write("No boards found for this dashboard");
-    }
-    res.json(boards);
-  } catch (error) {
-    console.error(`Error getting boards by dashboard id: ${error}`);
-    res.status(500).json({ error: "Internal server error" });
-  }
-}
-
-// #endregion Board
-
-// #region Dashboard
-async function getDashboard(req, res) {
-  try {
-    const dashboardId = parseInt(req.params.dashboardId);
-    const dashboard = await require("../models/dashboardModel").getDashboard(dashboardId);
-    if (!dashboard) {
-      return res.status(404).json({ error: "Dashboard not found" });
-    }
-    res.json(dashboard);
-  } catch (error) {
-    console.error(`Error getting dashboard by id: ${error}`);
-    res.status(500).json({ error: "Internal server error" });
-  }
-}
 module.exports = {
   createTask,
   getTask,
   updateTask,
   deleteTask,
   getTasksByBoardId,
-  getBoard,
-  createBoard,
-  getBoardByDashboardId,
-  getDashboard,
 };
