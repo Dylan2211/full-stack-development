@@ -69,3 +69,5 @@ VALUES
  NULL, NULL, 'Design', 'Done', '1h', NULL, 100, NULL);
 
 -- #endregion Kanban Board
+
+// do profile, do make icon apper for all website pages, do collaborators page
