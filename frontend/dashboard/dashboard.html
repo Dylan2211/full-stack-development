@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Synapse – Dashboards</title>
     <link rel="stylesheet" href="dashboard.css" />
+    <script src="../colour/theme-loader.js"></script>
   </head>
   <body>
     <div class="page">
@@ -24,16 +25,11 @@
         </div>
 
         <div class="topbar-right">
-          <button
-            type="button"
-            class="icon-button settings-button"
-            aria-label="Settings"
-          >
-            ⚙️ <!-- This sucks---------------------------------------------------------------------------------------------------------------------------->
-          </button>
-          <div class="user-pill">
-            <span class="user-initials">as</span>
-          </div>
+          <a href="../settings/profile.html" class="user-pill-link">
+            <div class="user-pill">
+              <span class="user-initials">as</span>
+            </div>
+          </a>
         </div>
       </header>
 
