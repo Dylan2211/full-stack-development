@@ -19,33 +19,39 @@
             
             <h1>Sign up to continue</h1>
             
-            <form>
+            <form id="signupForm">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="Enter your username">
+                    <input type="text" id="username" placeholder="Enter your username" aria-describedby="username-error">
+                    <div class="error-message" id="username-error" aria-live="polite"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Enter your email">
+                    <input type="email" id="email" placeholder="Enter your email" aria-describedby="email-error">
+                    <div class="error-message" id="email-error" aria-live="polite"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter your password">
+                    <input type="password" id="password" placeholder="Enter your password" aria-describedby="password-error">
+                    <div class="error-message" id="password-error" aria-live="polite"></div>
                 </div>
                 
                 <div class="form-group">
                     <label for="confirm-password">Confirm Password</label>
-                    <input type="password" id="confirm-password" placeholder="Enter your password">
+                    <input type="password" id="confirm-password" placeholder="Enter your password" aria-describedby="confirm-password-error">
+                    <div class="error-message" id="confirm-password-error" aria-live="polite"></div>
                 </div>
                 
+                <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
                 <button type="submit" class="signup-button">Sign Up</button>
                 
                 <p class="login-link">
-                    Already have an account? <a href="#">Log In</a>
+                    Already have an account? <a href="/login/login.html">Log In</a>
                 </p>
             </form>
+            <script src="signup.js"></script>
         </div>
     </div>
     

@@ -1,89 +1,130 @@
 * {
   margin: 0;
   padding: 0;
-  font-family: "Inter", sans-serif;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 body {
-  background: #f5f5f8;
+  background: #f3f4f6;
+  color: #111827;
 }
 
 .sidebar {
-  width: 200px;
-  background: #d8c8ff;
+  width: 240px;
+  background: #ffffff;
   height: 100vh;
-  padding-top: 20px;
+  padding-top: 24px;
   position: fixed;
+  border-right: 1px solid #e5e7eb;
 }
 
 .sidebar h3 {
-  margin-left: 20px;
+  margin-left: 24px;
+  margin-bottom: 32px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #111827;
 }
 
 .sidebar a {
   display: block;
-  padding: 12px 20px;
+  padding: 10px 16px;
+  margin: 4px 12px;
   text-decoration: none;
-  color: #333;
+  color: #6b7280;
   font-weight: 500;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
-.sidebar a.active,
 .sidebar a:hover {
-  background: #bca5ff;
-  border-radius: 8px;
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.sidebar a.active {
+  background-color: #e5e7eb;
+  color: #111827;
+  font-weight: 600;
 }
 
 .page {
-  margin-left: 220px;
-  padding: 30px;
+  margin-left: 240px;
+  padding: 32px;
 }
 
 input, textarea {
-  width: 350px;
-  padding: 12px;
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  margin-bottom: 15px;
+  border: 1px solid #d1d5db;
+  margin-bottom: 16px;
+  background-color: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, textarea:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px #4f46e5;
 }
 
 textarea {
-  height: 90px;
-  resize: none;
+  height: 100px;
+  resize: vertical;
 }
 
+
 button {
-  padding: 10px 25px;
-  background: #a270ff;
-  border: none;
+  padding: 10px 24px;
+  background: #111827;
+  border: 1px solid transparent;
   color: white;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 button:hover {
-  background: #8756ff;
+  background: #374151;
 }
+
 
 .toggle {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 12px;
+  margin-top: 24px;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .toggle input {
-  width: 45px;
-  height: 22px;
+  width: 44px;
+  height: 24px;
+  margin: 0;
   appearance: none;
-  background: #ccc;
-  border-radius: 30px;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
   position: relative;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .toggle input:checked {
-  background: #a270ff;
+  background: #111827;
+  border-color: #111827;
 }
 
 .toggle input::before {
@@ -95,46 +136,70 @@ button:hover {
   position: absolute;
   top: 2px;
   left: 2px;
-  transition: .2s;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .toggle input:checked::before {
-  transform: translateX(22px);
+  transform: translateX(20px);
 }
 
+/* Dark Mode Overrides */
 body.dark-mode {
-  background: #1a1a1a;
-  color: #e0e0e0;
+  background: #111827;
+  color: #f9fafb;
 }
 
 body.dark-mode .sidebar {
-  background: #2d2d2d;
+  background: #1f2937;
+  border-color: #374151;
+}
+
+body.dark-mode .sidebar h3 {
+  color: #f9fafb;
 }
 
 body.dark-mode .sidebar a {
-  color: #e0e0e0;
+  color: #9ca3af;
 }
 
-body.dark-mode .sidebar a.active,
-body.dark-mode .sidebar a:hover {
-  background: #3d3d3d;
+body.dark-mode .sidebar a:hover,
+body.dark-mode .sidebar a.active {
+  background: #374151;
+  color: #f9fafb;
 }
 
-body.dark-mode input,
+body.dark-mode input, 
 body.dark-mode textarea {
-  background: #2d2d2d;
-  border-color: #444;
-  color: #e0e0e0;
+  background: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+body.dark-mode input:focus,
+body.dark-mode textarea:focus {
+  border-color: #6366f1;
 }
 
 body.dark-mode button {
-  background: #6b4fc4;
+  background: #4f46e5; 
+  color: #ffffff;
 }
 
 body.dark-mode button:hover {
-  background: #5a3fb0;
+  background: #4338ca;
+}
+
+body.dark-mode .toggle {
+  color: #d1d5db;
 }
 
 body.dark-mode .toggle input {
-  background: #444;
+  background: #374151;
+  border-color: #4b5563;
+}
+
+body.dark-mode .toggle input:checked {
+  background: #4f46e5;
+  border-color: #4f46e5;
 }

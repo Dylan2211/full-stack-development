@@ -4,9 +4,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import helmet from "helmet";
-import taskRoutes from "../routes/taskRoutes";
-import userRoutes from "../routes/userRoutes";
-import no_login_routes from "../routes/no_login_routes";
+const taskRoutes = require("../routes/taskRoutes");
+const userRoutes = require("../routes/userRoutes");
+const no_login_routes = require("../routes/no_login_routes");
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
 const defaultPort = 3000;
@@ -28,12 +28,18 @@ requiredEnvVars.forEach((varName) => {
 app.use(helmet());
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000" }));
 app.use(express.json());
+
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} from ${req.ip}`);
+  next();
+});
+
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/no_login_api", no_login_routes);
 app.use(express.static(frontendPath));
-app.use("/api", taskRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api", taskRoutes);
 
 const ROUTES = {
   HOME: "/",
