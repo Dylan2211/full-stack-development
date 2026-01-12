@@ -1,5 +1,5 @@
 function goBack() {
-    window.location.href = '../demo/kanban.html';
+    window.location.href = '../kanban/kanban.html';
 }
 
 function openSettings() {

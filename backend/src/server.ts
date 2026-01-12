@@ -7,6 +7,7 @@ import helmet from "helmet";
 const taskRoutes = require("../routes/taskRoutes");
 const userRoutes = require("../routes/userRoutes");
 const no_login_routes = require("../routes/no_login_routes");
+const aiRoutes = require("../routes/ai-roots");
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
 const defaultPort = 3000;
@@ -28,6 +29,7 @@ requiredEnvVars.forEach((varName) => {
 app.use(helmet());
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000" }));
 app.use(express.json());
+app.use("/api/ai", aiRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 
