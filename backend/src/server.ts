@@ -31,11 +31,6 @@ app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localh
 app.use(express.json());
 app.use("/api/ai", aiRoutes);
 
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} from ${req.ip}`);
-  next();
-});
-
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/no_login_api", no_login_routes);
