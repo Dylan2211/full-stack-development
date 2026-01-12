@@ -17,11 +17,21 @@ body {
   padding-top: 24px;
   position: fixed;
   border-right: 1px solid #e5e7eb;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  padding-left: 24px;
+  margin-bottom: 32px;
 }
 
 .sidebar h3 {
-  margin-left: 24px;
-  margin-bottom: 32px;
+  margin: 0;
+  margin-left: 12px;
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -29,7 +39,31 @@ body {
   color: #111827;
 }
 
-.sidebar a {
+.back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0 !important;
+  margin: 0 !important;
+  margin-right: 12px !important;
+  transition: background-color 0.2s ease;
+}
+
+.back-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.back-btn img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.sidebar a:not(.back-btn) {
   display: block;
   padding: 10px 16px;
   margin: 4px 12px;
@@ -41,7 +75,7 @@ body {
   transition: all 0.2s ease;
 }
 
-.sidebar a:hover {
+.sidebar a:not(.back-btn):hover {
   background-color: #f3f4f6;
   color: #111827;
 }
@@ -55,6 +89,11 @@ body {
 .page {
   margin-left: 240px;
   padding: 32px;
+  flex: 1;
+}
+
+.page h3 {
+  margin-bottom: 6px;
 }
 
 input, textarea {
@@ -81,7 +120,6 @@ textarea {
   resize: vertical;
 }
 
-
 button {
   padding: 10px 24px;
   background: #111827;
@@ -97,7 +135,6 @@ button {
 button:hover {
   background: #374151;
 }
-
 
 .toggle {
   display: flex;
@@ -144,7 +181,6 @@ button:hover {
   transform: translateX(20px);
 }
 
-/* Dark Mode Overrides */
 body.dark-mode {
   background: #111827;
   color: #f9fafb;
@@ -157,6 +193,14 @@ body.dark-mode .sidebar {
 
 body.dark-mode .sidebar h3 {
   color: #f9fafb;
+}
+
+body.dark-mode .back-btn:hover {
+  background-color: #374151;
+}
+
+body.dark-mode .back-btn img {
+  filter: invert(1);
 }
 
 body.dark-mode .sidebar a {

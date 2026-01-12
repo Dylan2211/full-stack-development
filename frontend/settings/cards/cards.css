@@ -24,47 +24,39 @@ body {
   position: fixed;
   border-right: 1px solid #e5e7eb;
   z-index: 10;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
+.sidebar h3 {
   margin-left: 24px;
   margin-bottom: 32px;
-  display: flex;
-  align-items: center;
-}
-
-.logo-icon {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  color: #111827;
 }
 
-.nav-menu {
-  display: flex;
-  flex-direction: column;
-  padding: 0 12px;
-}
-
-.nav-item {
+.sidebar a {
   display: flex;
   align-items: center;
   padding: 10px 16px;
+  margin: 4px 12px;
   text-decoration: none;
   color: #6b7280;
   font-weight: 500;
   font-size: 14px;
   border-radius: 8px;
   transition: all 0.2s ease;
-  margin-bottom: 4px;
 }
 
-.nav-item:hover {
+.sidebar a:hover {
   background-color: #f3f4f6;
   color: #111827;
 }
 
-.nav-item.active {
+.sidebar a.active {
   background-color: #e5e7eb;
   color: #111827;
   font-weight: 600;
@@ -77,20 +69,15 @@ body {
 }
 
 .page h2 {
-  margin-bottom: 24px; 
-}
-
-.content-header h1 {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 32px;
   color: #111827;
 }
 
 .filter-tabs {
   display: flex;
   gap: 8px;
-  margin-top: 24px;
   margin-bottom: 24px;
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 16px;
@@ -257,17 +244,21 @@ body.dark-mode .sidebar {
   border-color: #374151;
 }
 
-body.dark-mode .nav-item {
+body.dark-mode .sidebar h3 {
+  color: #f9fafb;
+}
+
+body.dark-mode .sidebar a {
   color: #9ca3af;
 }
 
-body.dark-mode .nav-item:hover,
-body.dark-mode .nav-item.active {
+body.dark-mode .sidebar a:hover,
+body.dark-mode .sidebar a.active {
   background: #374151;
   color: #f9fafb;
 }
 
-body.dark-mode .content-header h1 {
+body.dark-mode .page h2 {
   color: #f9fafb;
 }
 
