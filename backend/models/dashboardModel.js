@@ -75,7 +75,6 @@ async function getUsersByDashboardId(dashboardId) {
   return result.recordset;
 }
 
-// Add user to dashboard
 async function addUserToDashboard(userId, dashboardId, role = "Viewer") {
   const pool = await sql.connect(dbConfig);
   await pool
@@ -89,7 +88,6 @@ async function addUserToDashboard(userId, dashboardId, role = "Viewer") {
   return { message: "User added to dashboard successfully" };
 }
 
-// Remove user from dashboard
 async function removeUserFromDashboard(userId, dashboardId) {
   const pool = await sql.connect(dbConfig);
   await pool
