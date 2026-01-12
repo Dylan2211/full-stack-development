@@ -14,8 +14,41 @@ async function getDashboard(req, res) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
+// Not implemented yet
+async function createDashboard(req, res) {
+  try {
+    const { name, description } = req.body;
+    const newDashboard = await require("../models/dashboardModel").createDashboard(name, description);
+    res.status(201).json(newDashboard);
+  } catch (error) {
+    console.error(`Error creating dashboard: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+// Not implemented yet
+async function updateDashboard(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId);
+    const { name, description } = req.body;
+    const updatedDashboard = await require("../models/dashboardModel").updateDashboard(dashboardId, name, description);
+    res.json(updatedDashboard);
+  } catch (error) {
+    console.error(`Error updating dashboard: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+// Not implemented yet
+async function deleteDashboard(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId);
+    const result = await require("../models/dashboardModel").deleteDashboard(dashboardId);
+    res.json(result);
+  } catch (error) {
+    console.error(`Error deleting dashboard: ${error}`);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
 
-// Get all dashboards
 async function getAllDashboards(req, res) {
   try {
     const dashboards = await dashboardModel.getAllDashboards();
@@ -25,7 +58,6 @@ async function getAllDashboards(req, res) {
   }
 }
 
-// Get all users in a dashboard
 async function getUsersByDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.id);
@@ -36,7 +68,6 @@ async function getUsersByDashboard(req, res) {
   }
 }
 
-// Add a user to a dashboard
 async function addUser(req, res) {
   try {
     const { userId, dashboardId, role } = req.body;
@@ -51,7 +82,6 @@ async function addUser(req, res) {
   }
 }
 
-// Remove a user from a dashboard
 async function removeUser(req, res) {
   try {
     const { userId, dashboardId } = req.body;
@@ -65,10 +95,11 @@ async function removeUser(req, res) {
   }
 }
 
-
-
 module.exports = {
   getDashboard,
+  createDashboard,
+  updateDashboard,
+  deleteDashboard,
   getAllDashboards,
   getUsersByDashboard,
   addUser,

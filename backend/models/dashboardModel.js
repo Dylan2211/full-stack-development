@@ -1,7 +1,7 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
+const { create } = require("node:domain");
 
-// Get all dashboards
 async function getAllDashboards() {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request().query(`
@@ -11,7 +11,6 @@ async function getAllDashboards() {
   return result.recordset;
 }
 
-// Get a single dashboard by ID
 async function getDashboard(dashboardId) {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request()
@@ -23,8 +22,47 @@ async function getDashboard(dashboardId) {
     `);
   return result.recordset[0];
 }
+// Not implemented yet
+async function createDashboard(name, description) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool
+    .request()
+    .input("Name", sql.NVarChar, name)
+    .input("Description", sql.NVarChar, description)
+    .query(`
+      INSERT INTO Dashboards (Name, Description)
+      VALUES (@Name, @Description);
+      SELECT SCOPE_IDENTITY() AS DashboardId;
+    `);
+  return result.recordset[0];
+}
+// Not implemented yet
+async function updateDashboard(dashboardId, name, description) {
+  const pool = await sql.connect(dbConfig);
+  await pool 
+    .request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .input("Name", sql.NVarChar, name)
+    .input("Description", sql.NVarChar, description)
+    .query(`
+      UPDATE Dashboards
+      SET Name = @Name, Description = @Description
+      WHERE DashboardId = @DashboardId
+    `);
+  return { message: "Dashboard updated successfully" };
+}
+// Not implemented yet
+async function deleteDashboard(dashboardId) {
+  const pool = await sql.connect(dbConfig);
+  await pool
+    .request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .query(`
+      DELETE FROM Dashboards WHERE DashboardId = @DashboardId
+    `);
+  return { message: "Dashboard deleted successfully" };
+}
 
-// Get all users linked to a dashboard
 async function getUsersByDashboardId(dashboardId) {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request().input("DashboardId", sql.Int, dashboardId)
@@ -64,8 +102,11 @@ async function removeUserFromDashboard(userId, dashboardId) {
 }
 
 module.exports = {
-  getAllDashboards,
   getDashboard,
+  createDashboard,
+  updateDashboard,
+  deleteDashboard,
+  getAllDashboards,
   getUsersByDashboardId,
   addUserToDashboard,
   removeUserFromDashboard,
