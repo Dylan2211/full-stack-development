@@ -70,13 +70,20 @@ function updateBoardName(boardId, nameElement) {
 
 // Tasks
 async function createTask(taskData) {
-  const res = await fetch("/no_login_api/tasks", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(taskData),
-  });
-  const saved = await res.json();
-  addTaskToColumn(saved);
+  const notification = document.getElementById("taskNotification");
+  notification.classList.add("show");
+
+  try {
+    const res = await fetch("/no_login_api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(taskData),
+    });
+    const saved = await res.json();
+    addTaskToColumn(saved);
+  } finally {
+    notification.classList.remove("show");
+  }
 }
 
 async function loadTasks(boardId) {

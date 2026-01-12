@@ -27,7 +27,7 @@ router.get ("/dashboards/:dashboardId", dashboardController.getDashboard);
 router.get("/dashboards/:dashboardId/boards", boardController.getBoardByDashboardId);
 router.post("/dashboards/:dashboardId/boards", boardController.createBoard);
 router.get("/boards/:boardId", boardController.getBoard);
-router.post("/boards/:boardId", boardController.updateBoard);
+router.put("/boards/:boardId", boardController.updateBoard);
 router.delete("/boards/:boardId", boardController.deleteBoard);
 
 // Task
