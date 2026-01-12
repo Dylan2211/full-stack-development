@@ -3,6 +3,13 @@ GO
 USE FullStack;
 GO
 
+-- -- Drop and recreate the database
+-- DROP DATABASE IF EXISTS FullStack;
+-- GO
+-- CREATE DATABASE FullStack;
+-- GO
+-- USE FullStack;
+
 CREATE TABLE Users (
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     FullName NVARCHAR(100) NOT NULL,
@@ -31,6 +38,7 @@ CREATE TABLE UserDashboards (
 CREATE TABLE Boards (
     BoardId INT IDENTITY(1,1) PRIMARY KEY,
     DashboardId INT FOREIGN KEY REFERENCES Dashboards(DashboardId),
+    Position INT NOT NULL DEFAULT 0, --for ordering
     Name NVARCHAR(100) NOT NULL,
     CreatedAt DATETIME DEFAULT GETDATE()
 );

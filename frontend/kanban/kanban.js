@@ -105,6 +105,18 @@ function updateBoardName(boardId, nameElement) {
   input.focus();
 }
 
+async function deleteBoard(boardId) {
+  const res = await fetch(`/no_login_api/boards/${boardId}`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    const message = await res.text();
+    throw new Error(message || "Unable to delete board");
+  }
+  return await res.json();
+}
+
 // Tasks
 async function createTask(taskData) {
   const notification = document.getElementById("taskNotification");
@@ -150,20 +162,6 @@ async function updateTaskPositions(boardId, orderedCards) {
 // Agents
 async function loadAgents() {
   const res = await fetch("/no_login_api/agents");
-  return await res.json();
-}
-
-async function deleteBoardRequest(boardId) {
-  const res = await fetch(`/no_login_api/boards/${boardId}`, {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!res.ok) {
-    const message = await res.text();
-    throw new Error(message || "Unable to delete board");
-  }
-
   return await res.json();
 }
 // #endregion Data Access
@@ -381,7 +379,7 @@ function createBoardSection(board) {
   deleteOption.addEventListener("click", async () => {
     if (confirm("Are you sure you want to delete this board?")) {
       try {
-        await deleteBoardRequest(board.BoardId);
+        await deleteBoard(board.BoardId);
         section.remove();
       } catch (error) {
         console.error("Failed to delete board:", error);

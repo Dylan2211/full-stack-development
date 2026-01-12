@@ -70,4 +70,4 @@ VALUES
 
 -- #endregion Kanban Board
 
-// do profile, do make icon apper for all website pages, do collaborators page
+-- do profile, do collaborators page
