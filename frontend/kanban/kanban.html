@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title><!--Title to be populated dynamically-->Loading...</title>
     <link rel="stylesheet" href="/kanban/kanban.css" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" href="../../images/favicon.png" />
   </head>
   <body>
     <!-- Task Creation Notification -->
@@ -21,13 +21,15 @@
     <div class="page">
       <header class="board-header">
         <div class="board-left">
-          <a class="back-button" href="/dashboard/dashboard.html" aria-label="Back to dashboards">Back</a>
+          <a class="back-button" href="/dashboard/dashboard.html" aria-label="Back to dashboards">
+            <img src="../../images/favicon.png" alt="Back" />
+          </a>
           <h1 id="dashboardTitle" class="board-title" aria-live="polite"></h1>
         </div>
         <div class="board-right">
-          <button class="settings-button" aria-label="settings">
-            <img src="/Settings.png" alt="Settings" />
-          </button>
+          <a class="settings-button" href="/settings/profile/profile.html" aria-label="settings">
+            <img src="../../images/Settings.png" alt="Settings" />
+          </a>
           <button id="new-task-trigger" class="add-task-button">
             add task
           </button>
