@@ -513,25 +513,38 @@ async function populateAgents() {
 
 function moveBoardLeft(boardSection) {
   const frame = boardSection.parentElement;
-  const addSection = frame.querySelector(".add-board-section");
-  const previousSibling = boardSection.previousElementSibling;
+  const boards = [...frame.querySelectorAll(".board:not(.add-board-section)")];
+  const currentIndex = boards.indexOf(boardSection);
   
-  if (previousSibling && previousSibling !== addSection) {
-    frame.insertBefore(boardSection, previousSibling);
+  if (currentIndex > 0) {
+    frame.insertBefore(boardSection, boards[currentIndex - 1]);
+    updateBoardPositions(frame);
   }
 }
 
 function moveBoardRight(boardSection) {
   const frame = boardSection.parentElement;
-  const addSection = frame.querySelector(".add-board-section");
-  const nextSibling = boardSection.nextElementSibling;
+  const boards = [...frame.querySelectorAll(".board:not(.add-board-section)")];
+  const currentIndex = boards.indexOf(boardSection);
   
-  if (nextSibling && nextSibling !== addSection) {
-    frame.insertBefore(boardSection, nextSibling.nextElementSibling);
-  } else if (nextSibling === addSection) {
-    // If the next sibling is the add section, don't move
-    return;
+  if (currentIndex < boards.length - 1) {
+    frame.insertBefore(boardSection, boards[currentIndex + 1].nextElementSibling);
+    updateBoardPositions(frame);
   }
+}
+
+async function updateBoardPositions(frame) {
+  const boards = [...frame.querySelectorAll(".board:not(.add-board-section)")];
+  
+  await Promise.all(
+    boards.map((board, index) =>
+      fetch(`/no_login_api/boards/${board.dataset.boardId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ position: index }),
+      })
+    )
+  );
 }
 // #endregion Helpers
 
