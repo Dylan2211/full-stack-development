@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Test Page</title>
+    <link rel="stylesheet" href="ai-test.css">
+</head>
+<body>
+    <div class="container">
+        <h1>AI Test Interface</h1>
+        <label for="ai-module">Select AI Module:</label>
+        <select id="ai-module">
+            <option value="aiAssignAgent">Assign Agent</option>
+            <option value="aiFileManager">File Manager</option>
+            <option value="aiTester">Tester</option>
+            <option value="aiWriter">Writer</option>
+        </select>
+        <label for="ai-input">Prompt/Input:</label>
+        <textarea id="ai-input" rows="4" placeholder="Enter your prompt or task details..."></textarea>
+        <button id="run-ai">Run AI</button>
+        <div id="ai-output"></div>
+    </div>
+    <script src="ai-test.js"></script>
+</body>
+</html>
