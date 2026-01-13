@@ -377,7 +377,7 @@ function createBoardSection(board) {
   deleteOption.className = "board-menu-item board-menu-item-danger";
   deleteOption.textContent = "Delete";
   deleteOption.addEventListener("click", async () => {
-    if (confirm("Are you sure you want to delete this board?")) {
+    showDeleteConfirmation(async () => {
       try {
         await deleteBoard(board.BoardId);
         section.remove();
@@ -385,7 +385,7 @@ function createBoardSection(board) {
         console.error("Failed to delete board:", error);
         alert("Could not delete board");
       }
-    }
+    });
     menu.classList.remove("show");
   });
   
@@ -412,8 +412,28 @@ function createBoardSection(board) {
   list.className = "list";
   list.id = "board-" + board.BoardId;
 
+  // Create add task button for this board
+  Btn = document.createElement("button");
+  addTaskBtn.className = "board-add-task-btn";
+  addTaskBtn.textContent = "+ Add task";
+  addTaskBtn.type = "button";
+  addTaskBtn.addEventListener("click", () => {
+    window.openAddTaskDialog(board.BoardId);
+  });
+  addTaskBtn.style.display = "none";
+
+  // Show/hide add task button on hover
+  section.addEventListener("mouseenter", () => {
+    addTaskBtn.style.display = "block";
+  });
+
+  section.addEventListener("mouseleave", () => {
+    addTaskBtn.style.display = "none";
+  });
+
   section.appendChild(header);
   section.appendChild(list);
+  section.appendChild(addTaskBtn);
   bindBoardDragEvents(section);
 
   return section;
@@ -423,37 +443,38 @@ function createAddBoardSection(dashboardId) {
   const section = document.createElement("section");
   section.className = "board add-board-section";
 
-  const header = document.createElement("header");
-  header.className = "board-section-header";
-  const name = document.createElement("div");
-  name.className = "board-name";
-  name.textContent = "new board";
-  header.appendChild(name);
+  // Create the plus button
+  const plusButton = document.createElement("button");
+  plusButton.className = "add-board-plus-button";
+  plusButton.textContent = "+";
+  plusButton.setAttribute("aria-label", "Add new board");
+  plusButton.type = "button";
 
-  const form = document.createElement("form");
-  form.className = "add-board-form";
-  form.innerHTML = `
-    <label class="sr-only" for="newBoardName">Board name</label>
-    <input id="newBoardName" class="add-board-input" type="text" name="boardName" placeholder="Name" required />
-    <button class="add-board-submit" type="submit">Create</button>
-    <div class="add-board-hint">Creates a fresh board for this dashboard.</div>
-  `;
+  // Create the input (initially hidden)
+  const input = document.createElement("input");
+  input.className = "add-board-input";
+  input.type = "text";
+  input.placeholder = "Board name";
+  input.style.display = "none";
 
-  form.addEventListener("submit", async function (event) {
-    event.preventDefault();
-    const input = form.querySelector(".add-board-input");
-    const hint = form.querySelector(".add-board-hint");
-    if (!input) return;
+  plusButton.addEventListener("click", () => {
+    plusButton.style.display = "none";
+    input.style.display = "block";
+    input.focus();
+  });
 
+  input.addEventListener("blur", async () => {
     const nameValue = input.value.trim();
-    if (!nameValue) return;
+    if (!nameValue) {
+      input.style.display = "none";
+      plusButton.style.display = "block";
+      return;
+    }
 
     try {
-      form.classList.add("is-loading");
-      hint.textContent = "Creating...";
+      input.disabled = true;
       const board = await createBoardRequest(dashboardId, nameValue);
       input.value = "";
-      hint.textContent = "Board created";
 
       const frame = document.querySelector(".board-frame");
       const addBoardSection = frame ? frame.querySelector(".add-board-section") : null;
@@ -468,20 +489,54 @@ function createAddBoardSection(dashboardId) {
       if (boardTitle && (!boardTitle.textContent || boardTitle.textContent === "Create your first board")) {
         boardTitle.textContent = board.Name;
       }
+
+      input.style.display = "none";
+      plusButton.style.display = "block";
     } catch (error) {
-      if (hint) hint.textContent = "Could not create board";
       console.error("Failed to create board:", error);
-    } finally {
-      form.classList.remove("is-loading");
-      input.focus();
-      setTimeout(function () {
-        if (hint) hint.textContent = "Creates a fresh board for this dashboard.";
-      }, 1500);
+      alert("Could not create board");
+      input.disabled = false;
     }
   });
 
-  section.appendChild(header);
-  section.appendChild(form);
+  input.addEventListener("keypress", async (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const nameValue = input.value.trim();
+      if (!nameValue) return;
+
+      try {
+        input.disabled = true;
+        const board = await createBoardRequest(dashboardId, nameValue);
+        input.value = "";
+
+        const frame = document.querySelector(".board-frame");
+        const addBoardSection = frame ? frame.querySelector(".add-board-section") : null;
+        const newSection = createBoardSection(board);
+        if (frame && addBoardSection) {
+          frame.insertBefore(newSection, addBoardSection);
+        } else if (frame) {
+          frame.appendChild(newSection);
+        }
+
+        const boardTitle = document.getElementById("boardTitle");
+        if (boardTitle && (!boardTitle.textContent || boardTitle.textContent === "Create your first board")) {
+          boardTitle.textContent = board.Name;
+        }
+
+        input.style.display = "none";
+        plusButton.style.display = "block";
+      } catch (error) {
+        console.error("Failed to create board:", error);
+        alert("Could not create board");
+      } finally {
+        input.disabled = false;
+      }
+    }
+  });
+
+  section.appendChild(plusButton);
+  section.appendChild(input);
   return section;
 }
 
@@ -508,6 +563,17 @@ async function populateAgents() {
     opt.value = a.name;
     opt.textContent = a.name;
     agentSelect.appendChild(opt);
+  });
+}
+
+function populateBoardSelect(boards) {
+  const boardSelect = document.getElementById("taskBoard");
+  boardSelect.innerHTML = "";
+  boards.forEach((board) => {
+    const opt = document.createElement("option");
+    opt.value = board.BoardId;
+    opt.textContent = board.Name;
+    boardSelect.appendChild(opt);
   });
 }
 
@@ -546,18 +612,51 @@ async function updateBoardPositions(frame) {
     )
   );
 }
+
+function showDeleteConfirmation(onConfirm) {
+  const dialog = document.getElementById("deleteConfirmDialog");
+  const confirmBtn = document.getElementById("deleteConfirmSubmit");
+  const cancelBtn = document.getElementById("deleteConfirmCancel");
+
+  const handleConfirm = async () => {
+    dialog.close();
+    cleanupListeners();
+    await onConfirm();
+  };
+
+  const handleCancel = () => {
+    dialog.close();
+    cleanupListeners();
+  };
+
+  const cleanupListeners = () => {
+    confirmBtn.removeEventListener("click", handleConfirm);
+    cancelBtn.removeEventListener("click", handleCancel);
+  };
+
+  confirmBtn.addEventListener("click", handleConfirm);
+  cancelBtn.addEventListener("click", handleCancel);
+  dialog.show();
+}
 // #endregion Helpers
 
 // #region Add Task Dialog
-function initializeAddTaskDialog(boardId, userId) {
+function initializeAddTaskDialog(userId) {
   const dialog = document.getElementById("newTaskDialog");
   const open_btn = document.getElementById("new-task-trigger");
   const close_btn = document.getElementById("closeTask");
   const cancel_btn = document.getElementById("cancelTask");
   const form = document.getElementById("taskForm");
+  const boardSelect = document.getElementById("taskBoard");
+
+  // Store the default/selected board
+  let selectedBoardId = null;
 
   open_btn.addEventListener("click", () => {
     dialog.show();
+    if (selectedBoardId) {
+      boardSelect.value = selectedBoardId;
+    }
   });
 
   close_btn.addEventListener("click", () => dialog.close());
@@ -565,6 +664,12 @@ function initializeAddTaskDialog(boardId, userId) {
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+
+    const boardId = parseInt(boardSelect.value);
+    if (!boardId) {
+      alert("Please select a board");
+      return;
+    }
 
     const title = document.getElementById("taskTitle").value.trim();
     const description = document.getElementById("taskDesc").value.trim();
@@ -582,8 +687,19 @@ function initializeAddTaskDialog(boardId, userId) {
       position: 0,
       status: "todo",
     });
+
+    // Reset form
+    form.reset();
     dialog.close();
   });
+
+  // Expose a method to set the board and open dialog
+  window.openAddTaskDialog = (boardId) => {
+    selectedBoardId = boardId;
+    dialog.show();
+    boardSelect.value = boardId;
+    document.getElementById("taskTitle").focus();
+  };
 }
 // #endregion Add Task Dialog
 
@@ -607,6 +723,8 @@ async function initializeDashboard(dashboardId) {
     setText("boardTitle", "Create your first board");
     initializeDragAndDrop();
     await populateAgents();
+    const userId = 1; // Replace with actual user ID as needed
+    initializeAddTaskDialog(userId);
     return;
   }
 
@@ -618,9 +736,10 @@ async function initializeDashboard(dashboardId) {
 
   initializeDragAndDrop();
   await populateAgents();
+  populateBoardSelect(boards);
 
   const userId = 1; // Replace with actual user ID as needed
-  initializeAddTaskDialog(boards[0].BoardId, userId);
+  initializeAddTaskDialog(userId);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {

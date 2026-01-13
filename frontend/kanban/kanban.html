@@ -26,7 +26,7 @@
         </div>
         <div class="board-right">
           <button class="settings-button" aria-label="settings">
-            <img src="/Settings.png" alt="Settings" />
+            <img src="/images/Settings.png" alt="Settings" />
           </button>
           <button id="new-task-trigger" class="add-task-button">
             add task
@@ -51,6 +51,9 @@
         <label>Description</label>
         <textarea id="taskDesc" rows="3"></textarea>
 
+        <label>Board</label>
+        <select id="taskBoard" required></select>
+
         <label>Assign Agent(s)</label>
         <select id="taskAgents" multiple></select>
 
@@ -62,6 +65,17 @@
           <button id="createTask" type="submit">Create Task</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog id="deleteConfirmDialog" class="confirm-dialog">
+      <div class="confirm-content">
+        <h3>Delete Board</h3>
+        <p id="deleteConfirmText">Are you sure you want to delete this board?</p>
+        <div class="confirm-buttons">
+          <button id="deleteConfirmCancel" type="button">Cancel</button>
+          <button id="deleteConfirmSubmit" type="button" class="danger">Delete</button>
+        </div>
+      </div>
     </dialog>
   </body>
   <script defer src="/kanban/kanban.js"></script>

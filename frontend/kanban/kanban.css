@@ -186,7 +186,6 @@
 .board-name {
   font-size: 12px;
   font-weight: 600;
-  text-transform: lowercase;
   color: #2e3138;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -285,6 +284,13 @@
   width: 100%;
 }
 
+.add-board-plus-button {
+  width: 32px;
+  height: 32px;
+  fill: white;
+  border: grey;
+}
+
 /* #endregion boards */
 
 /* #region list area */
@@ -299,9 +305,26 @@
   overflow-y: auto;
 }
 
+.board-add-task-btn {
+  padding: 8px 12px;
+  border: 2px dashed #d2d2d2;
+  border-radius: 6px;
+  background: #f9f9f9;
+  color: #60646c;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 6px 4px 4px 4px;
+}
+
+.board-add-task-btn:hover {
+  border-color: #111111;
+  background: #ffffff;
+  color: #111111;
+}
+
 .add-board-section {
   background: #ffffff;
-  border: 2px dashed #c9c9c9;
   justify-content: flex-start;
 }
 
@@ -476,7 +499,83 @@
   justify-content: flex-end;
   gap: 10px;
 }
+
 /* #endregion add task */
+
+/* #region confirmation dialog */
+
+.confirm-dialog {
+  position: fixed;
+  border: none;
+  border-radius: 12px;
+  padding: 0;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.confirm-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 300px;
+}
+
+.confirm-content h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111111;
+}
+
+.confirm-content p {
+  margin: 0;
+  font-size: 14px;
+  color: #60646c;
+}
+
+.confirm-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.confirm-buttons button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #d2d2d2;
+  background: #ffffff;
+  color: #111111;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirm-buttons button:hover {
+  background: #f3f3f3;
+  border-color: #111111;
+}
+
+.confirm-buttons button.danger {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.confirm-buttons button.danger:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+/* #endregion confirmation dialog */
 
 /* #region small screens */
 
@@ -498,6 +597,7 @@
 }
 
 /* #endregion small screens */
+
 /* #region task notification dropdown */
 
 .task-notification {
