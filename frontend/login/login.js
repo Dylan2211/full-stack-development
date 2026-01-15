@@ -1,4 +1,7 @@
+import { setAuthToken } from '../auth-utils.js';
 const API_BASE = window.location.origin || '';
+
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.querySelector('form');
@@ -48,8 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setFormMessage(json.message || (json.errors && json.errors.join('\n')) || 'Login failed', 'error');
         return;
       }
-      localStorage.setItem('authToken', json.token);
-      window.location.href = '/kanban';
+      setAuthToken(json.token);
+      // Redirect to dashboard after login
+      window.location.href = '/dashboard';
     } catch (err) {
       console.error(err);
       setFormMessage('Login error. See console for details.', 'error');

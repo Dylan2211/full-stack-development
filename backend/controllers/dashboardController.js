@@ -4,9 +4,11 @@ const dashboardModel = require("../models/dashboardModel");
 async function getDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId);
-    const dashboard = await require("../models/dashboardModel").getDashboard(dashboardId);
+    const userId = req.user && req.user.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    const dashboard = await dashboardModel.getDashboardForUser(dashboardId, userId);
     if (!dashboard) {
-      return res.status(404).json({ error: "Dashboard not found" });
+      return res.status(404).json({ error: "Dashboard not found or access denied" });
     }
     res.json(dashboard);
   } catch (error) {
@@ -51,7 +53,9 @@ async function deleteDashboard(req, res) {
 
 async function getAllDashboards(req, res) {
   try {
-    const dashboards = await dashboardModel.getAllDashboards();
+    const userId = req.user && req.user.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    const dashboards = await dashboardModel.getDashboardsByUserId(userId);
     res.status(200).json(dashboards);
   } catch (error) {
     res.status(500).json({ error: error.message });
