@@ -1,5 +1,3 @@
-import { requireAuth } from '../auth-utils.js';
-
 function clampPercent(value) {
   if (typeof value !== "number" || isNaN(value)) return 0;
   if (value < 0) return 0;
@@ -304,7 +302,6 @@ function metricsFromQuery() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  requireAuth();
   var data = metricsFromQuery();
   applyMetrics(data);
 

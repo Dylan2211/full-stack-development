@@ -99,33 +99,6 @@ async function removeUserFromDashboard(userId, dashboardId) {
   return { message: "User removed from dashboard successfully" };
 }
 
-async function getDashboardsByUserId(userId) {
-  const pool = await sql.connect(dbConfig);
-  const result = await pool.request()
-    .input("UserId", sql.Int, userId)
-    .query(`
-      SELECT d.DashboardId, d.Name, d.Description, d.CreatedAt
-      FROM Dashboards d
-      JOIN UserDashboards ud ON d.DashboardId = ud.DashboardId
-      WHERE ud.UserId = @UserId
-    `);
-  return result.recordset;
-}
-
-async function getDashboardForUser(dashboardId, userId) {
-  const pool = await sql.connect(dbConfig);
-  const result = await pool.request()
-    .input("DashboardId", sql.Int, dashboardId)
-    .input("UserId", sql.Int, userId)
-    .query(`
-      SELECT d.DashboardId, d.Name, d.Description, d.CreatedAt
-      FROM Dashboards d
-      JOIN UserDashboards ud ON d.DashboardId = ud.DashboardId
-      WHERE d.DashboardId = @DashboardId AND ud.UserId = @UserId
-    `);
-  return result.recordset[0];
-}
-
 module.exports = {
   getDashboard,
   createDashboard,
@@ -135,6 +108,4 @@ module.exports = {
   getUsersByDashboardId,
   addUserToDashboard,
   removeUserFromDashboard,
-  getDashboardsByUserId,
-  getDashboardForUser,
 };

@@ -310,16 +310,9 @@ function metricsFromQuery() {
 // #endregion
 
 // #region UI wiring
-async function loadDashboards(userId) {
+async function loadDashboards() {
   try {
-    const token = getAuthToken ? getAuthToken() : localStorage.getItem('authToken');
-    const response = await fetch("/api/dashboards", {
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
-    if (!response.ok) {
-      console.error('Failed to load dashboards:', response.status, await response.text());
-      return;
-    }
+    const response = await fetch("/no_login_api/dashboards");
     const dashboards = await response.json();
 
     const grid = document.querySelector(".dashboard-grid");
@@ -433,35 +426,8 @@ function setupOverlay() {
   });
 }
 
-import { requireAuth, getUserInfoFromToken, logout, getAuthToken } from '../auth-utils.js';
-
-document.addEventListener('DOMContentLoaded', () => {
-  // Enforce immediate redirect to login if not authenticated
-  requireAuth();
-
-  // Render header: settings icon + avatar showing first initial
-  const userArea = document.getElementById('user-area');
-  const userInfo = getUserInfoFromToken();
-  if (userArea) {
-    if (userInfo && (userInfo.fullName || userInfo.email)) {
-      const display = (userInfo.fullName || userInfo.email);
-      const initial = String(display).charAt(0).toUpperCase();
-      userArea.innerHTML = `
-        <a href="/settings" title="Settings" class="icon-button settings-btn">⚙️</a>
-        <a href="/settings" class="user-pill-link" id="profile-link">
-          <div class="user-pill" aria-hidden="true"><span class="user-initials">${initial}</span></div>
-        </a>
-        <button id="logout-btn" class="icon-button" title="Log out">Log out</button>
-      `;
-      const logoutBtn = document.getElementById('logout-btn');
-      if (logoutBtn) logoutBtn.addEventListener('click', () => logout());
-    } else {
-      userArea.innerHTML = `<a href="/login/login.html" class="login-btn">Log In</a>`;
-    }
-  }
-  const userId = 1 ; // Placeholder user ID
-  // Now load dashboard contents and wire UI
-  loadDashboards(userId);
+document.addEventListener("DOMContentLoaded", function () {
+  loadDashboards();
   var data = metricsFromQuery();
   applyMetrics(data);
   window.updateDashboard = applyMetrics;

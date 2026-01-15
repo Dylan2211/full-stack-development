@@ -36,20 +36,10 @@ function getHiddenDragImage() {
 }
 // #endregion Utilities
 
-
-function authFetch(url, opts = {}) {
-  const token = localStorage.getItem('authToken');
-  opts = opts || {};
-  opts.headers = opts.headers || {};
-  if (token) opts.headers['Authorization'] = `Bearer ${token}`;
-  if (typeof url === 'string') url = url.replace(/^\/api/, '/api');
-  return fetch(url, opts);
-}
-
 // #region Data Access
 // Boards
 async function createBoardRequest(dashboardId, name) {
-  const res = await authFetch(`/api/dashboards/${dashboardId}/boards`, {
+  const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
@@ -64,7 +54,7 @@ async function createBoardRequest(dashboardId, name) {
 }
 
 async function loadBoards(dashboardId) {
-  const res = await authFetch(`/api/dashboards/${dashboardId}/boards`, {
+  const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });
@@ -72,7 +62,7 @@ async function loadBoards(dashboardId) {
 }
 
 async function loadBoardName(dashboardId) {
-  const dashboard = await (await authFetch(`/api/dashboards/${dashboardId}`)).json();
+  const dashboard = await (await fetch(`/no_login_api/dashboards/${dashboardId}`)).json();
   if (!dashboard) {
     console.error("Dashboard not found");
     throw new Error("Dashboard not found");
@@ -92,7 +82,7 @@ function updateBoardName(boardId, nameElement) {
     const newName = input.value.trim();
     if (newName && newName !== currentName) {
       try {
-        const res = await authFetch(`/api/boards/${boardId}`, {
+        const res = await fetch(`/no_login_api/boards/${boardId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newName }),
@@ -116,7 +106,7 @@ function updateBoardName(boardId, nameElement) {
 }
 
 async function deleteBoard(boardId) {
-  const res = await authFetch(`/api/boards/${boardId}`, {
+  const res = await fetch(`/no_login_api/boards/${boardId}`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
   });
@@ -133,7 +123,7 @@ async function createTask(taskData) {
   notification.classList.add("show");
 
   try {
-    const res = await authFetch("/api/tasks", {
+    const res = await fetch("/no_login_api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(taskData),
@@ -146,7 +136,7 @@ async function createTask(taskData) {
 }
 
 async function loadTasks(boardId) {
-  const res = await authFetch(`/api/boards/${boardId}/tasks`, {
+  const res = await fetch(`/no_login_api/boards/${boardId}/tasks`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });
@@ -157,7 +147,7 @@ async function loadTasks(boardId) {
 async function updateTaskPositions(boardId, orderedCards) {
   await Promise.all(
     orderedCards.map((card, idx) =>
-      authFetch(`/api/tasks/${card.dataset.id}`, {
+      fetch(`/no_login_api/tasks/${card.dataset.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -171,7 +161,7 @@ async function updateTaskPositions(boardId, orderedCards) {
 
 // Agents
 async function loadAgents() {
-  const res = await authFetch("/api/agents");
+  const res = await fetch("/no_login_api/agents");
   return await res.json();
 }
 // #endregion Data Access
@@ -330,7 +320,7 @@ function addTaskToBoard(task) {
   board.appendChild(card);
 }
 
-function createBoardSection(board, isLeftmost = false) {
+function createBoardSection(board) {
   const section = document.createElement("section");
   section.className = "board";
   section.dataset.boardId = board.BoardId;
@@ -366,8 +356,6 @@ function createBoardSection(board, isLeftmost = false) {
     moveBoardLeft(section);
     menu.classList.remove("show");
   });
-
-
   
   const moveRightOption = document.createElement("button");
   moveRightOption.className = "board-menu-item";
@@ -401,9 +389,7 @@ function createBoardSection(board, isLeftmost = false) {
     menu.classList.remove("show");
   });
   
-  if (!isLeftmost) {
-    menu.appendChild(moveLeftOption);
-  }
+  menu.appendChild(moveLeftOption);
   menu.appendChild(moveRightOption);
   menu.appendChild(renameOption);
   menu.appendChild(deleteOption);
@@ -426,7 +412,8 @@ function createBoardSection(board, isLeftmost = false) {
   list.className = "list";
   list.id = "board-" + board.BoardId;
 
-  const addTaskBtn = document.createElement("button");
+  // Create add task button for this board
+  Btn = document.createElement("button");
   addTaskBtn.className = "board-add-task-btn";
   addTaskBtn.textContent = "+ Add task";
   addTaskBtn.type = "button";
@@ -557,9 +544,8 @@ function renderBoardSections(boards, dashboardId) {
   const frame = document.querySelector(".board-frame");
   if (!frame) return;
   frame.innerHTML = "";
-  boards.forEach((board, index) => {
-    const isLeftmost = index === 0;
-    frame.appendChild(createBoardSection(board, isLeftmost));
+  boards.forEach((board) => {
+    frame.appendChild(createBoardSection(board));
   });
 
   frame.appendChild(createAddBoardSection(dashboardId));
@@ -618,7 +604,7 @@ async function updateBoardPositions(frame) {
   
   await Promise.all(
     boards.map((board, index) =>
-      fetch(`/api/boards/${board.dataset.boardId}`, {
+      fetch(`/no_login_api/boards/${board.dataset.boardId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ position: index }),
@@ -728,7 +714,7 @@ function loadDashboardIdFromUrl() {
   return dashboardId;
 }
 
-async function initializeDashboard(dashboardId, userId) {
+async function initializeDashboard(dashboardId) {
   const boards = (await loadBoards(dashboardId)) || [];
 
   renderBoardSections(boards, dashboardId);
@@ -737,6 +723,7 @@ async function initializeDashboard(dashboardId, userId) {
     setText("boardTitle", "Create your first board");
     initializeDragAndDrop();
     await populateAgents();
+    const userId = 1; // Replace with actual user ID as needed
     initializeAddTaskDialog(userId);
     return;
   }

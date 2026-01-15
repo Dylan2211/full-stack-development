@@ -309,31 +309,3 @@ body {
 .overlay-button.secondary:hover {
   background-color: #e5e7eb;
 }
-
-/* Login prompt */
-.login-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  text-align: center;
-}
-
-.login-prompt h2 {
-  margin-bottom: 20px;
-  color: #6b7280;
-}
-
-.login-btn {
-  padding: 10px 20px;
-  background-color: #020617;
-  color: white;
-  text-decoration: none;
-  border-radius: 5px;
-  font-weight: 500;
-}
-
-.login-btn:hover {
-  background-color: #1f2937;
-}
