@@ -320,7 +320,7 @@ function addTaskToBoard(task) {
   board.appendChild(card);
 }
 
-function createBoardSection(board) {
+function createBoardSection(board, isLeftmost = false) {
   const section = document.createElement("section");
   section.className = "board";
   section.dataset.boardId = board.BoardId;
@@ -356,6 +356,8 @@ function createBoardSection(board) {
     moveBoardLeft(section);
     menu.classList.remove("show");
   });
+
+
   
   const moveRightOption = document.createElement("button");
   moveRightOption.className = "board-menu-item";
@@ -389,7 +391,9 @@ function createBoardSection(board) {
     menu.classList.remove("show");
   });
   
-  menu.appendChild(moveLeftOption);
+  if (!isLeftmost) {
+    menu.appendChild(moveLeftOption);
+  }
   menu.appendChild(moveRightOption);
   menu.appendChild(renameOption);
   menu.appendChild(deleteOption);
@@ -544,8 +548,9 @@ function renderBoardSections(boards, dashboardId) {
   const frame = document.querySelector(".board-frame");
   if (!frame) return;
   frame.innerHTML = "";
-  boards.forEach((board) => {
-    frame.appendChild(createBoardSection(board));
+  boards.forEach((board, index) => {
+    const isLeftmost = index === 0;
+    frame.appendChild(createBoardSection(board, isLeftmost));
   });
 
   frame.appendChild(createAddBoardSection(dashboardId));
