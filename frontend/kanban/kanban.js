@@ -36,10 +36,20 @@ function getHiddenDragImage() {
 }
 // #endregion Utilities
 
+
+function authFetch(url, opts = {}) {
+  const token = localStorage.getItem('authToken');
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  if (token) opts.headers['Authorization'] = `Bearer ${token}`;
+  if (typeof url === 'string') url = url.replace(/^\/no_login_api/, '/api');
+  return fetch(url, opts);
+}
+
 // #region Data Access
 // Boards
 async function createBoardRequest(dashboardId, name) {
-  const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
+  const res = await authFetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
@@ -54,7 +64,7 @@ async function createBoardRequest(dashboardId, name) {
 }
 
 async function loadBoards(dashboardId) {
-  const res = await fetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
+  const res = await authFetch(`/no_login_api/dashboards/${dashboardId}/boards`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });
@@ -62,7 +72,7 @@ async function loadBoards(dashboardId) {
 }
 
 async function loadBoardName(dashboardId) {
-  const dashboard = await (await fetch(`/no_login_api/dashboards/${dashboardId}`)).json();
+  const dashboard = await (await authFetch(`/no_login_api/dashboards/${dashboardId}`)).json();
   if (!dashboard) {
     console.error("Dashboard not found");
     throw new Error("Dashboard not found");
@@ -82,7 +92,7 @@ function updateBoardName(boardId, nameElement) {
     const newName = input.value.trim();
     if (newName && newName !== currentName) {
       try {
-        const res = await fetch(`/no_login_api/boards/${boardId}`, {
+        const res = await authFetch(`/no_login_api/boards/${boardId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: newName }),
@@ -106,7 +116,7 @@ function updateBoardName(boardId, nameElement) {
 }
 
 async function deleteBoard(boardId) {
-  const res = await fetch(`/no_login_api/boards/${boardId}`, {
+  const res = await authFetch(`/no_login_api/boards/${boardId}`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
   });
@@ -123,7 +133,7 @@ async function createTask(taskData) {
   notification.classList.add("show");
 
   try {
-    const res = await fetch("/no_login_api/tasks", {
+    const res = await authFetch("/no_login_api/tasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(taskData),
@@ -136,7 +146,7 @@ async function createTask(taskData) {
 }
 
 async function loadTasks(boardId) {
-  const res = await fetch(`/no_login_api/boards/${boardId}/tasks`, {
+  const res = await authFetch(`/no_login_api/boards/${boardId}/tasks`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });
@@ -147,7 +157,7 @@ async function loadTasks(boardId) {
 async function updateTaskPositions(boardId, orderedCards) {
   await Promise.all(
     orderedCards.map((card, idx) =>
-      fetch(`/no_login_api/tasks/${card.dataset.id}`, {
+      authFetch(`/no_login_api/tasks/${card.dataset.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -161,7 +171,7 @@ async function updateTaskPositions(boardId, orderedCards) {
 
 // Agents
 async function loadAgents() {
-  const res = await fetch("/no_login_api/agents");
+  const res = await authFetch("/no_login_api/agents");
   return await res.json();
 }
 // #endregion Data Access
