@@ -21,18 +21,18 @@ router.post("/login", validateLogin, userController.loginUser);
 router.put("/users/:id", authMiddleware, userController.updateUser);
 router.delete("/users/:id", authMiddleware, userController.deleteUser);
 
-// Board routes (protected)
-router.get("/dashboards/:dashboardId/boards", authMiddleware, boardController.getBoardByDashboardId);
-router.post("/dashboards/:dashboardId/boards", authMiddleware, boardController.createBoard);
-router.get("/boards/:boardId", authMiddleware, boardController.getBoard);
-router.post("/boards/:boardId", authMiddleware, boardController.updateBoard);
-router.delete("/boards/:boardId", authMiddleware, boardController.deleteBoard);
-
 // Dashboard routes (protected)
 router.get("/dashboards", authMiddleware, dashboardController.getAllDashboards);
 router.get("/dashboards/:dashboardId", authMiddleware, dashboardController.getDashboard);
 
-// Task routes
+// Board routes (protected)
+router.get("/dashboards/:dashboardId/boards", authMiddleware, boardController.getBoardByDashboardId);
+router.post("/dashboards/:dashboardId/boards", authMiddleware, boardController.createBoard);
+router.get("/boards/:boardId", authMiddleware, boardController.getBoard);
+router.put("/boards/:boardId", authMiddleware, boardController.updateBoard);
+router.delete("/boards/:boardId", authMiddleware, boardController.deleteBoard);
+
+// Task routes (protected)
 router.get("/boards/:boardId/tasks", authMiddleware, taskController.getTasksByBoardId);
 router.get("/tasks/:id", authMiddleware, taskController.getTask);
 router.post("/tasks", authMiddleware, taskController.createTask);

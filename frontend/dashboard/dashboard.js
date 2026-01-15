@@ -459,9 +459,9 @@ document.addEventListener('DOMContentLoaded', () => {
       userArea.innerHTML = `<a href="/login/login.html" class="login-btn">Log In</a>`;
     }
   }
-
+  const userId = 1 ; // Placeholder user ID
   // Now load dashboard contents and wire UI
-  loadDashboards();
+  loadDashboards(userId);
   var data = metricsFromQuery();
   applyMetrics(data);
   window.updateDashboard = applyMetrics;

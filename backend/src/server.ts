@@ -6,7 +6,6 @@ import path from "path";
 import helmet from "helmet";
 const taskRoutes = require("../routes/taskRoutes");
 const userRoutes = require("../routes/userRoutes");
-const no_login_routes = require("../routes/no_login_routes");
 const aiRoutes = require("../routes/ai-roots");
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
@@ -33,7 +32,7 @@ app.use("/api/ai", aiRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/no_login_api", no_login_routes);
+app.use("/api", taskRoutes);
 app.use(express.static(frontendPath));
 app.use("/api/users", userRoutes);
 app.use("/api", taskRoutes);
@@ -49,7 +48,7 @@ const ROUTES = {
 };
 //  #region Frontend routes
 app.get(ROUTES.HOME, (req, res) => {
-  res.redirect(ROUTES.DASHBOARD);
+  res.redirect(ROUTES.LOGIN);
 });
 app.get(ROUTES.LOGIN, (req, res) => {
   res.sendFile(path.join(frontendPath, "login/login.html"));
