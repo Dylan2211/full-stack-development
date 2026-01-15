@@ -416,8 +416,7 @@ function createBoardSection(board, isLeftmost = false) {
   list.className = "list";
   list.id = "board-" + board.BoardId;
 
-  // Create add task button for this board
-  Btn = document.createElement("button");
+  const addTaskBtn = document.createElement("button");
   addTaskBtn.className = "board-add-task-btn";
   addTaskBtn.textContent = "+ Add task";
   addTaskBtn.type = "button";
@@ -719,7 +718,7 @@ function loadDashboardIdFromUrl() {
   return dashboardId;
 }
 
-async function initializeDashboard(dashboardId) {
+async function initializeDashboard(dashboardId, userId) {
   const boards = (await loadBoards(dashboardId)) || [];
 
   renderBoardSections(boards, dashboardId);
@@ -728,7 +727,6 @@ async function initializeDashboard(dashboardId) {
     setText("boardTitle", "Create your first board");
     initializeDragAndDrop();
     await populateAgents();
-    const userId = 1; // Replace with actual user ID as needed
     initializeAddTaskDialog(userId);
     return;
   }

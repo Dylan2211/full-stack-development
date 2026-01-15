@@ -310,9 +310,9 @@ function metricsFromQuery() {
 // #endregion
 
 // #region UI wiring
-async function loadDashboards() {
+async function loadDashboards(userId) {
   try {
-    const response = await fetch("/no_login_api/dashboards");
+    const response = await fetch(`/no_login_api/dashboards?userId=${userId}`);
     const dashboards = await response.json();
 
     const grid = document.querySelector(".dashboard-grid");
@@ -427,7 +427,8 @@ function setupOverlay() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  loadDashboards();
+  const userId = 1; // Replace with actual user ID as needed
+  loadDashboards(userId);
   var data = metricsFromQuery();
   applyMetrics(data);
   window.updateDashboard = applyMetrics;
