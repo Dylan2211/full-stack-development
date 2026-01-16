@@ -1,6 +1,0 @@
-import { requireAuth } from '../auth-utils.js';
-document.addEventListener('DOMContentLoaded', () => {
-  requireAuth();
-  // ...existing code...
-});
-// ...existing code...
