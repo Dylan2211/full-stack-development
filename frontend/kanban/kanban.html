@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title><!--Title to be populated dynamically-->Loading...</title>
     <link rel="stylesheet" href="/kanban/kanban.css" />
-    <link rel="icon" type="image/png" href="../../images/favicon.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
   </head>
   <body>
     <!-- Task Creation Notification -->
@@ -27,9 +27,9 @@
           <h1 id="dashboardTitle" class="board-title" aria-live="polite"></h1>
         </div>
         <div class="board-right">
-          <a class="settings-button" href="/settings/profile/profile.html" aria-label="settings">
-            <img src="../../images/Settings.png" alt="Settings" />
-          </a>
+          <button class="settings-button" aria-label="settings">
+            <img src="/Settings.png" alt="Settings" />
+          </button>
           <button id="new-task-trigger" class="add-task-button">
             add task
           </button>
@@ -53,6 +53,9 @@
         <label>Description</label>
         <textarea id="taskDesc" rows="3"></textarea>
 
+        <label>Board</label>
+        <select id="taskBoard" required></select>
+
         <label>Assign Agent(s)</label>
         <select id="taskAgents" multiple></select>
 
@@ -64,6 +67,17 @@
           <button id="createTask" type="submit">Create Task</button>
         </div>
       </form>
+    </dialog>
+
+    <dialog id="deleteConfirmDialog" class="confirm-dialog">
+      <div class="confirm-content">
+        <h3>Delete Board</h3>
+        <p id="deleteConfirmText">Are you sure you want to delete this board?</p>
+        <div class="confirm-buttons">
+          <button id="deleteConfirmCancel" type="button">Cancel</button>
+          <button id="deleteConfirmSubmit" type="button" class="danger">Delete</button>
+        </div>
+      </div>
     </dialog>
   </body>
   <script defer src="/kanban/kanban.js"></script>

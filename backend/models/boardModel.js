@@ -43,7 +43,7 @@ async function getBoardByDashboardId(dashboardId) {
     const result = await pool
       .request()
       .input("dashboardId", sql.Int, dashboardId)
-      .query(`SELECT * FROM Boards WHERE DashboardId = @dashboardId`);
+      .query(`SELECT * FROM Boards WHERE DashboardId = @dashboardId ORDER BY Position ASC`);
     return result.recordset;
   } catch (err) {
     console.error("Error getting board by dashboard id:", err.message);
@@ -51,18 +51,30 @@ async function getBoardByDashboardId(dashboardId) {
   }
 }
 
-async function updateBoard({ boardId, name }) {
+async function updateBoard({ boardId, name, position }) {
   try {
     const pool = await dbConfig;
-    const result = await pool
-        .request()
-        .input("boardId", sql.Int, boardId)
-        .input("name", sql.NVarChar, name)
-        .query(
-            `UPDATE Boards
-                SET Name = @name
-                WHERE BoardId = @boardId`
-        );
+    const request = pool.request().input("boardId", sql.Int, boardId);
+
+    let query = `UPDATE Boards SET`;
+    const updates = [];
+
+    if (name !== undefined) {
+      request.input("name", sql.NVarChar, name);
+      updates.push(`Name = @name`);
+    }
+
+    if (position !== undefined) {
+      request.input("position", sql.Int, position);
+      updates.push(`Position = @position`);
+    }
+
+    if (updates.length === 0) {
+      return false;
+    }
+
+    query += ` ${updates.join(", ")} WHERE BoardId = @boardId`;
+    const result = await request.query(query);
 
     return result.rowsAffected[0] > 0;
   } catch (err) {

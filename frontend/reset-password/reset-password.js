@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = await res.json();
         if (!res.ok) { setFormMessage(json.message || 'Reset failed', 'error'); return; }
         setFormMessage('Password has been reset. Redirecting to login...', 'success');
-        setTimeout(() => window.location.href = '/login/login.html', 900);
+        setTimeout(() => window.location.href = new URL('../login/login.html', window.location.href).href, 900);
       } catch (err) {
         console.error(err);
         setFormMessage('Error processing request', 'error');

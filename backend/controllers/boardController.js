@@ -49,11 +49,14 @@ async function getBoardByDashboardId(req, res) {
 async function updateBoard(req, res) {
   try {
     const boardId = parseInt(req.params.boardId);
-    const name = (req.body.name || "").trim();
-    if (!name) {
-      return res.status(400).json({ error: "Board name is required" });
+    const name = req.body.name ? (req.body.name || "").trim() : undefined;
+    const position = req.body.position !== undefined ? parseInt(req.body.position) : undefined;
+
+    if (name === "" && position === undefined) {
+      return res.status(400).json({ error: "Board name or position is required" });
     }
-    const updated = await boardModel.updateBoard({ boardId, name });
+
+    const updated = await boardModel.updateBoard({ boardId, name, position });
     if (!updated) {
       return res.status(404).json({ error: "Board not found" });
     }
