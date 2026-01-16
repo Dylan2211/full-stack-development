@@ -1,4 +1,5 @@
 const API_BASE = window.location.origin || '';
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.querySelector('form');
@@ -49,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       localStorage.setItem('authToken', json.token);
-      window.location.href = '/kanban';
+      window.location.href = '/dashboard/dashboard.html';
     } catch (err) {
       console.error(err);
       setFormMessage('Login error. See console for details.', 'error');

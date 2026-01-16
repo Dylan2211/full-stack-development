@@ -1,4 +1,14 @@
 // #region Module State
+
+// Check authentication
+function checkAuth() {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    window.location.href = '/login/login.html';
+  }
+}
+checkAuth();
+
 let hiddenDragImage = null;
 let dragPreview = null;
 let dragPreviewOffset = { x: 0, y: 0 };
@@ -444,7 +454,7 @@ function createBoardSection(board) {
   list.id = "board-" + board.BoardId;
 
   // Create add task button for this board
-  Btn = document.createElement("button");
+  const addTaskBtn = document.createElement("button");
   addTaskBtn.className = "board-add-task-btn";
   addTaskBtn.textContent = "+ Add task";
   addTaskBtn.type = "button";

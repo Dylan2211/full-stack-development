@@ -1,4 +1,14 @@
 // #region Value helpers
+
+// Check authentication
+function checkAuth() {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    window.location.href = '/login/login.html';
+  }
+}
+checkAuth();
+
 function clampPercent(value) {
   if (typeof value !== "number" || isNaN(value)) return 0;
   if (value < 0) return 0;
