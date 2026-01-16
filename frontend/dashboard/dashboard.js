@@ -310,12 +310,27 @@ function metricsFromQuery() {
 // #endregion
 
 // #region UI wiring
-async function loadDashboards() {
+async function loadDashboards(userId) {
   try {
-    const response = await fetch("/no_login_api/dashboards");
+    const response = await fetch(`/api/dashboards`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const dashboards = await response.json();
 
     const grid = document.querySelector(".dashboard-grid");
+    
+    if (!Array.isArray(dashboards)) {
+      console.error("Expected array of dashboards, got:", dashboards);
+      return;
+    }
+    
     dashboards.forEach((dashboard) => {
       const card = document.createElement("a");
       card.href = `/kanban/kanban.html?id=${dashboard.DashboardId}`;
@@ -427,7 +442,8 @@ function setupOverlay() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  loadDashboards();
+  userId = 1; // TO-DO: get user ID from session
+  loadDashboards(userId);
   var data = metricsFromQuery();
   applyMetrics(data);
   window.updateDashboard = applyMetrics;
