@@ -654,3 +654,29 @@
 }
 
 /* #endregion task notification dropdown */
+
+/* #region empty state */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  padding: 40px 20px;
+}
+
+.empty-state-content {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state-content h2 {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.empty-state-content p {
+  font-size: 14px;
+}
+/* #endregion empty state */

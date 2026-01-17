@@ -585,9 +585,22 @@ function renderBoardSections(boards, dashboardId) {
   const frame = document.querySelector(".board-frame");
   if (!frame) return;
   frame.innerHTML = "";
-  boards.forEach((board) => {
-    frame.appendChild(createBoardSection(board));
-  });
+  
+  if (!boards || boards.length === 0) {
+    const emptyState = document.createElement("div");
+    emptyState.className = "empty-state";
+    emptyState.innerHTML = `
+      <div class="empty-state-content">
+        <h2>No boards yet</h2>
+        <p>Create your first board to start organizing tasks</p>
+      </div>
+    `;
+    frame.appendChild(emptyState);
+  } else {
+    boards.forEach((board) => {
+      frame.appendChild(createBoardSection(board));
+    });
+  }
 
   frame.appendChild(createAddBoardSection(dashboardId));
 }

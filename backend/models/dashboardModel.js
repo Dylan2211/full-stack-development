@@ -7,6 +7,7 @@ async function getAllDashboards() {
   const result = await pool.request().query(`
     SELECT DashboardId, Name, Description, CreatedAt
     FROM Dashboards
+    ORDER BY DashboardId DESC
   `);
   return result.recordset;
 }
@@ -34,7 +35,13 @@ async function createDashboard(name, description) {
       VALUES (@Name, @Description);
       SELECT SCOPE_IDENTITY() AS DashboardId;
     `);
-  return result.recordset[0];
+  
+  const dashboardId = result.recordset[0].DashboardId;
+  return {
+    DashboardId: dashboardId,
+    Name: name,
+    Description: description
+  };
 }
 // Not implemented yet
 async function updateDashboard(dashboardId, name, description) {

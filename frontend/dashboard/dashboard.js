@@ -1,13 +1,12 @@
 // #region Value helpers
 
-// Check authentication
-function checkAuth() {
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    window.location.href = '/login/login.html';
-  }
+// Check authentication - redirect and halt execution if no token
+const token = localStorage.getItem('authToken');
+if (!token) {
+  window.location.replace('/login/login.html');
+  // Halt all further execution
+  throw new Error('Redirecting to login');
 }
-checkAuth();
 
 function clampPercent(value) {
   if (typeof value !== "number" || isNaN(value)) return 0;
@@ -356,6 +355,30 @@ async function loadDashboards(userId) {
   }
 }
 
+async function createDashboard(name, description) {
+  try {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`/api/dashboards`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ name, description })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const newDashboard = await response.json();
+    return newDashboard;
+  } catch (error) {
+    console.error("Failed to create dashboard:", error);
+    throw error;
+  }
+}
+
 function setupSnapshotButton() {
   var snapshotButton = document.getElementById("snapshot-button");
   if (!snapshotButton) return;
@@ -417,31 +440,39 @@ function setupOverlay() {
     });
   }
 
-  form.addEventListener("submit", function (e) {
+  form.addEventListener("submit", async function (e) {
     e.preventDefault();
     var title = nameInput.value.trim();
     var desc = descInput.value.trim();
     if (!title) return;
 
-    var card = document.createElement("div");
-    card.className = "card";
+    try {
+      const newDashboard = await createDashboard(title, desc);
+      
+      var card = document.createElement("a");
+      card.href = `/kanban/kanban.html?id=${newDashboard.DashboardId}`;
+      card.className = "card";
 
-    var h3 = document.createElement("h3");
-    h3.textContent = title;
+      var h3 = document.createElement("h3");
+      h3.textContent = newDashboard.Name;
 
-    var p = document.createElement("p");
-    p.textContent = desc || "Custom dashboard";
+      var p = document.createElement("p");
+      p.textContent = newDashboard.Description || "No description provided.";
 
-    card.appendChild(h3);
-    card.appendChild(p);
+      card.appendChild(h3);
+      card.appendChild(p);
 
-    if (createCard.nextSibling) {
-      grid.insertBefore(card, createCard.nextSibling);
-    } else {
-      grid.appendChild(card);
+      if (createCard.nextSibling) {
+        grid.insertBefore(card, createCard.nextSibling);
+      } else {
+        grid.appendChild(card);
+      }
+
+      closeOverlay();
+    } catch (error) {
+      console.error("Error creating dashboard:", error);
+      alert("Failed to create dashboard. Please try again.");
     }
-
-    closeOverlay();
   });
 
   document.addEventListener("keydown", function (e) {
