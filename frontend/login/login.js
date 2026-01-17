@@ -57,22 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  forgotLink.addEventListener('click', async (e) => {
+  // Navigate to reset-password page instead of using a prompt
+  forgotLink.addEventListener('click', (e) => {
     e.preventDefault();
-    const email = prompt('Enter your email for password reset');
-    if (!email) return;
-    try {
-      const res = await fetch(`${API_BASE}/api/users/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const json = await res.json();
-      if (json.resetToken) alert('Reset token (dev): ' + json.resetToken);
-      alert(json.message || 'If the email exists a reset link was sent.');
-    } catch (err) {
-      console.error(err);
-      setFormMessage('Error sending reset request', 'error');
-    }
+    window.location.href = '../reset-password/reset-password.html';
   });
 });
