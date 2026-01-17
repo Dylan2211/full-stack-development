@@ -9,13 +9,13 @@
 | Function | Files | Lines |
 |----------|-------|-------|
 | `clampPercent()` | dashboard.js, analytics.js | 10-15 |
-| `setText()` | dashboard.js, analytics.js | 35-48 |
-| `setPercentBar()` | dashboard.js, analytics.js | 50-55 |
+`setText()`
+`setPercentBar()`
 | `badgeFromAcceptance()` | dashboard.js, analytics.js | 65-71 |
 | `badgeFromError()` | dashboard.js, analytics.js | 73-79 |
 | `tagFromLoad()` | dashboard.js, analytics.js | 81-87 |
 | `statusClassFromText()` | dashboard.js, analytics.js | 89-94 |
-| `clearChildren()` | dashboard.js, analytics.js | 60-64 |
+`clearChildren()` 
 
 **Action Required:**
 - Create a shared utility file: `frontend/utils/domHelpers.js`
