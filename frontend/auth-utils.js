@@ -41,3 +41,27 @@ export function getUserInfoFromToken() {
     return null;
   }
 }
+
+export async function authFetch(url, options = {}) {
+  const token = getAuthToken();
+  const headers = {
+    ...options.headers,
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    clearAuthToken();
+    window.location.href = '/login/login.html';
+    throw new Error('Authentication failed');
+  }
+
+  return response;
+}

@@ -26,17 +26,16 @@ requiredEnvVars.forEach((varName) => {
 //  #endregion
 
 app.use(helmet());
-app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000" }));
+app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:3000", "http://127.0.0.1:5501", "http://localhost:5501"] }));
 app.use(express.json());
+app.use("/api/ai", aiRoutes);
+
 app.use(express.urlencoded({ extended: true }));
 
-// API Routes
-app.use("/api/ai", aiRoutes);
 app.use("/api", taskRoutes);
-app.use("/api/users", userRoutes);
-
-// Static files
 app.use(express.static(frontendPath));
+app.use("/api/users", userRoutes);
+app.use("/api", taskRoutes);
 
 const ROUTES = {
   HOME: "/",
