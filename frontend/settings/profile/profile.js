@@ -1,26 +1,61 @@
-/*document.addEventListener("DOMContentLoaded", () => {
-  // Retrieve stored user ID from localStorage
-  const userId = localStorage.getItem("loggedInUserId");
+// Check authentication and extract user ID from token
+function checkAuth() {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    window.location.href = '../../login/login.html';
+  }
+  return token;
+}
 
-  if (userId) {
-    document.getElementById("userId").textContent = userId;
+function getUserIdFromToken(token) {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const json = atob(b64);
+    const payload = JSON.parse(json);
+    return payload.userId || payload.id;
+  } catch {
+    return null;
+  }
+}
 
-    // Optional: dynamically set name or avatar based on userId
-    document.getElementById("name").textContent = "Employee " + userId;
-    document.getElementById("avatar").textContent = userId
-      .slice(-2)
-      .toUpperCase(); // last 2 digits
-  } else {
-    // If no user ID found, redirect to login
-    window.location.href = "../login/login.html";
+const authToken = checkAuth();
+const currentUserId = getUserIdFromToken(authToken);
+
+// Fetch user profile data on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!currentUserId) {
+    window.location.href = '../../login/login.html';
+    return;
   }
 
-  // Logout function
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem("loggedInUserId"); // clear saved user
-    window.location.href = "login.html";
-  });
-});*/
+  try {
+    const response = await fetch(`http://localhost:3000/api/users/${currentUserId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      // Store user data globally for use in form handlers
+      window.currentUser = userData;
+      // Optional: display user name/email if you have elements for them
+      console.log('User profile loaded:', userData);
+    } else if (response.status === 401) {
+      // Token invalid, redirect to login
+      localStorage.removeItem('authToken');
+      window.location.href = '../../login/login.html';
+    }
+  } catch (error) {
+    console.error('Error loading profile:', error);
+  }
+});
 
 function saveProfile(event) {
     event.preventDefault();

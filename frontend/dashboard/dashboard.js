@@ -1,4 +1,4 @@
-// #region Value helpers
+// #region Authentication & User Helpers
 
 // Check authentication - redirect and halt execution if no token
 const token = localStorage.getItem('authToken');

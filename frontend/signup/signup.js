@@ -1,4 +1,4 @@
-const API_BASE = window.location.origin || '';
+const API_BASE = 'http://localhost:3000';
 console.log('API_BASE set to', API_BASE);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -77,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ fullName: username, email, password }),
       });
 
-      // Read raw response so we can surface useful debug info
       let bodyText = null;
       let json = null;
       try {
@@ -97,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const serverMessage = (json && (json.message || (json.errors && json.errors.join('\n')))) || bodyText || `Registration failed (${res.status})`;
         setFormMessage(serverMessage, 'error');
 
-        // If backend returned validation errors array, attach to respective fields for UX
         if (json && Array.isArray(json.errors)) {
           json.errors.forEach((errMsg) => {
             if (/full name|fullName|name/i.test(errMsg)) setFieldError(usernameInput, errMsg);
