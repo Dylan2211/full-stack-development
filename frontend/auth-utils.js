@@ -1,32 +1,32 @@
 
-export function getAuthToken() {
+function getAuthToken() {
   return localStorage.getItem('authToken');
 }
 
-export function setAuthToken(token) {
+function setAuthToken(token) {
   localStorage.setItem('authToken', token);
 }
 
-export function clearAuthToken() {
+function clearAuthToken() {
   localStorage.removeItem('authToken');
 }
 
-export function isLoggedIn() {
+function isLoggedIn() {
   return !!getAuthToken();
 }
 
-export function requireAuth(redirectUrl = '/login/login.html') {
+function requireAuth(redirectUrl = '/login/login.html') {
   if (!isLoggedIn()) {
     window.location.href = redirectUrl;
   }
 }
 
-export function logout(redirectUrl = '/login/login.html') {
+function logout(redirectUrl = '/login/login.html') {
   clearAuthToken();
   window.location.href = redirectUrl;
 }
 
-export function getUserInfoFromToken() {
+function getUserInfoFromToken() {
   const token = getAuthToken();
   if (!token) return null;
   try {
@@ -42,7 +42,7 @@ export function getUserInfoFromToken() {
   }
 }
 
-export async function authFetch(url, options = {}) {
+async function authFetch(url, options = {}) {
   const token = getAuthToken();
   const headers = {
     ...options.headers,

@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setFormMessage(json.message || (json.errors && json.errors.join('\n')) || 'Login failed', 'error');
         return;
       }
-      localStorage.setItem('authToken', json.token);
+      setAuthToken(json.token);
       window.location.href = '/dashboard/dashboard.html';
     } catch (err) {
       console.error(err);

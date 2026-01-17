@@ -1,12 +1,8 @@
 // #region Authentication & User Helpers
 
-// Check authentication - redirect and halt execution if no token
-const token = localStorage.getItem('authToken');
-if (!token) {
-  window.location.replace('/login/login.html');
-  // Halt all further execution
-  throw new Error('Redirecting to login');
-}
+requireAuth();
+
+const currentUser = getUserInfoFromToken();
 
 function clampPercent(value) {
   if (typeof value !== "number" || isNaN(value)) return 0;
@@ -321,11 +317,7 @@ function metricsFromQuery() {
 // #region UI wiring
 async function loadDashboards(userId) {
   try {
-    const response = await fetch(`/api/dashboards`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-      }
-    });
+    const response = await authFetch(`/api/dashboards`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -357,13 +349,8 @@ async function loadDashboards(userId) {
 
 async function createDashboard(name, description) {
   try {
-    const token = localStorage.getItem('authToken');
-    const response = await fetch(`/api/dashboards`, {
+    const response = await authFetch(`/api/dashboards`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
       body: JSON.stringify({ name, description })
     });
 

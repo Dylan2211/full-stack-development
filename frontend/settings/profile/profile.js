@@ -1,29 +1,7 @@
-// Check authentication and extract user ID from token
-function checkAuth() {
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    window.location.href = '../../login/login.html';
-  }
-  return token;
-}
+requireAuth("../../login/login.html");
 
-function getUserIdFromToken(token) {
-  if (!token) return null;
-  try {
-    const parts = token.split('.');
-    if (parts.length < 2) return null;
-    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4) b64 += '=';
-    const json = atob(b64);
-    const payload = JSON.parse(json);
-    return payload.userId || payload.id;
-  } catch {
-    return null;
-  }
-}
-
-const authToken = checkAuth();
-const currentUserId = getUserIdFromToken(authToken);
+const currentUser = getUserInfoFromToken();
+const currentUserId = currentUser?.userId || currentUser?.id;
 
 // Fetch user profile data on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -33,12 +11,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/api/users/${currentUserId}`, {
+    const response = await authFetch(`http://localhost:3000/api/users/${currentUserId}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
-      }
     });
 
     if (response.ok) {
@@ -49,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('User profile loaded:', userData);
     } else if (response.status === 401) {
       // Token invalid, redirect to login
-      localStorage.removeItem('authToken');
+      clearAuthToken();
       window.location.href = '../../login/login.html';
     }
   } catch (error) {
