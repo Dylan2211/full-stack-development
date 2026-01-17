@@ -1,13 +1,31 @@
-// #region Value helpers
+// #region Authentication & User Helpers
 
-// Check authentication
+// Check authentication and extract user ID from token
 function checkAuth() {
   const token = localStorage.getItem('authToken');
   if (!token) {
-    window.location.href = '/login/login.html';
+    window.location.href = '../login/login.html';
+  }
+  return token;
+}
+
+function getUserIdFromToken(token) {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    let b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const json = atob(b64);
+    const payload = JSON.parse(json);
+    return payload.userId || payload.id;
+  } catch {
+    return null;
   }
 }
-checkAuth();
+
+const authToken = checkAuth();
+const currentUserId = getUserIdFromToken(authToken);
 
 function clampPercent(value) {
   if (typeof value !== "number" || isNaN(value)) return 0;
