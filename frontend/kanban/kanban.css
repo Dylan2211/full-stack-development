@@ -732,3 +732,56 @@
   font-size: 14px;
 }
 /* #endregion empty state */
+
+/* #region AI output dialog */
+.ai-output-dialog {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  max-width: 600px;
+  width: 90%;
+}
+
+.ai-output-dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.ai-output-content {
+  padding: 24px;
+  background: var(--board-bg);
+}
+
+.ai-output-content h2 {
+  margin-bottom: 16px;
+  color: var(--text-main);
+  font-size: 18px;
+}
+
+.ai-output-text {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 4px;
+  color: var(--text-main);
+  line-height: 1.6;
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.close-ai-output {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.close-ai-output:hover {
+  opacity: 0.9;
+}
+/* #endregion AI output dialog */

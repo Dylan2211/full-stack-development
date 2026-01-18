@@ -83,6 +83,8 @@ async function updateTask(req, res) {
       dependencies: mergedDependencies,
       createdBy: existing.CreatedBy,
       createdAt: existing.CreatedAt,
+      aiModel: req.body.aiModel ?? existing.AIModel,
+      aiOutput: req.body.aiOutput ?? existing.AIOutput,
     };
 
     const { updated } = await taskModel.updateTask({ taskId, taskData });

@@ -18,6 +18,8 @@ const sql = require("mssql");
  * @param {Array} [task.dependencies=[]] - IDs of dependent tasks
  * @param {number} [task.createdBy] - User ID who created the task
  * @param {Date} [task.createdAt] - Creation timestamp
+ * @param {string} [task.aiModel] - Selected AI model name
+ * @param {string} [task.aiOutput] - AI generated output
  * @returns {Promise<number>} Created task ID
  */
 async function createTask(task) {
@@ -37,6 +39,8 @@ async function createTask(task) {
       dependencies = [], // Other task IDs that this task depends on
       createdBy = null,
       createdAt = new Date(),
+      aiModel = null,
+      aiOutput = null,
     } = task;
 
     const pool = await dbConfig;
@@ -55,15 +59,17 @@ async function createTask(task) {
       .input("agentProgress", sql.Int, agentProgress)
       .input("dependencies", sql.NVarChar, JSON.stringify(dependencies))
       .input("createdBy", sql.Int, createdBy)
-      .input("createdAt", sql.DateTime, createdAt || new Date()).query(`
+      .input("createdAt", sql.DateTime, createdAt || new Date())
+      .input("aiModel", sql.NVarChar, aiModel)
+      .input("aiOutput", sql.NVarChar, aiOutput).query(`
         INSERT INTO Tasks (
           Title, Description, Category, Position, Status, BoardId, Skills, EstimatedDuration,
-          AssignedAgent, AgentMatchScore, AgentProgress, Dependencies, CreatedBy, CreatedAt
+          AssignedAgent, AgentMatchScore, AgentProgress, Dependencies, CreatedBy, CreatedAt, AIModel, AIOutput
         )
         OUTPUT INSERTED.TaskId AS TaskId
         VALUES (
           @title, @description, @category, @position, @status, @boardId, @skills, @estimatedDuration,
-          @assignedAgent, @agentMatchScore, @agentProgress, @dependencies, @createdBy, @createdAt
+          @assignedAgent, @agentMatchScore, @agentProgress, @dependencies, @createdBy, @createdAt, @aiModel, @aiOutput
         )
       `);
 
@@ -123,6 +129,8 @@ async function updateTask({ taskId, taskData }) {
       agentMatchScore,
       agentProgress,
       dependencies,
+      aiModel,
+      aiOutput,
     } = taskData;
     const pool = await dbConfig;
     const result = await pool
@@ -144,11 +152,13 @@ async function updateTask({ taskId, taskData }) {
       .input("agentMatchScore", sql.Int, agentMatchScore)
       .input("agentProgress", sql.Int, agentProgress)
       .input("dependencies", sql.NVarChar, JSON.stringify(dependencies))
+      .input("aiModel", sql.NVarChar, aiModel)
+      .input("aiOutput", sql.NVarChar, aiOutput)
       .query(
         `UPDATE Tasks 
         SET Title = @title, Description = @description, Category = @category, Position = @position, Skills = @skills, Status = @status, BoardId = @boardId, EstimatedDuration = @estimatedDuration,
             AssignedAgent = @assignedAgent, AgentMatchScore = @agentMatchScore, AgentProgress = @agentProgress,
-            Dependencies = @dependencies, CreatedBy = @createdBy, CreatedAt = @createdAt, UpdatedAt = @updatedAt
+            Dependencies = @dependencies, CreatedBy = @createdBy, CreatedAt = @createdAt, UpdatedAt = @updatedAt, AIModel = @aiModel, AIOutput = @aiOutput
         WHERE TaskId = @taskId`
       );
 
