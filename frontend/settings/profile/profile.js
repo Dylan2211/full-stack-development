@@ -10,6 +10,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  // Populate username from token
+  const usernameInput = document.getElementById('username');
+  if (usernameInput && currentUser) {
+    // Extract username from email or use fullName
+    const email = currentUser.email;
+    const nameMatch = email ? email.match(/^([^@]*)@/) : null;
+    const usernameFromEmail = nameMatch ? nameMatch[1] : null;
+    usernameInput.value = usernameFromEmail || currentUser.fullName || '';
+  }
+
+  // Load saved bio from localStorage
+  const bioTextarea = document.getElementById('bio');
+  const savedBio = localStorage.getItem('userBio');
+  if (bioTextarea && savedBio) {
+    bioTextarea.value = savedBio;
+  }
+
   try {
     const response = await authFetch(`http://localhost:3000/api/users/${currentUserId}`, {
       method: 'GET',
@@ -19,7 +36,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const userData = await response.json();
       // Store user data globally for use in form handlers
       window.currentUser = userData;
-      // Optional: display user name/email if you have elements for them
       console.log('User profile loaded:', userData);
     } else if (response.status === 401) {
       // Token invalid, redirect to login

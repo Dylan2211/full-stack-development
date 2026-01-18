@@ -66,13 +66,14 @@ async function loadBoards(dashboardId) {
 }
 
 async function loadBoardName(dashboardId) {
-  const dashboard = await authFetch(`/api/dashboards/${dashboardId}`, {
+  const res = await authFetch(`/api/dashboards/${dashboardId}`, {
     method: "GET",
   });
-  if (!dashboard) {
+  if (!res.ok) {
     console.error("Dashboard not found");
     throw new Error("Dashboard not found");
   }
+  const dashboard = await res.json();
   document.title = dashboard.Name;
   setText("dashboardTitle", dashboard.Name);
 }
@@ -753,22 +754,24 @@ function loadDashboardIdFromUrl() {
 }
 
 async function initializeDashboard(dashboardId) {
+  const currentUser = getUserInfoFromToken();
+  const userId = currentUser?.userId || currentUser?.id;
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
   const boards = (await loadBoards(dashboardId)) || [];
   boardState = [...boards];
 
   renderBoardSections(boards, dashboardId);
+  await loadBoardName(dashboardId);
 
   if (!boards.length) {
     setText("boardTitle", "Create your first board");
     initializeDragAndDrop();
     await populateAgents();
-    const userId = 1; // Replace with actual user ID as needed
     initializeAddTaskDialog(userId);
     return;
   }
-
-  await loadBoardName(dashboardId);
-
   for (const b of boards) {
     await loadTasks(b.BoardId);
   }
@@ -776,8 +779,6 @@ async function initializeDashboard(dashboardId) {
   initializeDragAndDrop();
   await populateAgents();
   populateBoardSelect(boardState);
-
-  const userId = 1; // Replace with actual user ID as needed
   initializeAddTaskDialog(userId);
 }
 

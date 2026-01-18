@@ -145,8 +145,10 @@ function setupEventListeners() {
   // Update dashboard name
   document.getElementById("updateNameBtn").addEventListener("click", updateDashboardName);
 
-  // Update visibility
-  document.getElementById("updateVisibilityBtn").addEventListener("click", updateVisibility);
+  // Update visibility - add click handlers to radio buttons
+  document.querySelectorAll('input[name="visibility"]').forEach(radio => {
+    radio.addEventListener("change", handleVisibilityChange);
+  });
 
   // Transfer ownership
   document.getElementById("transferBtn").addEventListener("click", transferOwnership);
@@ -200,7 +202,8 @@ async function updateDashboardName() {
 
     dashboardData.Name = newName;
     document.getElementById("dashboardTitle").textContent = newName + " Settings";
-    showSuccess("Dashboard name updated successfully");
+    // Redirect to dashboard instead of showing popup
+    window.location.href = "/dashboard/dashboard.html";
   } catch (error) {
     console.error("Error updating dashboard name:", error);
     alert("Failed to update dashboard name");
@@ -208,12 +211,29 @@ async function updateDashboardName() {
   }
 }
 
-// Update visibility
-async function updateVisibility() {
-  const selectedVisibility = document.querySelector('input[name="visibility"]:checked').value;
+// Handle visibility change with confirmation
+async function handleVisibilityChange(e) {
+  const selectedVisibility = e.target.value;
   const isPrivate = selectedVisibility === "private";
+  const currentIsPrivate = dashboardData.IsPrivate === true || dashboardData.IsPrivate === 1;
 
-  if ((dashboardData.IsPrivate === true || dashboardData.IsPrivate === 1) === isPrivate) {
+  // If no change, do nothing
+  if (currentIsPrivate === isPrivate) {
+    return;
+  }
+
+  // Show confirmation dialog
+  const visibilityType = isPrivate ? "Private" : "Public";
+  const message = isPrivate 
+    ? "Make this dashboard private? Only people you invite will be able to view it."
+    : "Make this dashboard public? Anyone with the link will be able to view it.";
+  
+  const confirmed = confirm(message);
+  
+  if (!confirmed) {
+    // Reset radio to previous value
+    const previousValue = currentIsPrivate ? "private" : "public";
+    document.querySelector(`input[name="visibility"][value="${previousValue}"]`).checked = true;
     return;
   }
 
@@ -229,12 +249,12 @@ async function updateVisibility() {
 
     dashboardData.IsPrivate = isPrivate;
     document.getElementById("visibilityStatus").textContent = isPrivate ? "Private" : "Public";
-    showSuccess("Visibility updated successfully");
+    showSuccess("Visibility updated to " + visibilityType);
   } catch (error) {
     console.error("Error updating visibility:", error);
     alert("Failed to update visibility");
     // Reset radio to previous value
-    const previousValue = dashboardData.IsPrivate ? "private" : "public";
+    const previousValue = currentIsPrivate ? "private" : "public";
     document.querySelector(`input[name="visibility"][value="${previousValue}"]`).checked = true;
   }
 }
