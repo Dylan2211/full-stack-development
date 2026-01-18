@@ -41,6 +41,7 @@ app.use("/api", taskRoutes);
 const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
+  SIGNUP: "/signup",
   KANBAN: "/kanban",
   DASHBOARD: "/dashboard",
   DASHBOARD_SETTINGS: "/dashboard-settings",
@@ -54,6 +55,9 @@ app.get(ROUTES.HOME, (req, res) => {
 });
 app.get(ROUTES.LOGIN, (req, res) => {
   res.sendFile(path.join(frontendPath, "login/login.html"));
+});
+app.get(ROUTES.SIGNUP, (req, res) => {
+  res.sendFile(path.join(frontendPath, "signup/signup.html"));
 });
 app.get(ROUTES.KANBAN, (req, res) => {
   res.sendFile(path.join(frontendPath, "kanban/kanban.html"));
