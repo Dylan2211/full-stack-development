@@ -1,6 +1,5 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
-const { create } = require("node:domain");
 
 async function getAllDashboards() {
   const pool = await sql.connect(dbConfig);
@@ -37,7 +36,7 @@ async function getDashboard(dashboardId) {
     `);
   return result.recordset[0];
 }
-// Not implemented yet
+
 async function createDashboard(name, description) {
   const pool = await sql.connect(dbConfig);
   const result = await pool
@@ -86,7 +85,7 @@ async function updateDashboard(dashboardId, name, description, isPrivate) {
   `);
   return { message: "Dashboard updated successfully" };
 }
-// Not implemented yet
+
 async function deleteDashboard(dashboardId) {
   const pool = await sql.connect(dbConfig);
   await pool

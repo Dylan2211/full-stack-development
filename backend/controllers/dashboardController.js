@@ -46,7 +46,7 @@ async function updateDashboard(req, res) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
-// Not implemented yet
+
 async function deleteDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId);

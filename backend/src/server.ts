@@ -6,7 +6,7 @@ import path from "path";
 import helmet from "helmet";
 const taskRoutes = require("../routes/taskRoutes");
 const userRoutes = require("../routes/userRoutes");
-const aiRoutes = require("../routes/ai-roots");
+const aiRoutes = require("../routes/aiRoutes");
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
 const defaultPort = 3000;

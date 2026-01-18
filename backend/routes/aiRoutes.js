@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { geminiPrompt } = require("../ai/ai-gemini");
+const { geminiPrompt } = require("../ai/aiGemini");
 
 router.get("/ping", (req, res) => {
   res.json({ ok: true, msg: "ai route mounted" });
