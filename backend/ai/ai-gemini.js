@@ -9,8 +9,13 @@ async function geminiPrompt(req, res) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
+    console.log("GEMINI_API_KEY loaded:", apiKey ? "YES (" + apiKey.substring(0, 10) + "...)" : "NO");
     if (!apiKey) {
       return res.status(500).json({ error: "GEMINI_API_KEY missing in .env" });
+    }
+
+    if (apiKey.length < 20) {
+      return res.status(500).json({ error: "GEMINI_API_KEY appears to be invalid (too short)" });
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
