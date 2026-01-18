@@ -4,15 +4,15 @@ VALUES
 ('Ariel Tan', 'ariel@example.com', 'hashed_password_456', 'User'),
 ('Falak A.', 'falak@example.com', 'hashed_password_789', 'User');
 
-INSERT INTO Dashboards (Name, Description)
+INSERT INTO Dashboards (Name, Description, IsPrivate)
 VALUES
-('EGRA Team Project', 'EGRA Dashboard for collaboration for work projects.'),
-('Holiday Planning', 'Dashboard used to plan our holiday in December!'),
-('Daily Task Manager', 'Keep track of daily tasks and provide suggestions on how to improve'),
-('Gaming Checklist', 'Dashboard to check for optimizations for gaming performance'),
-('Dashmi Task Board', 'Dashmi task board with Alison for weekend planning'),
-('Assignment 1 FSDP', 'Dashboard to help provide help for Full Stack Development Assignment 1'),
-('Dashboard 7', 'This dashboard is used for interesting purposes');
+('EGRA Team Project', 'EGRA Dashboard for collaboration for work projects.', 1),
+('Holiday Planning', 'Dashboard used to plan our holiday in December!', 1),
+('Daily Task Manager', 'Keep track of daily tasks and provide suggestions on how to improve', 1),
+('Gaming Checklist', 'Dashboard to check for optimizations for gaming performance', 0),
+('Dashmi Task Board', 'Dashmi task board with Alison for weekend planning', 1),
+('Assignment 1 FSDP', 'Dashboard to help provide help for Full Stack Development Assignment 1', 0),
+('Dashboard 7', 'This dashboard is used for interesting purposes', 1);
 
 -- Admin = Owner, Regular User = Viewer
 INSERT INTO UserDashboards (UserId, DashboardId, Role)

@@ -44,6 +44,7 @@ const ROUTES = {
   LOGIN: "/login",
   KANBAN: "/kanban",
   DASHBOARD: "/dashboard",
+  DASHBOARD_SETTINGS: "/dashboard-settings",
   AI_FILES: "/ai-files",
   SETTINGS: "/settings",
   TEST: "/test"
@@ -60,6 +61,9 @@ app.get(ROUTES.KANBAN, (req, res) => {
 });
 app.get(ROUTES.DASHBOARD, (req, res) => {
   res.sendFile(path.join(frontendPath, "dashboard/dashboard.html"));
+});
+app.get(ROUTES.DASHBOARD_SETTINGS, (req, res) => {
+  res.sendFile(path.join(frontendPath, "dashboard-settings/dashboard-settings.html"));
 });
 app.get(ROUTES.AI_FILES, (req, res) => {
   res.sendFile(path.join(frontendPath, "ai-files/ai-files.html"));

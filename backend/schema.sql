@@ -23,6 +23,7 @@ CREATE TABLE Dashboards (
     DashboardId INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) NOT NULL,
     Description NVARCHAR(MAX) NULL,
+    IsPrivate BIT DEFAULT 0,
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 

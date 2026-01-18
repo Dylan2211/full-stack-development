@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dashboard Settings</title>
+    <link rel="stylesheet" href="/dashboard-settings/dashboard-settings.css" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <script src="../auth-utils.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="settings-header">
+        <div class="header-left">
+          <a class="back-button" href="#" id="backButton" aria-label="Back to kanban">
+            <img src="../images/favicon.png" alt="Back" />
+          </a>
+          <h1 id="dashboardTitle" class="header-title">Dashboard Settings</h1>
+        </div>
+      </header>
+
+      <div class="settings-container">
+        <nav class="settings-nav">
+          <a href="#general" class="nav-item active" data-section="general">
+            <span class="nav-icon">⚙️</span>
+            General
+          </a>
+          <a href="#collaborators" class="nav-item" data-section="collaborators">
+            <span class="nav-icon">👥</span>
+            Collaborators
+          </a>
+        </nav>
+
+        <main class="settings-content">
+          <!-- General Section -->
+          <section id="general-section" class="settings-section active">
+            <h2 class="section-title">General</h2>
+
+            <div class="setting-group">
+              <label class="setting-label">Dashboard name</label>
+              <div class="setting-row">
+                <input
+                  type="text"
+                  id="dashboardName"
+                  class="setting-input"
+                  placeholder="Dashboard name"
+                />
+                <button id="updateNameBtn" class="btn btn-primary">Update</button>
+              </div>
+              <p class="setting-description">
+                This is the name of your dashboard as it appears to you and collaborators.
+              </p>
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label">Visibility</label>
+              <div class="visibility-options">
+                <label class="radio-option">
+                  <input type="radio" name="visibility" value="private" />
+                  <div class="radio-content">
+                    <div class="radio-header">
+                      <span class="radio-icon">🔒</span>
+                      <strong>Private</strong>
+                    </div>
+                    <p class="radio-description">Only people you invite can view this dashboard</p>
+                  </div>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="visibility" value="public" />
+                  <div class="radio-content">
+                    <div class="radio-header">
+                      <span class="radio-icon">🌐</span>
+                      <strong>Public</strong>
+                    </div>
+                    <p class="radio-description">Anyone with the link can view this dashboard</p>
+                  </div>
+                </label>
+              </div>
+              <button id="updateVisibilityBtn" class="btn btn-primary">Update visibility</button>
+            </div>
+
+            <div class="setting-group danger-zone">
+              <h3 class="danger-title">Danger Zone</h3>
+
+              <div class="danger-item">
+                <div class="danger-info">
+                  <strong>Transfer ownership</strong>
+                  <p>Transfer this dashboard to another user or organization.</p>
+                </div>
+                <button id="transferBtn" class="btn btn-danger-outline">Transfer</button>
+              </div>
+
+              <div class="danger-item">
+                <div class="danger-info">
+                  <strong>Delete this dashboard</strong>
+                  <p>Once deleted, it will be gone forever. Please be certain.</p>
+                </div>
+                <button id="deleteDashboardBtn" class="btn btn-danger">Delete dashboard</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Collaborators Section -->
+          <section id="collaborators-section" class="settings-section">
+            <h2 class="section-title">Manage access</h2>
+
+            <div class="setting-group">
+              <label class="setting-label">Who has access</label>
+              <div class="collaborators-list" id="collaboratorsList">
+                <div class="collaborator-item owner">
+                  <div class="collaborator-info">
+                    <div class="collaborator-avatar">👤</div>
+                    <div class="collaborator-details">
+                      <strong class="collaborator-name">You</strong>
+                      <span class="collaborator-role">Owner</span>
+                    </div>
+                  </div>
+                  <span class="role-badge owner-badge">Owner</span>
+                </div>
+                <!-- More collaborators will be dynamically added here -->
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label">Invite collaborators</label>
+              <div class="setting-row">
+                <input
+                  type="email"
+                  id="inviteEmail"
+                  class="setting-input"
+                  placeholder="Email address"
+                />
+                <select id="inviteRole" class="setting-select">
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button id="inviteBtn" class="btn btn-primary">Invite</button>
+              </div>
+              <p class="setting-description">
+                Invite people to collaborate on this dashboard by entering their email address.
+              </p>
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label">Visibility</label>
+              <p class="setting-description">
+                Control who can see this dashboard:
+              </p>
+              <div class="visibility-status">
+                <span class="status-icon">🔒</span>
+                <span id="visibilityStatus">Private</span>
+              </div>
+              <p class="setting-description-small">
+                Change visibility in the General settings
+              </p>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <dialog id="confirmDialog" class="confirm-dialog">
+      <div class="confirm-content">
+        <h3 id="confirmTitle">Confirm Action</h3>
+        <p id="confirmMessage">Are you sure you want to proceed?</p>
+        <div class="confirm-buttons">
+          <button id="confirmCancel" type="button" class="btn">Cancel</button>
+          <button id="confirmSubmit" type="button" class="btn btn-danger">Confirm</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="/dashboard-settings/dashboard-settings.js"></script>
+  </body>
+</html>

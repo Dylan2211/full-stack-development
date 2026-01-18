@@ -25,12 +25,16 @@ async function createDashboard(req, res) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
-// Not implemented yet
 async function updateDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId);
-    const { name, description } = req.body;
-    const updatedDashboard = await require("../models/dashboardModel").updateDashboard(dashboardId, name, description);
+    const { name, description, isPrivate } = req.body;
+    const updatedDashboard = await require("../models/dashboardModel").updateDashboard(
+      dashboardId,
+      name,
+      description,
+      isPrivate
+    );
     res.json(updatedDashboard);
   } catch (error) {
     console.error(`Error updating dashboard: ${error}`);

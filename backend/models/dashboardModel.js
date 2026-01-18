@@ -5,7 +5,7 @@ const { create } = require("node:domain");
 async function getAllDashboards() {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request().query(`
-    SELECT DashboardId, Name, Description, CreatedAt
+    SELECT DashboardId, Name, Description, IsPrivate, CreatedAt
     FROM Dashboards
     ORDER BY DashboardId DESC
   `);
@@ -17,7 +17,7 @@ async function getDashboard(dashboardId) {
   const result = await pool.request()
     .input("DashboardId", sql.Int, dashboardId)
     .query(`
-      SELECT DashboardId, Name, Description, CreatedAt
+      SELECT DashboardId, Name, Description, IsPrivate, CreatedAt
       FROM Dashboards
       WHERE DashboardId = @DashboardId
     `);
@@ -43,19 +43,33 @@ async function createDashboard(name, description) {
     Description: description
   };
 }
-// Not implemented yet
-async function updateDashboard(dashboardId, name, description) {
+async function updateDashboard(dashboardId, name, description, isPrivate) {
   const pool = await sql.connect(dbConfig);
-  await pool 
-    .request()
-    .input("DashboardId", sql.Int, dashboardId)
-    .input("Name", sql.NVarChar, name)
-    .input("Description", sql.NVarChar, description)
-    .query(`
-      UPDATE Dashboards
-      SET Name = @Name, Description = @Description
-      WHERE DashboardId = @DashboardId
-    `);
+  const request = pool.request().input("DashboardId", sql.Int, dashboardId);
+  
+  const updates = [];
+  if (name !== undefined) {
+    request.input("Name", sql.NVarChar, name);
+    updates.push("Name = @Name");
+  }
+  if (description !== undefined) {
+    request.input("Description", sql.NVarChar, description);
+    updates.push("Description = @Description");
+  }
+  if (isPrivate !== undefined) {
+    request.input("IsPrivate", sql.Bit, isPrivate);
+    updates.push("IsPrivate = @IsPrivate");
+  }
+  
+  if (updates.length === 0) {
+    return { message: "No fields to update" };
+  }
+  
+  await request.query(`
+    UPDATE Dashboards
+    SET ${updates.join(", ")}
+    WHERE DashboardId = @DashboardId
+  `);
   return { message: "Dashboard updated successfully" };
 }
 // Not implemented yet

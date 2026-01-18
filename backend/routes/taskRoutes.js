@@ -25,6 +25,8 @@ router.delete("/users/:id", authMiddleware, userController.deleteUser);
 router.get("/dashboards", authMiddleware, dashboardController.getAllDashboards);
 router.get("/dashboards/:dashboardId", authMiddleware, dashboardController.getDashboard);
 router.post("/dashboards", authMiddleware, dashboardController.createDashboard);
+router.put("/dashboards/:dashboardId", authMiddleware, dashboardController.updateDashboard);
+router.delete("/dashboards/:dashboardId", authMiddleware, dashboardController.deleteDashboard);
 
 // Board routes
 router.get("/dashboards/:dashboardId/boards", authMiddleware, boardController.getBoardByDashboardId);

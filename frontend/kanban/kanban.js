@@ -787,10 +787,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     await initializeDashboard(dashboardId);
+    setupSettingsButton(dashboardId);
   } catch (error) {
     console.error("Error during initialization:", error);
     document.body.innerHTML = "<h2>Error: Unable to load dashboard data</h2>";
   }
 
 });
+
+// Setup settings button to link to dashboard settings
+function setupSettingsButton(dashboardId) {
+  const settingsButton = document.getElementById("settingsButton");
+  if (settingsButton) {
+    settingsButton.href = `/dashboard-settings/dashboard-settings.html?id=${dashboardId}`;
+  }
+}
 // #endregion Initialization
