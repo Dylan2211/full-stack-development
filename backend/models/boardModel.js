@@ -1,7 +1,13 @@
 const dbConfig = require("../dbConfig");
 const sql = require("mssql");
 
-
+/**
+ * Creates a new board within a dashboard
+ * @param {Object} params - Board parameters
+ * @param {number} params.dashboardId - ID of the parent dashboard
+ * @param {string} params.name - Name of the board
+ * @returns {Promise<Object>} Created board object
+ */
 async function createBoard({ dashboardId, name }) {
   try {
     const pool = await dbConfig;
@@ -23,6 +29,11 @@ async function createBoard({ dashboardId, name }) {
   }
 }
 
+/**
+ * Retrieves a single board by ID
+ * @param {number} boardId - The board's ID
+ * @returns {Promise<Object|null>} Board object or null if not found
+ */
 async function getBoard(boardId) {
   try {
     const pool = await dbConfig;

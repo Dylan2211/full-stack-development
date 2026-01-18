@@ -1,6 +1,10 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 
+/**
+ * Retrieves all dashboards from the database
+ * @returns {Promise<Array>} Array of dashboard objects
+ */
 async function getAllDashboards() {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request().query(`
@@ -11,6 +15,11 @@ async function getAllDashboards() {
   return result.recordset;
 }
 
+/**
+ * Retrieves all dashboards for a specific user
+ * @param {number} userId - The user's ID
+ * @returns {Promise<Array>} Array of dashboard objects the user has access to
+ */
 async function getDashboardsByUserId(userId) {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request()
@@ -25,6 +34,11 @@ async function getDashboardsByUserId(userId) {
   return result.recordset;
 }
 
+/**
+ * Retrieves a single dashboard by ID
+ * @param {number} dashboardId - The dashboard's ID
+ * @returns {Promise<Object>} Dashboard object
+ */
 async function getDashboard(dashboardId) {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request()
@@ -37,6 +51,12 @@ async function getDashboard(dashboardId) {
   return result.recordset[0];
 }
 
+/**
+ * Creates a new dashboard
+ * @param {string} name - Dashboard name
+ * @param {string} description - Dashboard description
+ * @returns {Promise<Object>} Created dashboard object with ID
+ */
 async function createDashboard(name, description) {
   const pool = await sql.connect(dbConfig);
   const result = await pool

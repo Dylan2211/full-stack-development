@@ -1,6 +1,10 @@
 const dashboardModel = require("../models/dashboardModel");
 
-
+/**
+ * Get a specific dashboard by ID
+ * @param {Request} req - Express request object (dashboardId in params)
+ * @param {Response} res - Express response object
+ */
 async function getDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId);
@@ -14,6 +18,12 @@ async function getDashboard(req, res) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
+
+/**
+ * Create a new dashboard and link creator as Owner
+ * @param {Request} req - Express request object (name, description in body)
+ * @param {Response} res - Express response object
+ */
 async function createDashboard(req, res) {
   try {
     const { name, description } = req.body;
@@ -30,6 +40,12 @@ async function createDashboard(req, res) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
+
+/**
+ * Update an existing dashboard
+ * @param {Request} req - Express request object (dashboardId in params, name/description/isPrivate in body)
+ * @param {Response} res - Express response object
+ */
 async function updateDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId);

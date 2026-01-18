@@ -1,6 +1,25 @@
 const dbConfig = require("../dbConfig");
 const sql = require("mssql");
 
+/**
+ * Creates a new task
+ * @param {Object} task - Task object with properties
+ * @param {string} task.title - Task title
+ * @param {string} task.description - Task description
+ * @param {string} [task.category] - Task category (Frontend, Backend, DevOps, etc.)
+ * @param {number} [task.position=0] - Position in board for ordering
+ * @param {string} [task.status='To Do'] - Task status (To Do, In Progress, Done)
+ * @param {Array} [task.skills=[]] - Required skills for the task
+ * @param {string} task.assignedAgent - Assigned AI agent
+ * @param {number} task.boardId - ID of the parent board
+ * @param {string} [task.estimatedDuration] - Estimated time to complete
+ * @param {number} [task.agentMatchScore] - AI agent match score
+ * @param {number} [task.agentProgress=0] - Task completion progress
+ * @param {Array} [task.dependencies=[]] - IDs of dependent tasks
+ * @param {number} [task.createdBy] - User ID who created the task
+ * @param {Date} [task.createdAt] - Creation timestamp
+ * @returns {Promise<number>} Created task ID
+ */
 async function createTask(task) {
   try {
     const {
