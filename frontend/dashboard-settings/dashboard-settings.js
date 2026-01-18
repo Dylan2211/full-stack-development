@@ -103,6 +103,13 @@ async function loadCollaborators() {
   ];
 
   renderCollaborators();
+  
+  // Set owner initials
+  const ownerInitials = generateInitials(collaborators[0].name);
+  const ownerAvatarEl = document.getElementById("ownerInitials");
+  if (ownerAvatarEl) {
+    ownerAvatarEl.textContent = ownerInitials;
+  }
 }
 
 // Render collaborators list
@@ -116,10 +123,11 @@ function renderCollaborators() {
     
     const isOwner = collab.role === "owner";
     const roleDisplay = collab.role.charAt(0).toUpperCase() + collab.role.slice(1);
+    const initials = generateInitials(collab.name);
 
     item.innerHTML = `
       <div class="collaborator-info">
-        <div class="collaborator-avatar">👤</div>
+        <div class="collaborator-avatar">${initials}</div>
         <div class="collaborator-details">
           <strong class="collaborator-name">${collab.name}</strong>
           <span class="collaborator-role">${collab.email || roleDisplay}</span>

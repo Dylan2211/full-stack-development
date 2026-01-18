@@ -397,6 +397,16 @@ function setupOverlay() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+  // Set user initials dynamically
+  if (currentUser) {
+    const name = currentUser.fullName || currentUser.email.split('@')[0] || "User";
+    const initials = generateInitials(name);
+    const initialsEl = document.querySelector(".user-initials");
+    if (initialsEl) {
+      initialsEl.textContent = initials;
+    }
+  }
+  
   loadDashboards();
   var data = metricsFromQuery();
   applyMetrics(data);
