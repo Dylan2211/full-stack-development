@@ -1,21 +1,26 @@
 // AI Test Page JS
-// This assumes you have endpoints or functions to call your AI modules from the backend
+// Wires the frontend to the backend Gemini endpoint
+
+const API_BASE = 'http://localhost:3000';
 
 document.getElementById('run-ai').addEventListener('click', async () => {
-    const module = document.getElementById('ai-module').value;
-    const input = document.getElementById('ai-input').value;
+    const input = document.getElementById('ai-input').value.trim();
     const outputDiv = document.getElementById('ai-output');
     outputDiv.textContent = 'Running...';
 
+    if (!input) {
+        outputDiv.textContent = 'Please enter a prompt.';
+        return;
+    }
+
     try {
-        // Example: POST to /api/ai/{module} with { input }
-        const res = await fetch(`/api/ai/${module}`, {
+        const res = await fetch(`${API_BASE}/api/ai/gemini`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ input })
+            body: JSON.stringify({ prompt: input })
         });
-        if (!res.ok) throw new Error('AI request failed');
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'AI request failed');
         outputDiv.textContent = data.output || JSON.stringify(data);
     } catch (err) {
         outputDiv.textContent = 'Error: ' + err.message;
