@@ -6,6 +6,8 @@ requireAuth();
 let hiddenDragImage = null;
 let dragPreview = null;
 let dragPreviewOffset = { x: 0, y: 0 };
+let boardState = [];
+let isCreatingBoard = false;
 // #endregion Module State
 
 // #region Utilities
@@ -323,6 +325,7 @@ function createBoardSection(board) {
   const section = document.createElement("section");
   section.className = "board";
   section.dataset.boardId = board.BoardId;
+  const dashboardId = board.DashboardId;
 
   const header = document.createElement("header");
   header.className = "board-section-header";
@@ -380,6 +383,16 @@ function createBoardSection(board) {
       try {
         await deleteBoard(board.BoardId);
         section.remove();
+
+        // Update local state and re-render if no boards remain
+        boardState = boardState.filter((b) => b.BoardId !== board.BoardId);
+        populateBoardSelect(boardState);
+        if (boardState.length === 0) {
+          const dashId = dashboardId || getDashboardId();
+          if (dashId !== null) {
+            renderBoardSections(boardState, dashId);
+          }
+        }
       } catch (error) {
         console.error("Failed to delete board:", error);
         alert("Could not delete board");
@@ -438,6 +451,44 @@ function createBoardSection(board) {
   return section;
 }
 
+// Shared board creation handler to avoid duplicate requests (Enter + blur)
+async function createBoardAndInsert(dashboardId, name, onComplete = () => {}) {
+  const trimmed = (name || "").trim();
+  if (!trimmed || isCreatingBoard) return;
+
+  isCreatingBoard = true;
+  try {
+    const board = await createBoardRequest(dashboardId, trimmed);
+    boardState.push(board);
+    insertBoardIntoFrame(board);
+    populateBoardSelect(boardState);
+    onComplete();
+  } catch (error) {
+    console.error("Failed to create board:", error);
+    alert("Could not create board");
+  } finally {
+    isCreatingBoard = false;
+  }
+}
+
+function insertBoardIntoFrame(board) {
+  const frame = document.querySelector(".board-frame");
+  if (!frame) return;
+
+  const emptyState = frame.querySelector(".empty-state");
+  if (emptyState) emptyState.remove();
+  frame.classList.remove("board-frame-empty");
+
+  let addBoardSection = frame.querySelector(".add-board-section");
+  if (!addBoardSection) {
+    addBoardSection = createAddBoardSection(board.DashboardId);
+    frame.appendChild(addBoardSection);
+  }
+
+  const newSection = createBoardSection(board);
+  frame.insertBefore(newSection, addBoardSection);
+}
+
 function createAddBoardSection(dashboardId) {
   const section = document.createElement("section");
   section.className = "board add-board-section";
@@ -456,6 +507,18 @@ function createAddBoardSection(dashboardId) {
   input.placeholder = "Board name";
   input.style.display = "none";
 
+  const resetState = () => {
+    input.value = "";
+    input.style.display = "none";
+    plusButton.style.display = "block";
+    input.disabled = false;
+  };
+
+  const submit = async () => {
+    input.disabled = true;
+    await createBoardAndInsert(dashboardId, input.value, resetState);
+  };
+
   plusButton.addEventListener("click", () => {
     plusButton.style.display = "none";
     input.style.display = "block";
@@ -463,74 +526,15 @@ function createAddBoardSection(dashboardId) {
   });
 
   input.addEventListener("blur", async () => {
-    const nameValue = input.value.trim();
-    if (!nameValue) {
-      input.style.display = "none";
-      plusButton.style.display = "block";
-      return;
-    }
-
-    try {
-      input.disabled = true;
-      const board = await createBoardRequest(dashboardId, nameValue);
-      input.value = "";
-
-      const frame = document.querySelector(".board-frame");
-      const addBoardSection = frame ? frame.querySelector(".add-board-section") : null;
-      const newSection = createBoardSection(board);
-      if (frame && addBoardSection) {
-        frame.insertBefore(newSection, addBoardSection);
-      } else if (frame) {
-        frame.appendChild(newSection);
-      }
-
-      const boardTitle = document.getElementById("boardTitle");
-      if (boardTitle && (!boardTitle.textContent || boardTitle.textContent === "Create your first board")) {
-        boardTitle.textContent = board.Name;
-      }
-
-      input.style.display = "none";
-      plusButton.style.display = "block";
-    } catch (error) {
-      console.error("Failed to create board:", error);
-      alert("Could not create board");
-      input.disabled = false;
-    }
+    if (!input.value.trim()) return resetState();
+    await submit();
   });
 
   input.addEventListener("keypress", async (event) => {
     if (event.key === "Enter") {
       event.preventDefault();
-      const nameValue = input.value.trim();
-      if (!nameValue) return;
-
-      try {
-        input.disabled = true;
-        const board = await createBoardRequest(dashboardId, nameValue);
-        input.value = "";
-
-        const frame = document.querySelector(".board-frame");
-        const addBoardSection = frame ? frame.querySelector(".add-board-section") : null;
-        const newSection = createBoardSection(board);
-        if (frame && addBoardSection) {
-          frame.insertBefore(newSection, addBoardSection);
-        } else if (frame) {
-          frame.appendChild(newSection);
-        }
-
-        const boardTitle = document.getElementById("boardTitle");
-        if (boardTitle && (!boardTitle.textContent || boardTitle.textContent === "Create your first board")) {
-          boardTitle.textContent = board.Name;
-        }
-
-        input.style.display = "none";
-        plusButton.style.display = "block";
-      } catch (error) {
-        console.error("Failed to create board:", error);
-        alert("Could not create board");
-      } finally {
-        input.disabled = false;
-      }
+      if (!input.value.trim()) return;
+      await submit();
     }
   });
 
@@ -543,16 +547,37 @@ function renderBoardSections(boards, dashboardId) {
   const frame = document.querySelector(".board-frame");
   if (!frame) return;
   frame.innerHTML = "";
+  frame.classList.toggle("board-frame-empty", !boards || boards.length === 0);
   
   if (!boards || boards.length === 0) {
     const emptyState = document.createElement("div");
     emptyState.className = "empty-state";
     emptyState.innerHTML = `
       <div class="empty-state-content">
+        <input class="empty-board-input" type="text" placeholder="Name your first board" />
         <h2>No boards yet</h2>
         <p>Create your first board to start organizing tasks</p>
       </div>
     `;
+    const input = emptyState.querySelector(".empty-board-input");
+    const submitEmptyState = async () => {
+      if (!input || !input.value.trim()) return;
+      input.disabled = true;
+      await createBoardAndInsert(dashboardId, input.value, () => {
+        input.value = "";
+      });
+      input.disabled = false;
+    };
+
+    if (input) {
+      input.addEventListener("blur", submitEmptyState);
+      input.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submitEmptyState();
+        }
+      });
+    }
     frame.appendChild(emptyState);
   } else {
     boards.forEach((board) => {
@@ -560,7 +585,9 @@ function renderBoardSections(boards, dashboardId) {
     });
   }
 
-  frame.appendChild(createAddBoardSection(dashboardId));
+  if (boards && boards.length > 0) {
+    frame.appendChild(createAddBoardSection(dashboardId));
+  }
 }
 // #endregion UI Builders
 
@@ -727,6 +754,7 @@ function loadDashboardIdFromUrl() {
 
 async function initializeDashboard(dashboardId) {
   const boards = (await loadBoards(dashboardId)) || [];
+  boardState = [...boards];
 
   renderBoardSections(boards, dashboardId);
 
@@ -747,7 +775,7 @@ async function initializeDashboard(dashboardId) {
 
   initializeDragAndDrop();
   await populateAgents();
-  populateBoardSelect(boards);
+  populateBoardSelect(boardState);
 
   const userId = 1; // Replace with actual user ID as needed
   initializeAddTaskDialog(userId);

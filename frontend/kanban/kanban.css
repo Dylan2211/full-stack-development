@@ -159,6 +159,12 @@
   gap: 18px;
 }
 
+.board-frame.board-frame-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* #endregion board frame */
 
 /* #region boards */
@@ -347,6 +353,52 @@
   border: 1px solid #d2d2d2;
   font-size: 13px;
   background: #f9f9f9;
+}
+
+.empty-state {
+  max-width: 460px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 18px 20px;
+  border: 1px dashed #d2d2d2;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.empty-state-content h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.empty-state-content p {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.empty-board-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d2d2d2;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.empty-board-input:focus {
+  outline: 2px solid #111;
+  border-color: #111;
 }
 
 .add-board-input:focus {

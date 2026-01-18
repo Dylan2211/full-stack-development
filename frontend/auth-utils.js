@@ -52,6 +52,13 @@ async function authFetch(url, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  // Default to JSON requests when a body is present and no content type is set
+  const hasBody = options.body !== undefined && options.body !== null;
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  if (hasBody && !isFormData && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const response = await fetch(url, {
     ...options,
     headers,
