@@ -225,10 +225,10 @@ async function handleVisibilityChange(e) {
   // Show confirmation dialog
   const visibilityType = isPrivate ? "Private" : "Public";
   const message = isPrivate 
-    ? "Make this dashboard private? Only people you invite will be able to view it."
-    : "Make this dashboard public? Anyone with the link will be able to view it.";
+    ? "Only people you invite will be able to view this dashboard."
+    : "Anyone with the link will be able to view this dashboard.";
   
-  const confirmed = confirm(message);
+  const confirmed = await showConfirmDialog(`Change to ${visibilityType}`, message);
   
   if (!confirmed) {
     // Reset radio to previous value
@@ -249,7 +249,6 @@ async function handleVisibilityChange(e) {
 
     dashboardData.IsPrivate = isPrivate;
     document.getElementById("visibilityStatus").textContent = isPrivate ? "Private" : "Public";
-    showSuccess("Visibility updated to " + visibilityType);
   } catch (error) {
     console.error("Error updating visibility:", error);
     alert("Failed to update visibility");

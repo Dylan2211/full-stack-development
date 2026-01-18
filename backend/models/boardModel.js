@@ -83,9 +83,26 @@ async function updateBoard({ boardId, name, position }) {
   }
 }
 
-async function deleteBoard(boardId) {
+async function deleteBoard(boardId, targetBoardId = null) {
   try {
     const pool = await dbConfig;
+    
+    // If targetBoardId is provided, move tasks first
+    if (targetBoardId) {
+      await pool
+        .request()
+        .input("fromBoardId", sql.Int, boardId)
+        .input("toBoardId", sql.Int, targetBoardId)
+        .query(`UPDATE Tasks SET BoardId = @toBoardId WHERE BoardId = @fromBoardId`);
+    } else {
+      // Delete all tasks if no target board specified
+      await pool
+        .request()
+        .input("boardId", sql.Int, boardId)
+        .query(`DELETE FROM Tasks WHERE BoardId = @boardId`);
+    }
+    
+    // Now delete the board
     const result = await pool
       .request()
       .input("boardId", sql.Int, boardId)

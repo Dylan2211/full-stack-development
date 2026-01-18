@@ -78,7 +78,7 @@ async function getUsersByDashboard(req, res) {
   }
 }
 
-async function addUser(req, res) {
+async function addUserToDashboard(req, res) {
   try {
     const { userId, dashboardId, role } = req.body;
     const result = await dashboardModel.addUserToDashboard(
@@ -112,6 +112,6 @@ module.exports = {
   deleteDashboard,
   getAllDashboards,
   getUsersByDashboard,
-  addUser,
+  addUserToDashboard,
   removeUser,
 };

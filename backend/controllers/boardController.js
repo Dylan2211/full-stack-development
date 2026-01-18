@@ -70,7 +70,9 @@ async function updateBoard(req, res) {
 async function deleteBoard(req, res) {
   try {
     const boardId = parseInt(req.params.boardId);
-    const deleted = await boardModel.deleteBoard(boardId); 
+    const targetBoardId = req.body.targetBoardId ? parseInt(req.body.targetBoardId) : null;
+    
+    const deleted = await boardModel.deleteBoard(boardId, targetBoardId); 
     if (!deleted) {
       return res.status(404).json({ error: "Board not found" });
     }

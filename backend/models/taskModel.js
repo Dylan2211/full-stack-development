@@ -69,6 +69,21 @@ async function getTask(taskId) {
   }
 }
 
+async function moveTasksToBoard(fromBoardId, toBoardId) {
+  try {
+    const pool = await dbConfig;
+    const result = await pool
+      .request()
+      .input("fromBoardId", sql.Int, fromBoardId)
+      .input("toBoardId", sql.Int, toBoardId)
+      .query(`UPDATE Tasks SET BoardId = @toBoardId WHERE BoardId = @fromBoardId`);
+    return result.rowsAffected[0];
+  } catch (err) {
+    console.error("Error moving tasks to board:", err.message);
+    throw new Error("Database query failed");
+  }
+}
+
 async function updateTask({ taskId, taskData }) {
   try {
     const {
@@ -161,4 +176,5 @@ module.exports = {
   updateTask,
   deleteTask,
   getTasksByBoardId,
+  moveTasksToBoard,
 };

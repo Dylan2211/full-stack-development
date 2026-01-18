@@ -30,15 +30,28 @@ CREATE TABLE Dashboards (
 CREATE TABLE UserDashboards (
     UserDashboardId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL FOREIGN KEY REFERENCES Users(UserId),
-    DashboardId INT NOT NULL FOREIGN KEY REFERENCES Dashboards(DashboardId),
+    DashboardId INT NOT NULL FOREIGN KEY REFERENCES Dashboards(DashboardId) ON DELETE CASCADE,
     Role NVARCHAR(50) DEFAULT 'Viewer',     -- e.g., 'Owner', 'Editor', 'Viewer'
     JoinedAt DATETIME DEFAULT GETDATE(),
     UNIQUE (UserId, DashboardId)            -- Prevent duplicate membership
 );
 
+CREATE TABLE PendingInvitations (
+    InvitationId INT IDENTITY(1,1) PRIMARY KEY,
+    DashboardId INT NOT NULL FOREIGN KEY REFERENCES Dashboards(DashboardId) ON DELETE CASCADE,
+    Email NVARCHAR(150) NOT NULL,
+    Role NVARCHAR(50) DEFAULT 'Viewer',     -- 'Owner', 'Editor', 'Viewer'
+    InvitedBy INT NOT NULL FOREIGN KEY REFERENCES Users(UserId),
+    Token NVARCHAR(255) UNIQUE,              -- Unique invitation token
+    Status NVARCHAR(50) DEFAULT 'Pending',   -- 'Pending', 'Accepted', 'Expired'
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    ExpiresAt DATETIME,                      -- Optional expiration
+    UNIQUE (DashboardId, Email)              -- Prevent duplicate invitations to same email
+);
+
 CREATE TABLE Boards (
     BoardId INT IDENTITY(1,1) PRIMARY KEY,
-    DashboardId INT FOREIGN KEY REFERENCES Dashboards(DashboardId),
+    DashboardId INT FOREIGN KEY REFERENCES Dashboards(DashboardId) ON DELETE CASCADE,
     Position INT NOT NULL DEFAULT 0, --for ordering
     Name NVARCHAR(100) NOT NULL,
     CreatedAt DATETIME DEFAULT GETDATE()

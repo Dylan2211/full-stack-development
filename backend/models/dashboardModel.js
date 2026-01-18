@@ -111,6 +111,7 @@ async function getUsersByDashboardId(dashboardId) {
 }
 
 async function addUserToDashboard(userId, dashboardId, role = "Viewer") {
+  
   const pool = await sql.connect(dbConfig);
   await pool
     .request()

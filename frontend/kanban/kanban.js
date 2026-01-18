@@ -111,9 +111,11 @@ function updateBoardName(boardId, nameElement) {
   input.focus();
 }
 
-async function deleteBoard(boardId) {
+async function deleteBoard(boardId, targetBoardId = null) {
+  const body = targetBoardId ? JSON.stringify({ targetBoardId }) : undefined;
   const res = await authFetch(`/api/boards/${boardId}`, {
     method: "DELETE",
+    body,
   });
   if (!res.ok) {
     const message = await res.text();
@@ -380,9 +382,12 @@ function createBoardSection(board) {
   deleteOption.className = "board-menu-item board-menu-item-danger";
   deleteOption.textContent = "Delete";
   deleteOption.addEventListener("click", async () => {
-    showDeleteConfirmation(async () => {
+    // Get all boards except the current one
+    const otherBoards = boardState.filter((b) => b.BoardId !== board.BoardId);
+    
+    showDeleteConfirmation(otherBoards, async (targetBoardId) => {
       try {
-        await deleteBoard(board.BoardId);
+        await deleteBoard(board.BoardId, targetBoardId);
         section.remove();
 
         // Update local state and re-render if no boards remain
@@ -652,15 +657,52 @@ async function updateBoardPositions(frame) {
   );
 }
 
-function showDeleteConfirmation(onConfirm) {
+function showDeleteConfirmation(otherBoards, onConfirm) {
   const dialog = document.getElementById("deleteConfirmDialog");
+  const textEl = document.getElementById("deleteConfirmText");
   const confirmBtn = document.getElementById("deleteConfirmSubmit");
   const cancelBtn = document.getElementById("deleteConfirmCancel");
+  
+  // Clear existing content and rebuild
+  textEl.innerHTML = "";
+  
+  if (otherBoards.length > 0) {
+    // Has other boards - show selector
+    const message = document.createElement("p");
+    message.textContent = "Move all tasks to another board before deleting:";
+    textEl.appendChild(message);
+    
+    const select = document.createElement("select");
+    select.id = "targetBoardSelect";
+    select.style.width = "100%";
+    select.style.padding = "8px";
+    select.style.marginTop = "12px";
+    select.style.marginBottom = "12px";
+    select.style.borderRadius = "4px";
+    select.style.border = "1px solid #d0d7de";
+    
+    otherBoards.forEach(board => {
+      const option = document.createElement("option");
+      option.value = board.BoardId;
+      option.textContent = board.Name;
+      select.appendChild(option);
+    });
+    
+    textEl.appendChild(select);
+  } else {
+    // No other boards - just confirm deletion
+    textEl.textContent = "Are you sure you want to delete this board? All tasks will be permanently deleted.";
+  }
 
   const handleConfirm = async () => {
     dialog.close();
     cleanupListeners();
-    await onConfirm();
+    
+    const targetBoardId = otherBoards.length > 0 
+      ? parseInt(document.getElementById("targetBoardSelect").value)
+      : null;
+    
+    await onConfirm(targetBoardId);
   };
 
   const handleCancel = () => {
