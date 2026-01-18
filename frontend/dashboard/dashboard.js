@@ -242,7 +242,7 @@ function metricsFromQuery() {
 // #endregion
 
 // #region UI wiring
-async function loadDashboards(userId) {
+async function loadDashboards() {
   try {
     const response = await authFetch(`/api/dashboards`);
     
@@ -397,8 +397,7 @@ function setupOverlay() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  userId = 1; // TO-DO: get user ID from session
-  loadDashboards(userId);
+  loadDashboards();
   var data = metricsFromQuery();
   applyMetrics(data);
   window.updateDashboard = applyMetrics;
