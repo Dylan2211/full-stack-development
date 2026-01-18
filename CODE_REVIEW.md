@@ -1,28 +1,5 @@
 # Code Review & Consistency Analysis
 
-## Issues Fixed ✅
-
-### ~~**3. Unimplemented Features**~~ - RESOLVED
-- ✅ All dashboard CRUD operations are now fully implemented
-- ✅ Removed outdated "Not implemented yet" comments
-- ✅ Removed unused `require("node:domain")` import
-
-### ~~**4. Inconsistent Naming Conventions**~~ - RESOLVED
-- ✅ Fixed path reference in activity.html: `../Profile/profile.js` → removed (was incorrect)
-- ✅ Removed missing script references: `colour.js` and `cards.js` 
-- ✅ Renamed `ai-roots.js` → `ai-routes.js`
-- ✅ Updated server.ts import reference
-
----
-
-### 🟡 **5. Missing Documentation & Comments** - PARTIALLY ADDRESSED
-
-- **README.md:** Only 3 lines, no project description, no setup instructions
-- **Backend modules:** Missing JSDoc comments on functions
-- **Frontend files:** Inconsistent use of comment regions (`// #region`, `// #endregion`)
-- ✅ **Dashboard hardcoded value:** ~~Line 486: `userId = 1; // TO-DO: get user ID from session`~~ - FIXED (now gets from JWT token)
-
----
 
 ### 🟡 **6. Inconsistent Code Styles**
 
