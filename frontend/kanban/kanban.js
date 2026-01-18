@@ -647,7 +647,7 @@ function showDeleteConfirmation(onConfirm) {
 
   confirmBtn.addEventListener("click", handleConfirm);
   cancelBtn.addEventListener("click", handleCancel);
-  dialog.show();
+  dialog.showModal();
 }
 // #endregion Helpers
 
