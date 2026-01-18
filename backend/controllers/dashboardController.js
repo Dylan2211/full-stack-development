@@ -14,11 +14,16 @@ async function getDashboard(req, res) {
     res.status(500).json({ error: "Internal server error" });
   }
 }
-// Not implemented yet
 async function createDashboard(req, res) {
   try {
     const { name, description } = req.body;
-    const newDashboard = await require("../models/dashboardModel").createDashboard(name, description);
+    const userId = req.user.userId || req.user.id;
+    
+    const newDashboard = await dashboardModel.createDashboard(name, description);
+    
+    // Link the creator as Owner in UserDashboards
+    await dashboardModel.addUserToDashboard(userId, newDashboard.DashboardId, 'Owner');
+    
     res.status(201).json(newDashboard);
   } catch (error) {
     console.error(`Error creating dashboard: ${error}`);
@@ -55,7 +60,8 @@ async function deleteDashboard(req, res) {
 
 async function getAllDashboards(req, res) {
   try {
-    const dashboards = await dashboardModel.getAllDashboards();
+    const userId = req.user.userId || req.user.id;
+    const dashboards = await dashboardModel.getDashboardsByUserId(userId);
     res.status(200).json(dashboards);
   } catch (error) {
     res.status(500).json({ error: error.message });

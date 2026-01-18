@@ -12,6 +12,20 @@ async function getAllDashboards() {
   return result.recordset;
 }
 
+async function getDashboardsByUserId(userId) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("UserId", sql.Int, userId)
+    .query(`
+      SELECT d.DashboardId, d.Name, d.Description, d.CreatedAt
+      FROM Dashboards d
+      JOIN UserDashboards ud ON ud.DashboardId = d.DashboardId
+      WHERE ud.UserId = @UserId
+      ORDER BY d.DashboardId DESC
+    `);
+  return result.recordset;
+}
+
 async function getDashboard(dashboardId) {
   const pool = await sql.connect(dbConfig);
   const result = await pool.request()
@@ -126,6 +140,7 @@ module.exports = {
   updateDashboard,
   deleteDashboard,
   getAllDashboards,
+  getDashboardsByUserId,
   getUsersByDashboardId,
   addUserToDashboard,
   removeUserFromDashboard,

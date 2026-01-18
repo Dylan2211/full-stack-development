@@ -35,7 +35,6 @@ app.use("/api/ai", aiRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(frontendPath));
 app.use("/api/users", userRoutes);
 app.use("/api", taskRoutes);
 
@@ -76,6 +75,9 @@ app.get(ROUTES.TEST, (req, res) => {
 });
 
 //  #endregion
+
+// Serve static files AFTER API routes to prevent conflicts
+app.use(express.static(frontendPath));
 
 // #region Error handling middleware
 app.use((req, res, next) => {
