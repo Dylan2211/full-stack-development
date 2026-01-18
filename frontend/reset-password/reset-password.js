@@ -1,4 +1,5 @@
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const API_BASE = 'http://localhost:3000';
 
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
@@ -44,8 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return '';
   }
 
-  // Step 1: pretend to send a reset link
-  forgotForm?.addEventListener('submit', (e) => {
+  // Step 1: send reset request to backend
+  forgotForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     setMessage(forgotMessage, '', '');
 
@@ -58,16 +59,36 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    setMessage(forgotMessage, 'If this email exists, a reset link has been sent.', 'success');
+    setMessage(forgotMessage, 'Sending reset request...', 'info');
 
-    // Simulate email verified + redirect with a mock token
-    setTimeout(() => {
-      window.location.href = `${window.location.pathname}?token=mock-token`;
-    }, 800);
+    try {
+      const res = await fetch(`${API_BASE}/api/users/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        setMessage(forgotMessage, 'If this email exists, a reset link has been sent.', 'success');
+
+        // In development, backend returns resetToken; use it to redirect
+        const token = json.resetToken || 'mock-token';
+        setTimeout(() => {
+          window.location.href = `${window.location.pathname}?token=${token}`;
+        }, 800);
+      } else {
+        setMessage(forgotMessage, json.message || 'Error sending reset request.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage(forgotMessage, 'Something went wrong. Please try again.', 'error');
+    }
   });
 
   // Step 2: set the new password
-  resetForm?.addEventListener('submit', (e) => {
+  resetForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     setMessage(resetMessage, '', '');
 
@@ -85,14 +106,34 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    setMessage(resetMessage, 'Password reset successfully.', 'success');
+    setMessage(resetMessage, 'Resetting password...', 'info');
 
-    // Clear fields and messages shortly after success
-    setTimeout(() => {
-      newPasswordInput.value = '';
-      confirmPasswordInput.value = '';
-      setMessage(resetMessage, '', '');
-    }, 1500);
+    try {
+      const res = await fetch(`${API_BASE}/api/users/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword: password }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        setMessage(resetMessage, 'Password reset successfully.', 'success');
+
+        // Clear fields and messages shortly after success, then redirect to login
+        setTimeout(() => {
+          newPasswordInput.value = '';
+          confirmPasswordInput.value = '';
+          setMessage(resetMessage, '', '');
+          window.location.href = '../login/login.html';
+        }, 1500);
+      } else {
+        setMessage(resetMessage, json.message || 'Failed to reset password.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage(resetMessage, 'Something went wrong. Please try again.', 'error');
+    }
   });
 
   // Clear messages on input changes
