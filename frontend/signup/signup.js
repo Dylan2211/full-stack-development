@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginLink = document.querySelector('.login-link a');
   const formMessage = document.getElementById('form-message');
 
-  loginLink.setAttribute('href', '../login/login.html');
+  loginLink.setAttribute('href', '/login');
 
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       setFormMessage('Registration succeeded. Redirecting to login...', 'success');
-      setTimeout(() => window.location.href = new URL('../login/login.html', window.location.href).href, 900);
+      setTimeout(() => window.location.href = '/login', 900);
     } catch (err) {
       console.error('Network or other error during registration:', err);
       setFormMessage(`Registration error: ${err.message || err}`, 'error');

@@ -261,7 +261,7 @@ async function loadDashboards() {
     
     dashboards.forEach((dashboard) => {
       const card = document.createElement("a");
-      card.href = `/kanban/kanban.html?id=${dashboard.DashboardId}`;
+      card.href = `/kanban?id=${dashboard.DashboardId}`;
       card.className = "card";
       card.innerHTML = `
         <h3>${dashboard.Name}</h3>
@@ -364,7 +364,7 @@ function setupOverlay() {
       const newDashboard = await createDashboard(title, desc);
       
       var card = document.createElement("a");
-      card.href = `/kanban/kanban.html?id=${newDashboard.DashboardId}`;
+      card.href = `/kanban?id=${newDashboard.DashboardId}`;
       card.className = "card";
 
       var h3 = document.createElement("h3");

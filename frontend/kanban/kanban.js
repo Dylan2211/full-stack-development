@@ -842,7 +842,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function setupSettingsButton(dashboardId) {
   const settingsButton = document.getElementById("settingsButton");
   if (settingsButton) {
-    settingsButton.href = `/dashboard-settings/dashboard-settings.html?id=${dashboardId}`;
+    settingsButton.href = `/dashboard-settings?id=${dashboardId}`;
   }
 }
 // #endregion Initialization

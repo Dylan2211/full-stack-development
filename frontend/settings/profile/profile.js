@@ -1,4 +1,4 @@
-requireAuth("../../login/login.html");
+requireAuth("/login");
 
 const currentUser = getUserInfoFromToken();
 const currentUserId = currentUser?.userId || currentUser?.id;
@@ -6,7 +6,7 @@ const currentUserId = currentUser?.userId || currentUser?.id;
 // Fetch user profile data on page load
 document.addEventListener('DOMContentLoaded', async () => {
   if (!currentUserId) {
-    window.location.href = '../../login/login.html';
+    window.location.href = '/login';
     return;
   }
 
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (response.status === 401) {
       // Token invalid, redirect to login
       clearAuthToken();
-      window.location.href = '../../login/login.html';
+      window.location.href = '/login';
     }
   } catch (error) {
     console.error('Error loading profile:', error);

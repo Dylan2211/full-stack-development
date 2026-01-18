@@ -19,7 +19,7 @@ let collaborators = [];
 document.addEventListener("DOMContentLoaded", async () => {
   if (!dashboardId) {
     alert("Invalid dashboard ID");
-    window.location.href = "/dashboard/dashboard.html";
+    window.location.href = "/dashboard";
     return;
   }
 
@@ -53,7 +53,7 @@ function setupNavigation() {
 // Setup back button
 function setupBackButton() {
   const backButton = document.getElementById("backButton");
-  backButton.href = `/kanban/kanban.html?id=${dashboardId}`;
+  backButton.href = `/kanban?id=${dashboardId}`;
 }
 
 // Load dashboard data
@@ -203,7 +203,7 @@ async function updateDashboardName() {
     dashboardData.Name = newName;
     document.getElementById("dashboardTitle").textContent = newName + " Settings";
     // Redirect to dashboard instead of showing popup
-    window.location.href = "/dashboard/dashboard.html";
+    window.location.href = "/dashboard";
   } catch (error) {
     console.error("Error updating dashboard name:", error);
     alert("Failed to update dashboard name");
@@ -289,7 +289,7 @@ async function deleteDashboard() {
     }
 
     alert("Dashboard deleted successfully");
-    window.location.href = "/dashboard/dashboard.html";
+    window.location.href = "/dashboard";
   } catch (error) {
     console.error("Error deleting dashboard:", error);
     alert("Failed to delete dashboard");

@@ -15,13 +15,13 @@ function isLoggedIn() {
   return !!getAuthToken();
 }
 
-function requireAuth(redirectUrl = '/login/login.html') {
+function requireAuth(redirectUrl = '/login') {
   if (!isLoggedIn()) {
     window.location.href = redirectUrl;
   }
 }
 
-function logout(redirectUrl = '/login/login.html') {
+function logout(redirectUrl = '/login') {
   clearAuthToken();
   window.location.href = redirectUrl;
 }
@@ -66,7 +66,7 @@ async function authFetch(url, options = {}) {
 
   if (response.status === 401) {
     clearAuthToken();
-    window.location.href = '/login/login.html';
+    window.location.href = '/login';
     throw new Error('Authentication failed');
   }
 

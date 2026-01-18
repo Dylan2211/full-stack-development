@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       setAuthToken(json.token);
-      window.location.href = '/dashboard/dashboard.html';
+      window.location.href = '/dashboard';
     } catch (err) {
       console.error(err);
       setFormMessage('Login error. See console for details.', 'error');

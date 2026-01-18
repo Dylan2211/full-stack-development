@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
           newPasswordInput.value = '';
           confirmPasswordInput.value = '';
           setMessage(resetMessage, '', '');
-          window.location.href = '../login/login.html';
+          window.location.href = '/login';
         }, 1500);
       } else {
         setMessage(resetMessage, json.message || 'Failed to reset password.', 'error');
