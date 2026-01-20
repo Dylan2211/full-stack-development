@@ -62,7 +62,12 @@ async function loadBoards(dashboardId) {
   const res = await authFetch(`/api/dashboards/${dashboardId}/boards`, {
     method: "GET",
   });
-  return await res.json();
+  if (!res.ok) {
+    console.error("Failed to load boards:", res.status);
+    return [];
+  }
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 async function loadBoardName(dashboardId) {
