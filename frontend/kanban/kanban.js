@@ -140,9 +140,51 @@ async function createTask(taskData) {
       body: JSON.stringify(taskData),
     });
     const saved = await res.json();
+    
+    // If AI model is selected, execute it
+    if (taskData.aiModel) {
+      executeAITask(saved.taskId, taskData.aiModel, taskData.title, taskData.description);
+    }
+    
     addTaskToBoard(saved);
   } finally {
     notification.classList.remove("show");
+  }
+}
+
+async function executeAITask(taskId, aiModel, title, description) {
+  try {
+    console.log("executeAITask called:", { taskId, aiModel, title, description });
+    const prompt = `Task: ${title}\nDescription: ${description}`;
+    console.log("Sending prompt to AI:", prompt);
+    
+    const res = await authFetch("/api/ai/gemini", {
+      method: "POST",
+      body: JSON.stringify({ prompt }),
+    });
+    
+    console.log("AI response status:", res.status);
+    
+    if (res.ok) {
+      const result = await res.json();
+      console.log("AI result:", result);
+      const aiOutput = result.output;
+      
+      // Update task with AI output
+      console.log("Updating task with AI output:", taskId);
+      const updateRes = await authFetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          aiOutput,
+        }),
+      });
+      console.log("Update response status:", updateRes.status);
+    } else {
+      const errorText = await res.text();
+      console.error("AI call failed:", errorText);
+    }
+  } catch (error) {
+    console.error("Error executing AI task:", error);
   }
 }
 
@@ -324,6 +366,15 @@ function addTaskToBoard(task) {
       <div class="card-title">${task.Title}</div>
       <div class="card-text">${task.Description || ""}</div>
   `;
+
+  // Add click handler to always attempt to show AI output (fetches latest task)
+  card.style.cursor = "pointer";
+  card.addEventListener("click", async (e) => {
+    if (!(e.target === card || e.target.classList.contains("card-title") || e.target.classList.contains("card-text"))) return;
+    const id = card.dataset.id;
+    if (!id) return;
+    await fetchTaskAndShow(id);
+  });
 
   attachCardDragEvents(card);
   board.appendChild(card);
@@ -724,6 +775,48 @@ function showDeleteConfirmation(otherBoards, onConfirm) {
   cancelBtn.addEventListener("click", handleCancel);
   dialog.showModal();
 }
+
+async function fetchTaskAndShow(taskId) {
+  try {
+    const res = await authFetch(`/api/tasks/${taskId}`, { method: "GET" });
+    if (!res.ok) {
+      const errText = await res.text();
+      showAIOutput("Error", `Unable to fetch task: ${errText}`);
+      return;
+    }
+    const task = await res.json();
+    const title = task.Title || task.title || `Task ${taskId}`;
+    const aiOutput = task.AIOutput || task.aiOutput || "No AI output available for this task.";
+    showAIOutput(title, aiOutput);
+  } catch (err) {
+    console.error("fetchTaskAndShow error:", err);
+    showAIOutput("Error", "Failed to fetch task details.");
+  }
+}
+
+function showAIOutput(taskTitle, aiOutput) {
+  const dialog = document.createElement("dialog");
+  dialog.className = "ai-output-dialog";
+  dialog.innerHTML = `
+    <div class="ai-output-content">
+      <h2>${taskTitle}</h2>
+      <div class="ai-output-text">${aiOutput.replace(/\n/g, "<br>")}</div>
+      <button class="close-ai-output">Close</button>
+    </div>
+  `;
+  
+  document.body.appendChild(dialog);
+  dialog.showModal();
+  
+  dialog.querySelector(".close-ai-output").addEventListener("click", () => {
+    dialog.close();
+    dialog.remove();
+  });
+  
+  dialog.addEventListener("cancel", () => {
+    dialog.remove();
+  });
+}
 // #endregion Helpers
 
 // #region Add Task Dialog
@@ -762,6 +855,7 @@ function initializeAddTaskDialog(userId) {
     const agentSelect = document.getElementById("taskAgents");
     const assignedAgents = Array.from(agentSelect.selectedOptions).map((o) => o.value);
     const skills = document.getElementById("taskSkills").value.trim();
+    const aiModel = document.getElementById("taskAIModel").value.trim();
 
     createTask({
       title,
@@ -772,6 +866,7 @@ function initializeAddTaskDialog(userId) {
       createdBy: userId,
       position: 0,
       status: "todo",
+      aiModel: aiModel || null,
     });
 
     // Reset form

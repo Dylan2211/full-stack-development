@@ -78,5 +78,7 @@ CREATE TABLE Tasks (
     EstimatedDuration NVARCHAR(50) NULL,
     AgentMatchScore INT NULL,
     AgentProgress INT NULL,
-    Dependencies NVARCHAR(MAX) NULL  --csv of TaskIds
+    Dependencies NVARCHAR(MAX) NULL,  --csv of TaskIds
+    AIModel NVARCHAR(100) NULL,
+    AIOutput NVARCHAR(MAX) NULL
 );

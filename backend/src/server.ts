@@ -82,6 +82,7 @@ app.get(ROUTES.TEST, (req, res) => {
 
 // Serve static files AFTER API routes to prevent conflicts
 app.use(express.static(frontendPath));
+app.use(express.static(path.join(__dirname, "../public")));
 
 // #region Error handling middleware
 app.use((req, res, next) => {
