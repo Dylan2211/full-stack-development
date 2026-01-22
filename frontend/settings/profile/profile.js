@@ -155,4 +155,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (emailNotifications !== null) {
         document.getElementById('emailNotif').checked = emailNotifications === 'true';
     }
+
+    // Set dark mode toggle from saved theme
+    const currentTheme = localStorage.getItem('selectedTheme') || 'light';
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+        darkModeToggle.checked = currentTheme === 'dark';
+    }
 });

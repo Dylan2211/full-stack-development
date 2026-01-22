@@ -1,0 +1,17 @@
+/* Dark Theme */
+:root.dark-theme {
+  --bg-primary: #1a1a1a;        /* Main background - dark */
+  --bg-secondary: #2d2d2d;      /* Secondary background - darker */
+  --text-primary: #e8e8e8;      /* Main text color - light */
+  --text-secondary: #a0a0a0;    /* Muted text color - light gray */
+  --accent-primary: #4a9eff;    /* Main accent color (lighter blue) */
+  --accent-secondary: #66b3ff;  /* Lighter accent */
+  --border-color: #404040;      /* Border color - dark */
+  --shadow: rgba(0, 0, 0, 0.5); /* Shadow color - darker */
+}
+
+/* Apply dark theme to body */
+body.dark-theme {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
