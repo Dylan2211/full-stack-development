@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const navKanban = document.getElementById("nav-kanban");
   if (navKanban) {
     navKanban.addEventListener("click", function () {
-      window.location.href = "../demo/kanban.html";
+      window.location.href = "/kanban/kanban.html";
     });
   }
 
