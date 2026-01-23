@@ -1,6 +1,6 @@
 
 function setText(id, value, suffix) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   if (!el) return;
   if (value === null || value === undefined || value === "") {
     el.textContent = "–";
@@ -14,9 +14,9 @@ function setText(id, value, suffix) {
 }
 
 function setPercentBar(barId, value) {
-  var bar = document.getElementById(barId);
+  const bar = document.getElementById(barId);
   if (!bar) return;
-  var v = clampPercent(value);
+  const v = clampPercent(value);
   bar.style.width = v + "%";
 }
 
@@ -34,7 +34,7 @@ function clampPercent(value) {
 }
 
 function badgeFromAcceptance(value) {
-  var v = clampPercent(value);
+  const v = clampPercent(value);
   if (!value && value !== 0) return "unknown";
   if (v >= 80) return "excellent";
   if (v >= 60) return "good";
@@ -43,7 +43,7 @@ function badgeFromAcceptance(value) {
 }
 
 function badgeFromError(value) {
-  var v = clampPercent(value);
+  const v = clampPercent(value);
   if (!value && value !== 0) return "unknown";
   if (v <= 1) return "very low";
   if (v <= 3) return "low";
@@ -52,7 +52,7 @@ function badgeFromError(value) {
 }
 
 function tagFromLoad(value) {
-  var v = clampPercent(value);
+  const v = clampPercent(value);
   if (!value && value !== 0) return "no signal";
   if (v < 40) return "comfortably idle";
   if (v < 75) return "healthy";
@@ -62,7 +62,7 @@ function tagFromLoad(value) {
 
 function statusClassFromText(text) {
   if (!text) return "";
-  var t = String(text).toLowerCase();
+  const t = String(text).toLowerCase();
   if (t === "online" || t === "ready" || t === "active") return "agent-status-online";
   if (t === "busy" || t === "running") return "agent-status-busy";
   if (t === "offline" || t === "disabled") return "agent-status-offline";

@@ -1,18 +1,18 @@
 
 function applyAgentStatus(id, statusText) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   if (!el) return;
   el.textContent = statusText || "unknown";
   el.classList.remove("agent-status-online", "agent-status-busy", "agent-status-offline");
-  var cls = statusClassFromText(statusText);
+  const cls = statusClassFromText(statusText);
   if (cls) el.classList.add(cls);
 }
 
 
 
 function renderUsageBars(values) {
-  var container = document.getElementById("usage-chart");
-  var empty = document.getElementById("usage-empty");
+  const container = document.getElementById("usage-chart");
+  const empty = document.getElementById("usage-empty");
   if (!container || !empty) return;
   clearChildren(container);
   if (!values || !values.length) {
@@ -21,15 +21,15 @@ function renderUsageBars(values) {
     return;
   }
   empty.style.display = "none";
-  var max = Math.max.apply(null, values.map(function (v) { return v || 0; }));
+  let max = Math.max.apply(null, values.map(function (v) { return v || 0; }));
   if (max <= 0) max = 1;
-  for (var i = 0; i < values.length; i++) {
-    var val = values[i] || 0;
-    var bar = document.createElement("div");
+  for (let i = 0; i < values.length; i++) {
+    const val = values[i] || 0;
+    const bar = document.createElement("div");
     bar.className = "usage-bar";
-    var inner = document.createElement("div");
+    const inner = document.createElement("div");
     inner.className = "usage-bar-inner";
-    var height = (val / max) * 100;
+    const height = (val / max) * 100;
     inner.style.height = height.toFixed(0) + "%";
     if (height > 70) inner.classList.add("usage-bar-high");
     else if (height > 40) inner.classList.add("usage-bar-medium");
@@ -39,8 +39,8 @@ function renderUsageBars(values) {
 }
 
 function renderEvents(events) {
-  var list = document.getElementById("events-list");
-  var empty = document.getElementById("events-empty");
+  const list = document.getElementById("events-list");
+  const empty = document.getElementById("events-empty");
   if (!list || !empty) return;
   clearChildren(list);
   if (!events || !events.length) {
@@ -50,17 +50,17 @@ function renderEvents(events) {
   }
   empty.style.display = "none";
   events.forEach(function (e) {
-    var row = document.createElement("div");
+    const row = document.createElement("div");
     row.className = "event-row";
-    var time = document.createElement("div");
+    const time = document.createElement("div");
     time.className = "event-time";
     time.textContent = e.time || "";
-    var text = document.createElement("div");
+    const text = document.createElement("div");
     text.className = "event-text";
     text.textContent = e.message || "";
-    var tag = document.createElement("div");
+    const tag = document.createElement("div");
     tag.className = "event-tag";
-    var type = (e.type || "").toLowerCase();
+    const type = (e.type || "").toLowerCase();
     if (type === "info") tag.classList.add("event-tag-info");
     else if (type === "warning") tag.classList.add("event-tag-warning");
     else if (type === "error") tag.classList.add("event-tag-error");
@@ -74,18 +74,18 @@ function renderEvents(events) {
 }
 
 function readMetricNumber(params, key) {
-  var raw = params.get(key);
+  const raw = params.get(key);
   if (raw === null || raw === "") return null;
-  var v = Number(raw);
+  const v = Number(raw);
   if (!isFinite(v)) return null;
   return v;
 }
 
 function readList(params, key) {
-  var all = params.getAll(key);
-  var values = [];
-  for (var i = 0; i < all.length; i++) {
-    var v = Number(all[i]);
+  const all = params.getAll(key);
+  const values = [];
+  for (let i = 0; i < all.length; i++) {
+    const v = Number(all[i]);
     if (!isFinite(v)) continue;
     values.push(v);
   }
@@ -104,7 +104,7 @@ function applyMetrics(data) {
   setText("metric-latency-trend", data.latencyTrendLabel || "no data");
 
   if (data.acceptanceRate !== null && data.acceptanceRate !== undefined) {
-    var acc = clampPercent(data.acceptanceRate);
+    const acc = clampPercent(data.acceptanceRate);
     setText("metric-acceptance", acc.toFixed(1));
     setText("metric-acceptance-badge", badgeFromAcceptance(acc));
   } else {
@@ -113,7 +113,7 @@ function applyMetrics(data) {
   }
 
   if (data.errorRate !== null && data.errorRate !== undefined) {
-    var err = clampPercent(data.errorRate);
+    const err = clampPercent(data.errorRate);
     setText("metric-error", err.toFixed(2));
     setText("metric-error-badge", badgeFromError(err));
   } else {
@@ -122,10 +122,10 @@ function applyMetrics(data) {
   }
 
   if (data.loadPercent !== null && data.loadPercent !== undefined) {
-    var lp = clampPercent(data.loadPercent);
+    const lp = clampPercent(data.loadPercent);
     setText("metric-load-value", lp.toFixed(1) + "%");
     setPercentBar("metric-load-fill", lp);
-    var tag = tagFromLoad(lp);
+    const tag = tagFromLoad(lp);
     setText("metric-load-tag", tag);
   } else {
     setText("metric-load-value", "–");
@@ -134,25 +134,25 @@ function applyMetrics(data) {
   }
 
   if (data.codingShare !== null && data.codingShare !== undefined) {
-    var cs = clampPercent(data.codingShare);
+    const cs = clampPercent(data.codingShare);
     setPercentBar("metric-coding-share", cs);
     setText("metric-coding-share-value", cs.toFixed(0) + "%");
   }
 
   if (data.analysisShare !== null && data.analysisShare !== undefined) {
-    var asVal = clampPercent(data.analysisShare);
+    const asVal = clampPercent(data.analysisShare);
     setPercentBar("metric-analysis-share", asVal);
     setText("metric-analysis-share-value", asVal.toFixed(0) + "%");
   }
 
   if (data.otherShare !== null && data.otherShare !== undefined) {
-    var os = clampPercent(data.otherShare);
+    const os = clampPercent(data.otherShare);
     setPercentBar("metric-other-share", os);
     setText("metric-other-share-value", os.toFixed(0) + "%");
   }
 
   if (data.testsPassing !== null && data.testsPassing !== undefined) {
-    var tp = clampPercent(data.testsPassing);
+    const tp = clampPercent(data.testsPassing);
     setPercentBar("metric-tests-bar", tp);
     setText("metric-tests-value", tp.toFixed(1) + "%");
   } else {
@@ -160,7 +160,7 @@ function applyMetrics(data) {
   }
 
   if (data.securityPassing !== null && data.securityPassing !== undefined) {
-    var sp = clampPercent(data.securityPassing);
+    const sp = clampPercent(data.securityPassing);
     setPercentBar("metric-security-bar", sp);
     setText("metric-security-value", sp.toFixed(1) + "%");
   } else {
@@ -168,7 +168,7 @@ function applyMetrics(data) {
   }
 
   if (data.lintClean !== null && data.lintClean !== undefined) {
-    var lc = clampPercent(data.lintClean);
+    const lc = clampPercent(data.lintClean);
     setPercentBar("metric-lint-bar", lc);
     setText("metric-lint-value", lc.toFixed(1) + "%");
   } else {
@@ -194,12 +194,12 @@ function applyMetrics(data) {
 }
 
 function metricsFromQuery() {
-  var params = new URLSearchParams(window.location.search);
-  var usage = readList(params, "usage");
-  var events = [];
-  var i = 1;
+  const params = new URLSearchParams(window.location.search);
+  const usage = readList(params, "usage");
+  const events = [];
+  let i = 1;
   while (true) {
-    var msg = params.get("event" + i);
+    const msg = params.get("event" + i);
     if (!msg) break;
     events.push({
       time: params.get("event" + i + "_time") || "",
@@ -208,7 +208,7 @@ function metricsFromQuery() {
     });
     i += 1;
   }
-  var agents = {
+  const agents = {
     gemini: params.get("agent_gemini") || null,
     claude: params.get("agent_claude") || null,
     amp: params.get("agent_amp") || null,
@@ -235,21 +235,21 @@ function metricsFromQuery() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  var data = metricsFromQuery();
+  const data = metricsFromQuery();
   applyMetrics(data);
 
-  var snapshotButton = document.getElementById("snapshot-button");
+  const snapshotButton = document.getElementById("snapshot-button");
   if (snapshotButton) {
     snapshotButton.addEventListener("click", function () {
-      var now = new Date();
-      var label = now.toISOString().slice(0, 19).replace("T", " ");
-      var title = "dashboard snapshot " + label;
+      const now = new Date();
+      const label = now.toISOString().slice(0, 19).replace("T", " ");
+      const title = "dashboard snapshot " + label;
       alert(title);
     });
   }
 
   // Kanban navigation button – updated path
-  var navKanban = document.getElementById("nav-kanban");
+  const navKanban = document.getElementById("nav-kanban");
   if (navKanban) {
     navKanban.addEventListener("click", function () {
       window.location.href = "../demo/kanban.html";
