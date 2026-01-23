@@ -158,7 +158,17 @@ async function executeAITask(taskId, aiModel, title, description) {
     const prompt = `Task: ${title}\nDescription: ${description}`;
     console.log("Sending prompt to AI:", prompt);
     
-    const res = await authFetch("/api/ai/gemini", {
+    let apiEndpoint;
+    if (aiModel === "gemini-2.5-flash") {
+      apiEndpoint = "/api/ai/gemini";
+    } else if (aiModel === "gpt-4o-mini") {
+      apiEndpoint = "/api/ai/openai";
+    } else {
+      console.error("Unknown AI model:", aiModel);
+      return;
+    }
+    
+    const res = await authFetch(apiEndpoint, {
       method: "POST",
       body: JSON.stringify({ prompt }),
     });

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { geminiPrompt } = require("../ai/aiGemini");
+const { openAIPrompt } = require("../ai/aiOpenAI");
 
 router.get("/ping", (req, res) => {
   res.json({ ok: true, msg: "ai route mounted" });
@@ -10,5 +11,9 @@ router.get("/ping", (req, res) => {
 // When someone POSTs to /api/ai/gemini,
 // run the geminiPrompt function
 router.post("/gemini", geminiPrompt);
+
+// When someone POSTs to /api/ai/openai,
+// run the openAIPrompt function
+router.post("/openai", openAIPrompt);
 
 module.exports = router;
