@@ -2,7 +2,7 @@ requireAuth("/login");
 
 const currentUser = getUserInfoFromToken();
 const currentUserId = currentUser?.userId || currentUser?.id;
-
+const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) || "http://localhost:3000";
 // Fetch user profile data on page load
 document.addEventListener('DOMContentLoaded', async () => {
   if (!currentUserId) {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const response = await authFetch(`http://localhost:3000/api/users/${currentUserId}`, {
+    const response = await authFetch(`${API_BASE}/api/users/${currentUserId}`, {
       method: 'GET',
     });
 

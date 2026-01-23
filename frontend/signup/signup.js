@@ -1,5 +1,4 @@
-const API_BASE = 'http://localhost:3000';
-console.log('API_BASE set to', API_BASE);
+const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) || 'http://localhost:3000';
 
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('signupForm');

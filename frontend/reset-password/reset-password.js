@@ -1,5 +1,5 @@
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const API_BASE = 'http://localhost:3000';
+const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) || 'http://localhost:3000';
 
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);

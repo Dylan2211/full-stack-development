@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3000';
+const API_BASE = (window.CONFIG && window.CONFIG.API_BASE) || 'http://localhost:3000';
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 document.addEventListener('DOMContentLoaded', () => {
