@@ -785,3 +785,16 @@
   opacity: 0.9;
 }
 /* #endregion AI output dialog */
+
+/* #region animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* #endregion animations */
