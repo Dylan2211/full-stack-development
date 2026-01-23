@@ -139,14 +139,25 @@ async function createTask(taskData) {
       method: "POST",
       body: JSON.stringify(taskData),
     });
-    const saved = await res.json();
     
-    // If AI model is selected, execute it
+    if (!res.ok) {
+      const error = await res.text();
+      console.error("Failed to create task:", error);
+      alert("Failed to create task: " + error);
+      return;
+    }
+    
+    const saved = await res.json();
+    console.log("Task created:", saved);
+    
+    addTaskToBoard(saved);
+    
     if (taskData.aiModel) {
       executeAITask(saved.taskId, taskData.aiModel, taskData.title, taskData.description);
     }
-    
-    addTaskToBoard(saved);
+  } catch (error) {
+    console.error("Error creating task:", error);
+    alert("Failed to create task");
   } finally {
     notification.classList.remove("show");
   }
@@ -365,18 +376,22 @@ function initializeDragAndDrop() {
 
 // #region UI Builders
 function addTaskToBoard(task) {
-  const targetListId = "board-" + (task.BoardId || "");
+  const targetListId = "board-" + (task.BoardId || task.boardId || "");
   const board = document.getElementById(targetListId);
-  if (!board) return;
+  
+  if (!board) {
+    console.warn(`Board element not found for ID: ${targetListId}`, task);
+    return;
+  }
 
   const card = document.createElement("div");
   card.classList.add("card");
   card.setAttribute("draggable", "true");
-  card.dataset.id = task.TaskId;
+  card.dataset.id = task.TaskId || task.taskId;
 
   card.innerHTML = `
-      <div class="card-title">${task.Title}</div>
-      <div class="card-text">${task.Description || ""}</div>
+      <div class="card-title">${task.Title || task.title || ""}</div>
+      <div class="card-text">${task.Description || task.description || ""}</div>
   `;
 
   // Add click handler to always attempt to show AI output (fetches latest task)
@@ -390,6 +405,9 @@ function addTaskToBoard(task) {
 
   attachCardDragEvents(card);
   board.appendChild(card);
+  
+  // Add a subtle animation to show the new card
+  card.style.animation = "slideIn 0.3s ease-out";
 }
 
 function createBoardSection(board) {
