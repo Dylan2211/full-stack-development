@@ -1,10 +1,5 @@
 const dashboardModel = require("../models/dashboardModel");
 
-/**
- * Get a specific dashboard by ID
- * @param {Request} req - Express request object (dashboardId in params)
- * @param {Response} res - Express response object
- */
 async function getDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId);
@@ -19,11 +14,6 @@ async function getDashboard(req, res) {
   }
 }
 
-/**
- * Create a new dashboard and link creator as Owner
- * @param {Request} req - Express request object (name, description in body)
- * @param {Response} res - Express response object
- */
 async function createDashboard(req, res) {
   try {
     const { name, description } = req.body;
@@ -34,6 +24,12 @@ async function createDashboard(req, res) {
     // Link the creator as Owner in UserDashboards
     await dashboardModel.addUserToDashboard(userId, newDashboard.DashboardId, 'Owner');
     
+    const boardModel = require("../models/boardModel");
+    await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "To Do"})
+    await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "In Progress"})
+    await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "Completed"})
+    await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "Error"})
+    
     res.status(201).json(newDashboard);
   } catch (error) {
     console.error(`Error creating dashboard: ${error}`);
@@ -41,11 +37,6 @@ async function createDashboard(req, res) {
   }
 }
 
-/**
- * Update an existing dashboard
- * @param {Request} req - Express request object (dashboardId in params, name/description/isPrivate in body)
- * @param {Response} res - Express response object
- */
 async function updateDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId);
