@@ -27,7 +27,7 @@ async function queryOllama(prompt, model = "gemma3:4b") {
 
     return data.response.trim();
   } catch (error) {
-    console.warn("Ollama not available, using fallback:", error.message);
+    // Ollama not available, silently use fallback
     return null;
   }
 }
@@ -70,11 +70,9 @@ async function aiAssignAgent(task) {
   `;
 
     const raw = await queryOllama(analysisPrompt);
-    console.log("Ollama raw response:", raw);
 
     // If Ollama is not available, use fallback values
     if (raw === null) {
-      console.log("Using fallback values since Ollama is unavailable");
       return {
         assignedAgent: "Manual",
         agentMatchScore: 0,

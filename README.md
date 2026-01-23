@@ -43,6 +43,8 @@ DB_SERVER=localhost
 DB_DATABASE=FullStack
 DB_PORT=1433
 JWT_SECRET=your_jwt_secret_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 PORT=3000
 ```
 
@@ -148,6 +150,14 @@ full-stack-development/
 
 ### AI
 - `POST /api/ai/gemini` - Gemini AI analysis
+- `POST /api/ai/openai` - OpenAI ChatGPT responses (requires `OPENAI_API_KEY`)
+- `POST /api/ai/groq` - Groq inference (recommended `llama-3.1-8b-instant`, requires `GROQ_API_KEY`)
+
+**AI Request Body:**
+- `prompt` (string) OR `messages` (array of `{ role, content }`)
+- Optional: `model`, `temperature`, `max_tokens`, `system`
+
+**Kanban UI:** Select AI model when creating a task to auto-run analysis on task creation.
 
 ## Authentication
 

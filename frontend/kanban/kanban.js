@@ -163,6 +163,8 @@ async function executeAITask(taskId, aiModel, title, description) {
       apiEndpoint = "/api/ai/gemini";
     } else if (aiModel === "gpt-4o-mini") {
       apiEndpoint = "/api/ai/openai";
+    } else if (aiModel === "llama-3.1-8b-instant") {
+      apiEndpoint = "/api/ai/groq";
     } else {
       console.error("Unknown AI model:", aiModel);
       return;
