@@ -1,246 +1,260 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>ai analytics – egra team project</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <script src="/colour/theme-loader.js"></script>
-    <link rel="stylesheet" href="/colour/colour.css">
-    <link rel="icon" type="image/png" href="../../images/favicon.png" />
-    <script src="../../auth-utils.js"></script>
-    <script src="../../utils/domHelpers.js"></script>
-  </head>
-  <body>
-    <div class="page">
-      <header class="board-header">
-        <div class="board-left">
-          <h1 class="board-title">EGRA TEAM PROJECT</h1>
-          <span class="board-section">analytics</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EGRA Team Project - Analytics</title>
+  <link rel="stylesheet" href="/analytics/analytics.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">S</div>
+        <div class="brand-text">
+          <div class="brand-title">EGRA Team Project</div>
         </div>
-        <div class="board-right">
-          <button
-            type="button"
-            class="settings-button"
-            aria-label="settings"
-          ></button>
-          <button type="button" class="add-task-button" id="nav-kanban">
-            kanban board
-          </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Left: Events -->
+      <aside class="panel events">
+        <h2>Events</h2>
+
+        <ul class="event-list">
+          <li class="event-item">
+            <div class="event-title">Task “Sync pipeline metadata refs” assigned to Agent Orion</div>
+            <div class="event-sub">2 mins ago</div>
+          </li>
+
+          <li class="event-item">
+            <div class="event-title">Agent Orion started execution on “Sync pipeline metadata refs”</div>
+            <div class="event-sub">6 mins ago</div>
+          </li>
+
+          <li class="event-item">
+            <div class="event-title">Workflow Trigger: New PR opened on /backend/auth</div>
+            <div class="event-sub">12 mins ago</div>
+          </li>
+
+          <li class="event-item">
+            <div class="event-title">Agent Gemini status changed: Idle</div>
+            <div class="event-sub">20 mins ago</div>
+          </li>
+
+          <li class="event-item">
+            <div class="event-title">Agent Gemini completed “Make report”</div>
+            <div class="event-sub">35 mins ago</div>
+          </li>
+
+          <li class="event-item">
+            <div class="event-title">Task created: “Sync pipeline metadata refs”</div>
+            <div class="event-sub">1 hr ago</div>
+          </li>
+        </ul>
+      </aside>
+
+      <!-- Center: main stats -->
+      <section class="panel main">
+        <div class="kpi-row">
+          <div class="card kpi">
+            <div class="kpi-value">320ms</div>
+            <div class="kpi-label">Avg response time</div>
+            <div class="kpi-note">+30% From Previous Months</div>
+          </div>
+
+          <div class="card kpi danger">
+            <div class="kpi-value">6%</div>
+            <div class="kpi-label">Average Error rate</div>
+            <div class="kpi-note">Higher than recommended!</div>
+          </div>
+
+          <div class="card kpi success">
+            <div class="kpi-value">87%</div>
+            <div class="kpi-label">Acceptance rate</div>
+            <div class="kpi-note">Quality of work</div>
+          </div>
         </div>
-      </header>
 
-      <main class="content">
-        <section class="kpi-row">
-          <article class="kpi-card kpi-blue">
-            <h2>live requests</h2>
-            <div class="kpi-main" id="metric-live-requests">–</div>
-            <div class="kpi-meta">
-              <span class="kpi-label">in the last minute</span>
-              <span class="kpi-trend" id="metric-live-trend">no data</span>
-            </div>
-          </article>
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3>Weekly Usage</h3>
+            <p class="muted">Tokens used per day</p>
+          </div>
 
-          <article class="kpi-card kpi-purple">
-            <h2>avg response time</h2>
-            <div class="kpi-main">
-              <span id="metric-latency">–</span>
-              <span class="kpi-unit">ms</span>
+          <!-- Simple CSS bar chart -->
+          <div class="bar-chart" aria-label="Weekly token usage bar chart">
+            <div class="bar" style="--h: 54%;">
+              <span class="bar-top">850</span>
+              <span class="bar-label">Mon</span>
             </div>
-            <div class="kpi-meta">
-              <span class="kpi-label">p95 latency</span>
-              <span class="kpi-trend" id="metric-latency-trend">no data</span>
+            <div class="bar" style="--h: 79%;">
+              <span class="bar-top">1250</span>
+              <span class="bar-label">Tue</span>
             </div>
-          </article>
+            <div class="bar" style="--h: 88%;">
+              <span class="bar-top">1400</span>
+              <span class="bar-label">Wed</span>
+            </div>
+            <div class="bar" style="--h: 82%;">
+              <span class="bar-top">1300</span>
+              <span class="bar-label">Thu</span>
+            </div>
+            <div class="bar" style="--h: 60%;">
+              <span class="bar-top">950</span>
+              <span class="bar-label">Fri</span>
+            </div>
+            <div class="bar" style="--h: 8%;">
+              <span class="bar-top">90</span>
+              <span class="bar-label">Sat</span>
+            </div>
+            <div class="bar" style="--h: 50%;">
+              <span class="bar-top">780</span>
+              <span class="bar-label">Sun</span>
+            </div>
+          </div>
+        </div>
 
-          <article class="kpi-card kpi-green">
-            <h2>acceptance rate</h2>
-            <div class="kpi-main">
-              <span id="metric-acceptance">–</span>
-              <span class="kpi-unit">%</span>
-            </div>
-            <div class="kpi-meta">
-              <span class="kpi-label">suggestions kept by users</span>
-              <span class="kpi-trend" id="metric-acceptance-badge"
-                >unknown</span
-              >
-            </div>
-          </article>
-
-          <article class="kpi-card kpi-red">
-            <h2>error rate</h2>
-            <div class="kpi-main">
-              <span id="metric-error">–</span>
-              <span class="kpi-unit">%</span>
-            </div>
-            <div class="kpi-meta">
-              <span class="kpi-label">failed or timed out calls</span>
-              <span class="kpi-trend" id="metric-error-badge">unknown</span>
-            </div>
-          </article>
-        </section>
-
-        <section class="grid-row">
-          <article class="panel panel-wide">
-            <header class="panel-header">
-              <h3>usage today</h3>
-              <span class="panel-subtitle">requests per hour</span>
-            </header>
-            <div class="usage-chart" id="usage-chart">
-              <div class="usage-empty" id="usage-empty">no usage data yet</div>
-            </div>
-            <div class="usage-legend">
-              <span class="legend-dot legend-high"></span>
-              <span>peak load</span>
-              <span class="legend-dot legend-medium"></span>
-              <span>steady load</span>
-              <span class="legend-dot legend-low"></span>
-              <span>light load</span>
-            </div>
-          </article>
-
-          <article class="panel">
-            <header class="panel-header">
-              <h3>model load</h3>
-              <span class="panel-subtitle">overall capacity usage</span>
-            </header>
-            <div class="load-meter">
-              <div class="load-bar">
-                <div class="load-fill" id="metric-load-fill"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="mini-kpi">
+              <div>
+                <div class="mini-value">67%</div>
+                <div class="mini-label">model load</div>
               </div>
-              <div class="load-labels">
-                <span id="metric-load-value">–</span>
-                <span class="load-tag" id="metric-load-tag">no signal</span>
+              <div class="progress">
+                <div class="progress-fill warn" style="width: 68%"></div>
               </div>
+              <div class="progress-caption muted">68%</div>
             </div>
-            <div class="load-breakdown">
-              <div class="load-item">
-                <span class="load-item-label">coding queries</span>
-                <div class="progress">
-                  <div class="progress-fill" id="metric-coding-share"></div>
-                </div>
-                <span class="progress-value" id="metric-coding-share-value"
-                  >–</span
-                >
-              </div>
-              <div class="load-item">
-                <span class="load-item-label">analysis queries</span>
-                <div class="progress">
-                  <div class="progress-fill" id="metric-analysis-share"></div>
-                </div>
-                <span class="progress-value" id="metric-analysis-share-value"
-                  >–</span
-                >
-              </div>
-              <div class="load-item">
-                <span class="load-item-label">other usage</span>
-                <div class="progress">
-                  <div class="progress-fill" id="metric-other-share"></div>
-                </div>
-                <span class="progress-value" id="metric-other-share-value"
-                  >–</span
-                >
-              </div>
-            </div>
-          </article>
+          </div>
 
-          <article class="panel">
-            <header class="panel-header">
-              <h3>quality checks</h3>
-              <span class="panel-subtitle">last test batch</span>
-            </header>
-            <div class="quality-list">
+          <div class="card">
+            <div class="quality">
+              <div class="quality-head">
+                <h3>Quality checks</h3>
+              </div>
+
               <div class="quality-row">
-                <div class="quality-label">
-                  <span>unit tests passing</span>
-                  <span id="metric-tests-value" class="quality-value">–</span>
+                <div class="quality-label">Response Quality</div>
+                <div class="quality-bar">
+                  <div class="quality-fill good" style="width: 80%"></div>
                 </div>
-                <div class="progress">
-                  <div class="progress-fill" id="metric-tests-bar"></div>
-                </div>
+                <div class="quality-num">80%</div>
               </div>
-              <div class="quality-row">
-                <div class="quality-label">
-                  <span>security checks passed</span>
-                  <span id="metric-security-value" class="quality-value"
-                    >–</span
-                  >
-                </div>
-                <div class="progress">
-                  <div class="progress-fill" id="metric-security-bar"></div>
-                </div>
-              </div>
-              <div class="quality-row">
-                <div class="quality-label">
-                  <span>lint clean rate</span>
-                  <span id="metric-lint-value" class="quality-value">–</span>
-                </div>
-                <div class="progress">
-                  <div class="progress-fill" id="metric-lint-bar"></div>
-                </div>
-              </div>
-            </div>
-          </article>
-        </section>
 
-        <section class="grid-row">
-          <article class="panel">
-            <header class="panel-header">
-              <h3>ai agents</h3>
-              <span class="panel-subtitle">current status</span>
-            </header>
-            <div class="agents-list">
-              <div class="agent-row">
-                <div class="agent-main">
-                  <span class="agent-name">gemini</span>
-                  <span class="agent-skill">analysis and reasoning</span>
+              <div class="quality-row">
+                <div class="quality-label">Hallucination</div>
+                <div class="quality-bar">
+                  <div class="quality-fill bad" style="width: 6%"></div>
                 </div>
-                <span class="agent-status" id="agent-gemini-status"
-                  >unknown</span
-                >
+                <div class="quality-num">6%</div>
               </div>
-              <div class="agent-row">
-                <div class="agent-main">
-                  <span class="agent-name">claude code</span>
-                  <span class="agent-skill">backend and api</span>
-                </div>
-                <span class="agent-status" id="agent-claude-status"
-                  >unknown</span
-                >
-              </div>
-              <div class="agent-row">
-                <div class="agent-main">
-                  <span class="agent-name">amp</span>
-                  <span class="agent-skill">load balancing</span>
-                </div>
-                <span class="agent-status" id="agent-amp-status">unknown</span>
-              </div>
-              <div class="agent-row">
-                <div class="agent-main">
-                  <span class="agent-name">custom agent</span>
-                  <span class="agent-skill">project specific rules</span>
-                </div>
-                <span class="agent-status" id="agent-custom-status"
-                  >unknown</span
-                >
-              </div>
-            </div>
-          </article>
 
-          <article class="panel">
-            <header class="panel-header">
-              <h3>recent events</h3>
-              <span class="panel-subtitle">latest activity from the ai</span>
-            </header>
-            <div class="events-list" id="events-list">
-              <div class="events-empty" id="events-empty">
-                no events received yet
+              <div class="retry">
+                <div class="retry-label muted">Retry Count</div>
+                <div class="retry-value">6</div>
               </div>
             </div>
-          </article>
-        </section>
-      </main>
-    </div>
-  </body>
-  <script src="/colour/colour.js"></script>
-  <script src="analytics.js"></script>
-</html>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="live-head">
+            <div>
+              <h3>Live requests</h3>
+              <p class="muted">Request per Minute</p>
+            </div>
+            <div class="live-badge">60</div>
+          </div>
+
+          <div class="bar-chart small">
+            <div class="bar" style="--h: 45%;">
+              <span class="bar-top">40</span>
+              <span class="bar-label">60s</span>
+            </div>
+            <div class="bar" style="--h: 10%;">
+              <span class="bar-top">8</span>
+              <span class="bar-label">45s</span>
+            </div>
+            <div class="bar" style="--h: 82%;">
+              <span class="bar-top">78</span>
+              <span class="bar-label">30s</span>
+            </div>
+            <div class="bar" style="--h: 92%;">
+              <span class="bar-top">88</span>
+              <span class="bar-label">15s</span>
+            </div>
+            <div class="bar" style="--h: 65%;">
+              <span class="bar-top">62</span>
+              <span class="bar-label">Now</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: AI agents -->
+      <aside class="panel agents">
+        <h2>Ai agents</h2>
+
+        <div class="agent-card">
+          <div class="agent-top">
+            <div class="agent-name">Ollama</div>
+          </div>
+          <div class="agent-metrics">
+            <div>
+              <div class="agent-metric-label muted">Load</div>
+              <div class="agent-metric-value">10%</div>
+            </div>
+            <div class="divider"></div>
+            <div>
+              <div class="agent-metric-label muted">Response time ms</div>
+              <div class="agent-metric-value">130</div>
+            </div>
+            <div class="agent-avatar">🤖</div>
+          </div>
+        </div>
+
+        <div class="agent-card">
+          <div class="agent-top">
+            <div class="agent-name">Claude</div>
+          </div>
+          <div class="agent-metrics">
+            <div>
+              <div class="agent-metric-label muted">Load</div>
+              <div class="agent-metric-value">15%</div>
+            </div>
+            <div class="divider"></div>
+            <div>
+              <div class="agent-metric-label muted">Response time ms</div>
+              <div class="agent-metric-value">163</div>
+            </div>
+            <div class="agent-avatar">🧠</div>
+          </div>
+        </div>
+
+        <div class="agent-card">
+          <div class="agent-top">
+            <div class="agent-name">Gemini</div>
+          </div>
+          <div class="agent-metrics">
+            <div>
+              <div class="agent-metric-label muted">Load</div>
+              <div class="agent-metric-value">13%</div>
+            </div>
+            <div class="divider"></div>
+            <div>
+              <div class="agent-metric-label muted">Response time ms</div>
+              <div class="agent-metric-value">67</div>
+            </div>
+            <div class="agent-avatar">✨</div>
+          </div>
+        </div>
+       </aside>
+     </main>
+   </div>
+   <script src="/analytics/analytics.js"></script>
+ </body>
+ </html>
