@@ -531,3 +531,22 @@ body {
     align-items: flex-start;
   }
 }
+
+/* Dark Mode Styles */
+html.dark-theme {
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --bg-tertiary: #374151;
+  --border-color: #4b5563;
+  --border-muted: #4b5563;
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --accent-primary: #6366f1;
+  --accent-hover: #818cf8;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --danger-bg: #7f1d1d;
+  --success: #22c55e;
+  --nav-active: #374151;
+}
