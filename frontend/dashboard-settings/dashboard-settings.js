@@ -87,28 +87,55 @@ async function loadDashboardData() {
 
 // Load collaborators (placeholder)
 async function loadCollaborators() {
-  // TODO: Replace with actual API call when backend endpoint is ready
-  // const response = await authFetch(`/api/dashboards/${dashboardId}/users`);
-  // collaborators = await response.json();
+  try {
+    const response = await authFetch(`/api/dashboards/${dashboardId}/users`);
+    if (!response.ok) {
+      throw new Error("Failed to load collaborators");
+    }
 
-  // For now, just show the owner
-  const currentUser = getUserInfoFromToken();
-  collaborators = [
-    {
-      userId: currentUser?.userId || 1,
-      name: currentUser?.username || "You",
-      email: currentUser?.email || "",
-      role: "owner",
-    },
-  ];
+    const users = await response.json();
 
-  renderCollaborators();
-  
-  // Set owner initials
-  const ownerInitials = generateInitials(collaborators[0].name);
-  const ownerAvatarEl = document.getElementById("ownerInitials");
-  if (ownerAvatarEl) {
-    ownerAvatarEl.textContent = ownerInitials;
+    // Map backend fields to local state format
+    collaborators = (users || []).map((u) => ({
+      userId: u.UserId ?? u.userId ?? u.id,
+      name: u.FullName ?? u.Name ?? u.username ?? "Unknown",
+      email: u.Email ?? u.email ?? "",
+      role: (u.Role ?? u.role ?? "Viewer").toString().toLowerCase(), // owner/editor/viewer
+    }));
+
+    renderCollaborators();
+
+    // Set owner initials (prefer current user if owner, else first owner)
+    const ownerAvatarEl = document.getElementById("ownerInitials");
+    if (ownerAvatarEl) {
+      const currentUser = getUserInfoFromToken();
+      const me = currentUser?.email
+        ? collaborators.find((c) => c.email === currentUser.email)
+        : null;
+      const owner = me && me.role === "owner" ? me : collaborators.find((c) => c.role === "owner");
+      const ownerName = owner?.name || currentUser?.username || "You";
+      ownerAvatarEl.textContent = generateInitials(ownerName);
+    }
+  } catch (error) {
+    console.error("Error loading collaborators:", error);
+    // Keep previous list if present; otherwise show current user as owner as fallback
+    if (!Array.isArray(collaborators) || collaborators.length === 0) {
+      const currentUser = getUserInfoFromToken();
+      collaborators = [
+        {
+          userId: currentUser?.userId || 1,
+          name: currentUser?.username || "You",
+          email: currentUser?.email || "",
+          role: "owner",
+        },
+      ];
+      renderCollaborators();
+
+      const ownerAvatarEl = document.getElementById("ownerInitials");
+      if (ownerAvatarEl) {
+        ownerAvatarEl.textContent = generateInitials(collaborators[0].name);
+      }
+    }
   }
 }
 
@@ -225,7 +252,7 @@ async function handleVisibilityChange(e) {
   // Show confirmation dialog
   const visibilityType = isPrivate ? "Private" : "Public";
   const message = isPrivate 
-    ? "Only people you invite will be able to view this dashboard."
+    ? "Only people you add will be able to view this dashboard."
     : "Anyone with the link will be able to view this dashboard.";
   
   const confirmed = await showConfirmDialog(`Change to ${visibilityType}`, message);

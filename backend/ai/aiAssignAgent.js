@@ -34,6 +34,8 @@ async function queryOllama(prompt, model = "gemma3:4b") {
 
 async function aiAssignAgent(task) {
   const taskSkills = task.requiredSkills || [];
+  console.log(`[Agent Assignment] Task: "${task.title}" | Required skills: [${taskSkills.join(", ")}]`);
+  
   let bestMatch = null;
   let bestScore = 0;
 
@@ -42,14 +44,20 @@ async function aiAssignAgent(task) {
       taskSkills.includes(s)
     ).length;
     const score = (matchCount / taskSkills.length) * 100;
+    console.log(`[Agent Scoring] ${agent.name}: ${matchCount}/${taskSkills.length} skills matched = ${score}% score`);
     if (score > bestScore) {
       bestScore = score;
       bestMatch = agent;
     }
   }
+  
+  if (bestMatch) {
+    console.log(`[Agent Match] Best match before Ollama query: ${bestMatch.name} (${Math.round(bestScore)}% score)`);
+  }
 
   // If Ollama is chosen or no match found, use Ollama to reason
   if (!bestMatch || bestMatch.name === "Ollama") {
+    console.log(`[Agent Assignment] Querying Ollama for task analysis...`);
     const analysisPrompt = `
     You are an AI agent assigner.
     Available agents: ${JSON.stringify(agents)}
@@ -73,6 +81,7 @@ async function aiAssignAgent(task) {
 
     // If Ollama is not available, use fallback values
     if (raw === null) {
+      console.log(`[Agent Assignment] Ollama unavailable - using Manual assignment (fallback)`);
       return {
         assignedAgent: "Manual",
         agentMatchScore: 0,
@@ -88,6 +97,7 @@ async function aiAssignAgent(task) {
     try {
       const clean = raw.replace(/```json|```/g, "").trim();
       parsed = JSON.parse(clean);
+      console.log(`[Agent Assignment] Ollama assigned: ${parsed.assignedAgent} (${parsed.agentMatchScore}% match score)`);
     } catch {
       console.warn("Invalid JSON from Ollama, fallback used:", raw);
       parsed = {
@@ -98,11 +108,13 @@ async function aiAssignAgent(task) {
         category: "General",
         estimatedDuration: "Not estimated",
       };
+      console.log(`[Agent Assignment] Fallback assigned: ${parsed.assignedAgent} (${parsed.agentMatchScore}% match score)`);
     }
 
     return parsed;
   }
   // Agent other than Ollama was chosen
+  console.log(`[Agent Assignment] Assigned: ${bestMatch.name} (${Math.round(bestScore)}% match score - no Ollama query needed)`);
   return {
     assignedAgent: bestMatch.name,
     agentMatchScore: Math.round(bestScore),
