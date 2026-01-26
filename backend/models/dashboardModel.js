@@ -1,5 +1,6 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
+const crypto = require("crypto");
 
 /**
  * Retrieves all dashboards from the database
@@ -180,6 +181,127 @@ async function updateUserRole(userId, dashboardId, role) {
   return { message: "Role updated successfully" };
 }
 
+/**
+ * Sends an invitation to an email for a dashboard
+ * @param {number} dashboardId - The dashboard ID
+ * @param {string} email - Email of invitee
+ * @param {number} invitedBy - User ID of inviter
+ * @param {string} role - Role (Owner, Editor, Viewer)
+ * @returns {Promise<Object>} Invitation object with token
+ */
+async function sendInvitation(dashboardId, email, invitedBy, role = "Viewer") {
+  const pool = await sql.connect(dbConfig);
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  
+  const result = await pool.request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .input("Email", sql.NVarChar, email)
+    .input("Role", sql.NVarChar, role)
+    .input("InvitedBy", sql.Int, invitedBy)
+    .input("Token", sql.NVarChar, token)
+    .input("ExpiresAt", sql.DateTime, expiresAt)
+    .query(`
+      INSERT INTO PendingInvitations (DashboardId, Email, Role, InvitedBy, Token, ExpiresAt)
+      OUTPUT INSERTED.InvitationId, INSERTED.Token, INSERTED.CreatedAt, INSERTED.ExpiresAt
+      VALUES (@DashboardId, @Email, @Role, @InvitedBy, @Token, @ExpiresAt)
+    `);
+  
+  return result.recordset[0];
+}
+
+/**
+ * Gets all pending invitations for a user email
+ * @param {string} email - Email to check
+ * @returns {Promise<Array>} Array of pending invitations
+ */
+async function getPendingInvitations(email) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("Email", sql.NVarChar, email)
+    .query(`
+      SELECT i.InvitationId, i.DashboardId, d.Name as DashboardName, d.Description,
+             i.Role, i.InvitedBy, u.FullName as InvitedByName, i.CreatedAt, i.ExpiresAt, i.Token, i.Status
+      FROM PendingInvitations i
+      JOIN Dashboards d ON i.DashboardId = d.DashboardId
+      JOIN Users u ON i.InvitedBy = u.UserId
+      WHERE i.Email = @Email AND i.Status = 'Pending' AND i.ExpiresAt > GETDATE()
+      ORDER BY i.CreatedAt DESC
+    `);
+  return result.recordset;
+}
+
+/**
+ * Accepts an invitation and adds user to dashboard
+ * @param {string} token - Invitation token
+ * @param {number} userId - User ID accepting
+ * @returns {Promise<Object>} Result
+ */
+async function acceptInvitation(token, userId) {
+  const pool = await sql.connect(dbConfig);
+  
+  // Get invitation
+  const invitationResult = await pool.request()
+    .input("Token", sql.NVarChar, token)
+    .query(`
+      SELECT * FROM PendingInvitations 
+      WHERE Token = @Token AND Status = 'Pending' AND ExpiresAt > GETDATE()
+    `);
+  
+  const invitation = invitationResult.recordset[0];
+  if (!invitation) {
+    throw new Error("Invalid or expired invitation");
+  }
+  
+  // Check if user email matches
+  const userResult = await pool.request()
+    .input("UserId", sql.Int, userId)
+    .query(`SELECT Email FROM Users WHERE UserId = @UserId`);
+  
+  const user = userResult.recordset[0];
+  if (!user || user.Email !== invitation.Email) {
+    throw new Error("Invitation email does not match your account");
+  }
+  
+  // Add user to dashboard
+  await pool.request()
+    .input("UserId", sql.Int, userId)
+    .input("DashboardId", sql.Int, invitation.DashboardId)
+    .input("Role", sql.NVarChar, invitation.Role)
+    .query(`
+      INSERT INTO UserDashboards (UserId, DashboardId, Role)
+      VALUES (@UserId, @DashboardId, @Role)
+    `);
+  
+  // Update invitation status
+  await pool.request()
+    .input("Token", sql.NVarChar, token)
+    .query(`
+      UPDATE PendingInvitations 
+      SET Status = 'Accepted' 
+      WHERE Token = @Token
+    `);
+  
+  return { message: "Invitation accepted successfully" };
+}
+
+/**
+ * Declines an invitation
+ * @param {string} token - Invitation token
+ * @returns {Promise<Object>} Result
+ */
+async function declineInvitation(token) {
+  const pool = await sql.connect(dbConfig);
+  await pool.request()
+    .input("Token", sql.NVarChar, token)
+    .query(`
+      UPDATE PendingInvitations 
+      SET Status = 'Declined' 
+      WHERE Token = @Token
+    `);
+  return { message: "Invitation declined" };
+}
+
 module.exports = {
   getDashboard,
   createDashboard,
@@ -192,4 +314,8 @@ module.exports = {
   removeUserFromDashboard,
   getUserRole,
   updateUserRole,
+  sendInvitation,
+  getPendingInvitations,
+  acceptInvitation,
+  declineInvitation,
 };

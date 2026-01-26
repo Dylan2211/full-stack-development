@@ -28,6 +28,18 @@ router.get("/:id/users", authMiddleware, checkDashboardAccess(), dashboardContro
 // Add user to dashboard (Owner only)
 router.post("/:dashboardId/users", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.addUserToDashboard);
 
+// Send invitation (Owner only)
+router.post("/:dashboardId/invite", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.sendInvitation);
+
+// Get pending invitations for current user
+router.get("/invitations/pending", authMiddleware, dashboardController.getPendingInvitations);
+
+// Accept invitation
+router.post("/invitations/:token/accept", authMiddleware, dashboardController.acceptInvitation);
+
+// Decline invitation
+router.post("/invitations/:token/decline", authMiddleware, dashboardController.declineInvitation);
+
 // Update user role in dashboard (Owner only)
 router.put("/:dashboardId/users/:userId/role", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.updateUserRole);
 

@@ -49,6 +49,7 @@ const ROUTES = {
   DASHBOARD_SETTINGS: "/dashboard-settings",
   AI_FILES: "/ai-files",
   SETTINGS: "/settings",
+  INVITATIONS: "/invitations",
   TEST: "/test"
 };
 //  #region Frontend routes
@@ -75,6 +76,9 @@ app.get(ROUTES.AI_FILES, (req, res) => {
 });
 app.get(ROUTES.SETTINGS, (req, res) => {
   res.sendFile(path.join(frontendPath, "settings/profile.html"));
+});
+app.get(ROUTES.INVITATIONS, (req, res) => {
+  res.sendFile(path.join(frontendPath, "invitations/invitations.html"));
 });
 app.get(ROUTES.TEST, (req, res) => {
   res.sendFile(path.join(frontendPath, "test/task.html"));

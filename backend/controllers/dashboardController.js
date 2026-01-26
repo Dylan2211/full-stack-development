@@ -163,6 +163,96 @@ async function updateUserRole(req, res) {
   }
 }
 
+/**
+ * Send invitation to email
+ */
+async function sendInvitation(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId || req.params.id);
+    const { email, role } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    
+    const validRoles = ['Owner', 'Editor', 'Viewer'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+    
+    // Look up user by email
+    const userModel = require("../models/userModel");
+    const userResult = await userModel.findByEmail(email);
+    
+    if (!userResult || !userResult.recordset || userResult.recordset.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    const invitedUserId = userResult.recordset[0].UserId;
+    
+    // Check if user is already in dashboard
+    const existingRole = await dashboardModel.getUserRole(invitedUserId, dashboardId);
+    if (existingRole) {
+      return res.status(409).json({ error: "User is already a collaborator" });
+    }
+    
+    // Add user directly to dashboard
+    const result = await dashboardModel.addUserToDashboard(invitedUserId, dashboardId, role);
+    res.status(201).json({ 
+      message: "User added to dashboard successfully",
+      userId: invitedUserId,
+      role: role
+    });
+  } catch (error) {
+    console.error('Error sending invitation:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Get pending invitations for current user
+ */
+async function getPendingInvitations(req, res) {
+  try {
+    const email = req.user.email;
+    const invitations = await dashboardModel.getPendingInvitations(email);
+    res.json(invitations);
+  } catch (error) {
+    console.error('Error getting invitations:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Accept invitation
+ */
+async function acceptInvitation(req, res) {
+  try {
+    const { token } = req.params;
+    const userId = req.user.userId || req.user.id;
+    
+    const result = await dashboardModel.acceptInvitation(token, userId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error accepting invitation:', error);
+    res.status(400).json({ error: error.message });
+  }
+}
+
+/**
+ * Decline invitation
+ */
+async function declineInvitation(req, res) {
+  try {
+    const { token } = req.params;
+    const result = await dashboardModel.declineInvitation(token);
+    res.json(result);
+  } catch (error) {
+    console.error('Error declining invitation:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getDashboard,
   createDashboard,
@@ -174,4 +264,8 @@ module.exports = {
   removeUser,
   getUserRole,
   updateUserRole,
+  sendInvitation,
+  getPendingInvitations,
+  acceptInvitation,
+  declineInvitation,
 };

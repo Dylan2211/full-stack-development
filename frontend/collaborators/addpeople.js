@@ -83,9 +83,14 @@ function displayAvailableUsers() {
 
 function closeModal() {
     if (window.opener) {
+        // Notify parent window to reload collaborators
+        window.opener.postMessage({
+            type: 'collaboratorsAdded'
+        }, '*');
         window.close();
     } else {
-        window.location.href = 'collaborators.html';
+        // Redirect back to collaborators page with dashboardId
+        window.location.href = `collaborators.html?dashboardId=${currentDashboardId}`;
     }
 }
 
@@ -192,16 +197,16 @@ async function sendInvites() {
             return;
         }
         
-        // Add each selected user
+        // Send invitations to add users directly to dashboard
         const promises = selectedUsers.map(user => 
-            fetch(`http://localhost:3000/api/dashboards/${currentDashboardId}/users`, {
+            fetch(`http://localhost:3000/api/dashboards/${currentDashboardId}/invite`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    userId: user.userId,
+                    email: user.email,
                     role: role
                 })
             })
@@ -209,10 +214,18 @@ async function sendInvites() {
         
         const results = await Promise.all(promises);
         
-        // Check if all requests succeeded
-        const allSuccessful = results.every(res => res.ok);
+        // Check responses for errors
+        const failedUsers = [];
+        for (let i = 0; i < results.length; i++) {
+            if (!results[i].ok) {
+                const error = await results[i].json();
+                failedUsers.push(`${selectedUsers[i].name}: ${error.error}`);
+            }
+        }
         
-        if (allSuccessful) {
+        if (failedUsers.length > 0) {
+            alert(`Some users could not be added:\n${failedUsers.join('\n')}`);
+        } else {
             const names = selectedUsers.map(user => user.name).join(', ');
             alert(`Successfully added: ${names} as ${role}`);
             
@@ -224,38 +237,14 @@ async function sendInvites() {
                     role: role
                 }, '*');
             }
-            
-            selectedUsers = [];
-            closeModal();
-        } else {
-            alert('Some invitations failed. Please try again.');
         }
+        
+        selectedUsers = [];
+        closeModal();
     } catch (error) {
         console.error('Error sending invites:', error);
-        alert('Failed to send invitations. Please try again.');
+        alert('Failed to add users. Please try again.');
     }
-}
-        canInvite: document.getElementById('canInvite').checked
-    };
-    
-    console.log('Sending invites to:', selectedUsers);
-    console.log('Role:', role);
-    console.log('Permissions:', permissions);
-    
-    const names = selectedUsers.map(user => user.name).join(', ');
-    alert(`Invitations sent successfully to: ${names}`);
-    
-    if (window.opener) {
-        window.opener.postMessage({
-            type: 'collaboratorsAdded',
-            users: selectedUsers,
-            role: role,
-            permissions: permissions
-        }, '*');
-    }
-    
-    selectedUsers = [];
-    closeModal();
 }
 
 document.getElementById('roleSelect').addEventListener('change', function() {

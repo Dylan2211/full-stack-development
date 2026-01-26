@@ -48,7 +48,8 @@ async function loadCollaborators() {
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(`http://localhost:3000/api/dashboards/${currentDashboardId}/users`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': `Bearer ${token}` },
+            cache: 'no-store'  // Prevent caching
         });
         
         if (!response.ok) {

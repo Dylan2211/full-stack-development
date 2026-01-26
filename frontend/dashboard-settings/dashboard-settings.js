@@ -314,22 +314,36 @@ async function inviteCollaborator() {
   }
 
   try {
-    // TODO: Replace with actual API call when backend endpoint is ready
-    // const response = await authFetch(`/api/dashboards/${dashboardId}/users`, {
-    //   method: "POST",
-    //   body: JSON.stringify({ email, role }),
-    // });
+    // Map frontend role values to backend role names
+    const roleMapping = {
+      'viewer': 'Viewer',
+      'editor': 'Editor',
+      'admin': 'Owner'
+    };
+    const backendRole = roleMapping[role] || 'Viewer';
 
-    // For now, just show a success message
-    showSuccess(`Invitation sent to ${email} as ${role}`);
+    const response = await authFetch(`/api/dashboards/${dashboardId}/invite`, {
+      method: "POST",
+      body: JSON.stringify({ 
+        email: email, 
+        role: backendRole 
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || "Failed to send invitation");
+    }
+
+    showSuccess(`Invitation sent to ${email}`);
     emailInput.value = "";
     roleSelect.value = "viewer";
 
-    // TODO: Reload collaborators list after backend is ready
-    // await loadCollaborators();
+    // Reload collaborators list
+    await loadCollaborators();
   } catch (error) {
     console.error("Error inviting collaborator:", error);
-    alert("Failed to send invitation");
+    alert("Failed to send invitation: " + error.message);
   }
 }
 
