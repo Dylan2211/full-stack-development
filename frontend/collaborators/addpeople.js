@@ -214,8 +214,10 @@ async function sendInvites() {
         
         const results = await Promise.all(promises);
         
-        // Check responses for errors
+        // Separate successful and failed requests
         const failedUsers = [];
+        const successCount = results.length;
+        
         for (let i = 0; i < results.length; i++) {
             if (!results[i].ok) {
                 const error = await results[i].json();
@@ -225,11 +227,14 @@ async function sendInvites() {
         
         if (failedUsers.length > 0) {
             alert(`Some users could not be added:\n${failedUsers.join('\n')}`);
-        } else {
-            const names = selectedUsers.map(user => user.name).join(', ');
-            alert(`Successfully added: ${names} as ${role}`);
+        }
+        
+        // Show success message for successfully added users
+        const successUsers = successCount - failedUsers.length;
+        if (successUsers > 0) {
+            alert(`Successfully added ${successUsers} user(s) as ${role}`);
             
-            // Notify parent window if opened as popup
+            // Notify parent window to reload
             if (window.opener) {
                 window.opener.postMessage({
                     type: 'collaboratorsAdded',

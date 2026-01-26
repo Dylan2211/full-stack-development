@@ -193,7 +193,24 @@ async function sendInvitation(req, res) {
     // Check if user is already in dashboard
     const existingRole = await dashboardModel.getUserRole(invitedUserId, dashboardId);
     if (existingRole) {
-      return res.status(409).json({ error: "User is already a collaborator" });
+      // User already exists, update their role
+      if (existingRole !== role) {
+        await dashboardModel.updateUserRole(invitedUserId, dashboardId, role);
+        return res.status(200).json({ 
+          message: "Collaborator role updated successfully",
+          userId: invitedUserId,
+          role: role,
+          updated: true
+        });
+      } else {
+        // Role is the same, just return success
+        return res.status(200).json({ 
+          message: "User is already a collaborator with this role",
+          userId: invitedUserId,
+          role: role,
+          updated: false
+        });
+      }
     }
     
     // Add user directly to dashboard
