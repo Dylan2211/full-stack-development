@@ -176,7 +176,7 @@ function searchUsers(query) {
 
 async function sendInvites() {
     if (selectedUsers.length === 0) {
-        alert('Please select at least one person to invite.');
+        alert('Please select at least one person to add.');
         return;
     }
     
@@ -197,7 +197,7 @@ async function sendInvites() {
             return;
         }
         
-        // Send invitations to add users directly to dashboard
+        // Add collaborators by email
         const promises = selectedUsers.map(user => 
             fetch(`http://localhost:3000/api/dashboards/${currentDashboardId}/invite`, {
                 method: 'POST',
@@ -232,7 +232,7 @@ async function sendInvites() {
         // Show success message for successfully added users
         const successUsers = successCount - failedUsers.length;
         if (successUsers > 0) {
-            alert(`Successfully added ${successUsers} user(s) as ${role}`);
+            alert(`Successfully added ${successUsers} collaborator(s) as ${role}`);
             
             // Notify parent window to reload
             if (window.opener) {
@@ -247,8 +247,8 @@ async function sendInvites() {
         selectedUsers = [];
         closeModal();
     } catch (error) {
-        console.error('Error sending invites:', error);
-        alert('Failed to add users. Please try again.');
+        console.error('Error adding collaborators:', error);
+        alert('Failed to add collaborators. Please try again.');
     }
 }
 

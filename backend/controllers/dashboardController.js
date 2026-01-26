@@ -167,9 +167,9 @@ async function updateUserRole(req, res) {
 }
 
 /**
- * Send invitation to email
+ * Add collaborator by email
  */
-async function sendInvitation(req, res) {
+async function addCollaboratorByEmail(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId || req.params.id);
     const { email, role } = req.body;
@@ -188,43 +188,47 @@ async function sendInvitation(req, res) {
     const userResult = await userModel.findByEmail(email);
     
     if (!userResult || !userResult.recordset || userResult.recordset.length === 0) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "User not found with that email" });
     }
     
-    const invitedUserId = userResult.recordset[0].UserId;
+    const userId = userResult.recordset[0].UserId;
     
     // Check if user is already in dashboard
-    const existingRole = await dashboardModel.getUserRole(invitedUserId, dashboardId);
+    const existingRole = await dashboardModel.getUserRole(userId, dashboardId);
     if (existingRole) {
-      // User already exists, update their role
+      // User already exists, update their role if different
       if (existingRole !== role) {
-        await dashboardModel.updateUserRole(invitedUserId, dashboardId, role);
+        await dashboardModel.updateUserRole(userId, dashboardId, role);
         return res.status(200).json({ 
           message: "Collaborator role updated successfully",
-          userId: invitedUserId,
+          userId: userId,
+          email: email,
           role: role,
-          updated: true
+          action: "updated"
         });
       } else {
         // Role is the same, just return success
         return res.status(200).json({ 
           message: "User is already a collaborator with this role",
-          userId: invitedUserId,
+          userId: userId,
+          email: email,
           role: role,
-          updated: false
+          action: "unchanged"
         });
       }
     }
     
     // Add user directly to dashboard
-    const result = await dashboardModel.addUserToDashboard(invitedUserId, dashboardId, role);
+    await dashboardModel.addUserToDashboard(userId, dashboardId, role);
     res.status(201).json({ 
-      message: "User added to dashboard successfully",
-      userId: invitedUserId,
-      role: role
+      message: "Collaborator added successfully",
+      userId: userId,
+      email: email,
+      role: role,
+      action: "added"
     });
   } catch (error) {
-    console.error('Error sending invitation:', error);
+    console.error('Error adding collaborator:', error);
     res.status(500).json({ error: error.message });
   }
 }
@@ -284,7 +288,7 @@ module.exports = {
   removeUser,
   getUserRole,
   updateUserRole,
-  sendInvitation,
+  addCollaboratorByEmail,
   getPendingInvitations,
   acceptInvitation,
   declineInvitation,
