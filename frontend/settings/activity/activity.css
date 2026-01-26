@@ -336,3 +336,70 @@ body.dark-mode .activity-badge.error {
   color: #fca5a5;
   border-color: rgba(220, 38, 38, 0.3);
 }
+
+/* Dark Theme Styles (using html.dark-theme and body.dark-theme) */
+html.dark-theme body.dark-theme {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+html.dark-theme .sidebar {
+  background: #1f2937;
+  border-right: 1px solid #374151;
+}
+
+html.dark-theme .sidebar h3 {
+  color: #f3f4f6;
+}
+
+html.dark-theme .back-btn:hover {
+  background-color: #374151;
+}
+
+html.dark-theme .sidebar a:not(.back-btn) {
+  color: #9ca3af;
+}
+
+html.dark-theme .sidebar a:not(.back-btn):hover {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+html.dark-theme .sidebar a.active {
+  background-color: #4f46e5;
+  color: #f3f4f6;
+}
+
+html.dark-theme .activity-log {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+html.dark-theme .activity-item {
+  background: #1f2937;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+html.dark-theme .activity-badge {
+  background: #4b5563;
+  color: #f3f4f6;
+}
+
+html.dark-theme .activity-badge.success {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+html.dark-theme .activity-badge.warning {
+  background-color: rgba(217, 119, 6, 0.2);
+  color: #fcd34d;
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+html.dark-theme .activity-badge.error {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+  border-color: rgba(220, 38, 38, 0.3);
+}

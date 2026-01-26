@@ -8,6 +8,10 @@ let dragPreview = null;
 let dragPreviewOffset = { x: 0, y: 0 };
 let boardState = [];
 let isCreatingBoard = false;
+
+// State for Task Editing
+let isEditingTask = false;
+let editingTaskId = null;
 // #endregion Module State
 
 // #region Utilities
@@ -40,6 +44,32 @@ function getHiddenDragImage() {
   hiddenDragImage = img;
   return img;
 }
+
+// Inject CSS for Task Actions
+const style = document.createElement('style');
+style.textContent = `
+  .card { position: relative; padding-right: 24px; }
+  .card-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: none;
+    gap: 4px;
+  }
+  .card:hover .card-actions { display: flex; }
+  .card-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .card-action-btn:hover { opacity: 1; }
+  .card-action-btn.delete { color: #dc2626; }
+`;
+document.head.appendChild(style);
 // #endregion Utilities
 
 // #region Data Access
@@ -126,7 +156,9 @@ async function deleteBoard(boardId, targetBoardId = null) {
     const message = await res.text();
     throw new Error(message || "Unable to delete board");
   }
-  return await res.json();
+  // Safe return: Handle 204 No Content (empty response) which crashes JSON.parse
+  if (res.status === 204) return {}; 
+  return await res.json().catch(() => ({}));
 }
 
 // Tasks
@@ -141,33 +173,83 @@ async function createTask(taskData) {
     });
     
     if (!res.ok) {
-      const error = await res.text();
-      console.error("Failed to create task:", error);
-      alert("Failed to create task: " + error);
+      const responseText = await res.text();
+      alert("Failed to create task: " + responseText);
       return;
     }
     
+    // Server response (might only contain ID)
     const saved = await res.json();
-    console.log("Task created:", saved);
     
-    addTaskToBoard(saved);
+    // FIX: Merge the form data (taskData) with the server response (saved)
+    // This ensures we have the BoardId, Title, and Description to update the UI immediately
+    const uiTask = { ...taskData, ...saved };
+    
+    // Normalize casing (server might send capitalized, JS uses camelCase)
+    // We ensure these exist for addTaskToBoard to use
+    uiTask.BoardId = uiTask.BoardId || uiTask.boardId;
+    uiTask.TaskId = uiTask.TaskId || uiTask.taskId;
+    uiTask.Title = uiTask.Title || uiTask.title;
+    uiTask.Description = uiTask.Description || uiTask.description;
+
+    console.log("Updating UI with:", uiTask); // Debugging line
+    addTaskToBoard(uiTask);
     
     if (taskData.aiModel) {
-      executeAITask(saved.taskId, taskData.aiModel, taskData.title, taskData.description);
+      executeAITask(saved.taskId || saved.TaskId, taskData.aiModel, taskData.title, taskData.description);
     }
   } catch (error) {
     console.error("Error creating task:", error);
-    alert("Failed to create task");
+    alert("Failed to create task: " + error.message);
   } finally {
     notification.classList.remove("show");
   }
 }
 
+async function updateTask(taskId, taskData) {
+    const res = await authFetch(`/api/tasks/${taskId}`, {
+        method: "PUT",
+        body: JSON.stringify(taskData)
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to update task");
+    }
+
+    // Refresh UI
+    const card = document.querySelector(`.card[data-id="${taskId}"]`);
+    if(card) {
+        card.remove();
+        // Re-add to show updated info (or move boards if boardId changed)
+        // For simplicity, we assume board hasn't changed or we reload. 
+        // Ideally we just update DOM text:
+        if(taskData.title) card.querySelector(".card-title").textContent = taskData.title;
+        if(taskData.description) card.querySelector(".card-text").textContent = taskData.description;
+    }
+    return await res.json();
+}
+
+async function deleteTask(taskId, cardElement) {
+    if(!confirm("Are you sure you want to delete this task?")) return;
+
+    try {
+        const res = await authFetch(`/api/tasks/${taskId}`, {
+            method: "DELETE"
+        });
+
+        if (!res.ok) throw new Error("Failed to delete task");
+        
+        // Remove from UI
+        cardElement.remove();
+    } catch (error) {
+        console.error(error);
+        alert("Could not delete task");
+    }
+}
+
 async function executeAITask(taskId, aiModel, title, description) {
   try {
-    console.log("executeAITask called:", { taskId, aiModel, title, description });
     const prompt = `Task: ${title}\nDescription: ${description}`;
-    console.log("Sending prompt to AI:", prompt);
     
     let apiEndpoint;
     if (aiModel === "gemini-2.5-flash") {
@@ -186,25 +268,14 @@ async function executeAITask(taskId, aiModel, title, description) {
       body: JSON.stringify({ prompt }),
     });
     
-    console.log("AI response status:", res.status);
-    
     if (res.ok) {
       const result = await res.json();
-      console.log("AI result:", result);
       const aiOutput = result.output;
       
-      // Update task with AI output
-      console.log("Updating task with AI output:", taskId);
-      const updateRes = await authFetch(`/api/tasks/${taskId}`, {
+      await authFetch(`/api/tasks/${taskId}`, {
         method: "PUT",
-        body: JSON.stringify({
-          aiOutput,
-        }),
+        body: JSON.stringify({ aiOutput }),
       });
-      console.log("Update response status:", updateRes.status);
-    } else {
-      const errorText = await res.text();
-      console.error("AI call failed:", errorText);
     }
   } catch (error) {
     console.error("Error executing AI task:", error);
@@ -389,15 +460,36 @@ function addTaskToBoard(task) {
   card.setAttribute("draggable", "true");
   card.dataset.id = task.TaskId || task.taskId;
 
+  // Added Actions for Edit/Delete
   card.innerHTML = `
       <div class="card-title">${task.Title || task.title || ""}</div>
       <div class="card-text">${task.Description || task.description || ""}</div>
+      <div class="card-actions">
+        <button class="card-action-btn edit" title="Edit">✎</button>
+        <button class="card-action-btn delete" title="Delete">✖</button>
+      </div>
   `;
 
-  // Add click handler to always attempt to show AI output (fetches latest task)
+  // --- Click Listeners ---
+  
+  // 1. Delete Button
+  card.querySelector(".delete").addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteTask(task.TaskId || task.taskId, card);
+  });
+
+  // 2. Edit Button
+  card.querySelector(".edit").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openEditDialog(task);
+  });
+
+  // 3. Card Body Click (AI Output)
   card.style.cursor = "pointer";
   card.addEventListener("click", async (e) => {
-    if (!(e.target === card || e.target.classList.contains("card-title") || e.target.classList.contains("card-text"))) return;
+    // Only fire if clicking the card body, not buttons
+    if (e.target.closest(".card-action-btn")) return;
+    
     const id = card.dataset.id;
     if (!id) return;
     await fetchTaskAndShow(id);
@@ -405,8 +497,6 @@ function addTaskToBoard(task) {
 
   attachCardDragEvents(card);
   board.appendChild(card);
-  
-  // Add a subtle animation to show the new card
   card.style.animation = "slideIn 0.3s ease-out";
 }
 
@@ -430,13 +520,12 @@ function createBoardSection(board) {
   });
   nameContainer.appendChild(name);
   
-  // Menu button (three dots)
+  // Menu button
   const menuButton = document.createElement("button");
   menuButton.className = "board-menu-button";
   menuButton.textContent = "⋯";
   menuButton.setAttribute("aria-label", "Board options");
   
-  // Dropdown menu
   const menu = document.createElement("div");
   menu.className = "board-menu-dropdown";
   
@@ -468,7 +557,6 @@ function createBoardSection(board) {
   deleteOption.className = "board-menu-item board-menu-item-danger";
   deleteOption.textContent = "Delete";
   deleteOption.addEventListener("click", async () => {
-    // Get all boards except the current one
     const otherBoards = boardState.filter((b) => b.BoardId !== board.BoardId);
     
     showDeleteConfirmation(otherBoards, async (targetBoardId) => {
@@ -476,7 +564,6 @@ function createBoardSection(board) {
         await deleteBoard(board.BoardId, targetBoardId);
         section.remove();
 
-        // Update local state and re-render if no boards remain
         boardState = boardState.filter((b) => b.BoardId !== board.BoardId);
         populateBoardSelect(boardState);
         if (boardState.length === 0) {
@@ -503,7 +590,6 @@ function createBoardSection(board) {
     menu.classList.toggle("show");
   });
   
-  // Close menu when clicking outside
   document.addEventListener("click", () => {
     menu.classList.remove("show");
   });
@@ -516,7 +602,6 @@ function createBoardSection(board) {
   list.className = "list";
   list.id = "board-" + board.BoardId;
 
-  // Create add task button for this board
   const addTaskBtn = document.createElement("button");
   addTaskBtn.className = "board-add-task-btn";
   addTaskBtn.textContent = "+ Add task";
@@ -526,7 +611,6 @@ function createBoardSection(board) {
   });
   addTaskBtn.style.display = "none";
 
-  // Show/hide add task button on hover
   section.addEventListener("mouseenter", () => {
     addTaskBtn.style.display = "block";
   });
@@ -543,7 +627,6 @@ function createBoardSection(board) {
   return section;
 }
 
-// Shared board creation handler to avoid duplicate requests (Enter + blur)
 async function createBoardAndInsert(dashboardId, name, onComplete = () => {}) {
   const trimmed = (name || "").trim();
   if (!trimmed || isCreatingBoard) return;
@@ -585,14 +668,12 @@ function createAddBoardSection(dashboardId) {
   const section = document.createElement("section");
   section.className = "board add-board-section";
 
-  // Create the plus button
   const plusButton = document.createElement("button");
   plusButton.className = "add-board-plus-button";
   plusButton.textContent = "+";
   plusButton.setAttribute("aria-label", "Add new board");
   plusButton.type = "button";
 
-  // Create the input (initially hidden)
   const input = document.createElement("input");
   input.className = "add-board-input";
   input.type = "text";
@@ -749,11 +830,9 @@ function showDeleteConfirmation(otherBoards, onConfirm) {
   const confirmBtn = document.getElementById("deleteConfirmSubmit");
   const cancelBtn = document.getElementById("deleteConfirmCancel");
   
-  // Clear existing content and rebuild
   textEl.innerHTML = "";
   
   if (otherBoards.length > 0) {
-    // Has other boards - show selector
     const message = document.createElement("p");
     message.textContent = "Move all tasks to another board before deleting:";
     textEl.appendChild(message);
@@ -776,7 +855,6 @@ function showDeleteConfirmation(otherBoards, onConfirm) {
     
     textEl.appendChild(select);
   } else {
-    // No other boards - just confirm deletion
     textEl.textContent = "Are you sure you want to delete this board? All tasks will be permanently deleted.";
   }
 
@@ -847,6 +925,40 @@ function showAIOutput(taskTitle, aiOutput) {
     dialog.remove();
   });
 }
+
+function openEditDialog(task) {
+    isEditingTask = true;
+    editingTaskId = task.TaskId || task.taskId;
+
+    const dialog = document.getElementById("newTaskDialog");
+    
+    // Helper to safely set values
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if(el) el.value = val || "";
+    };
+
+    setVal("taskTitle", task.Title || task.title);
+    setVal("taskDesc", task.Description || task.description);
+    setVal("taskBoard", task.BoardId || task.boardId);
+    setVal("taskSkills", task.Skills || task.skills);
+    setVal("taskAIModel", task.AIModel || task.aiModel);
+    
+    // Change button text safely
+    const btn = document.getElementById("createTask");
+    if(btn) btn.textContent = "Update Task";
+    
+    // Change header text safely (Compatible with both HTML versions)
+    const header = document.querySelector("#newTaskDialog h2");
+    if(header) header.textContent = "Edit Task";
+    
+    // Open the dialog
+    try {
+        dialog.showModal(); // Try modal first (with backdrop)
+    } catch (e) {
+        dialog.show(); // Fallback
+    }
+}
 // #endregion Helpers
 
 // #region Add Task Dialog
@@ -858,20 +970,39 @@ function initializeAddTaskDialog(userId) {
   const form = document.getElementById("taskForm");
   const boardSelect = document.getElementById("taskBoard");
 
-  // Store the default/selected board
   let selectedBoardId = null;
 
   open_btn.addEventListener("click", () => {
-    dialog.show();
+    // Reset state for new task
+    isEditingTask = false;
+    editingTaskId = null;
+    form.reset();
+    
+    // Reset Texts safely
+    const btn = document.getElementById("createTask");
+    if(btn) btn.textContent = "Add Task";
+
+    const header = document.querySelector("#newTaskDialog h2");
+    if(header) header.textContent = "Create a new task";
+
+    // Show Dialog
+    try {
+        dialog.showModal();
+    } catch (e) {
+        dialog.show();
+    }
+
     if (selectedBoardId) {
       boardSelect.value = selectedBoardId;
     }
   });
 
-  close_btn.addEventListener("click", () => dialog.close());
-  cancel_btn.addEventListener("click", () => dialog.close());
+  // Close handlers
+  const closeDialog = () => dialog.close();
+  if(close_btn) close_btn.addEventListener("click", closeDialog);
+  if(cancel_btn) cancel_btn.addEventListener("click", closeDialog);
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const boardId = parseInt(boardSelect.value);
@@ -883,34 +1014,98 @@ function initializeAddTaskDialog(userId) {
     const title = document.getElementById("taskTitle").value.trim();
     const description = document.getElementById("taskDesc").value.trim();
     const agentSelect = document.getElementById("taskAgents");
-    const assignedAgents = Array.from(agentSelect.selectedOptions).map((o) => o.value);
-    const skills = document.getElementById("taskSkills").value.trim();
-    const aiModel = document.getElementById("taskAIModel").value.trim();
+    // Handle agent select possibly being null/missing
+    const assignedAgents = agentSelect ? Array.from(agentSelect.selectedOptions).map((o) => o.value) : [];
+    
+    const skillsEl = document.getElementById("taskSkills");
+    const skills = skillsEl ? skillsEl.value.trim() : "";
+    
+    const aiModelEl = document.getElementById("taskAIModel");
+    const aiModel = aiModelEl ? aiModelEl.value.trim() : "";
 
-    createTask({
-      title,
-      description,
-      assignedAgents,
-      skills,
-      boardId,
-      createdBy: userId,
-      position: 0,
-      status: "todo",
-      aiModel: aiModel || null,
-    });
+    if (isEditingTask && editingTaskId) {
+        // Handle Update
+        await updateTask(editingTaskId, {
+            title,
+            description,
+            skills,
+            boardId
+        });
+        
+        // Reload tasks to reflect changes
+        const board = document.getElementById("board-" + boardId);
+        if(board) {
+            board.innerHTML = "";
+            await loadTasks(boardId);
+        }
+    } else {
+        // Handle Create
+        await createTask({
+            title,
+            description,
+            assignedAgents,
+            skills,
+            boardId,
+            createdBy: userId,
+            position: 0,
+            status: "todo",
+            aiModel: aiModel || null,
+        });
+    }
 
-    // Reset form
     form.reset();
     dialog.close();
   });
 
-  // Expose a method to set the board and open dialog
   window.openAddTaskDialog = (boardId) => {
     selectedBoardId = boardId;
-    dialog.show();
-    boardSelect.value = boardId;
-    document.getElementById("taskTitle").focus();
+    isEditingTask = false;
+    editingTaskId = null;
+    form.reset();
+    
+    const btn = document.getElementById("createTask");
+    if(btn) btn.textContent = "Add Task";
+    
+    const header = document.querySelector("#newTaskDialog h2");
+    if(header) header.textContent = "Create a new task";
+
+    try {
+        dialog.showModal();
+    } catch (e) {
+        dialog.show();
+    }
+    
+    if(boardSelect) boardSelect.value = boardId;
+    const titleInput = document.getElementById("taskTitle");
+    if(titleInput) titleInput.focus();
   };
+  
+  enableDialogScroll();
+}
+
+function enableDialogScroll() {
+  const dialog = document.getElementById("newTaskDialog");
+  const dialogContent = dialog?.querySelector(".dialog-content");
+  
+  if (!dialog || !dialogContent) return;
+  
+  const maxHeight = window.innerHeight * 0.85;
+  dialog.style.maxHeight = `${maxHeight}px`;
+  dialogContent.style.maxHeight = `${maxHeight}px`;
+  dialogContent.style.overflowY = "auto";
+  dialogContent.style.overflowX = "hidden";
+  
+  const closeBtn = dialog.querySelector(".close-btn");
+  if (closeBtn) {
+    closeBtn.style.zIndex = "10";
+    closeBtn.style.pointerEvents = "auto";
+  }
+  
+  window.addEventListener("resize", () => {
+    const newMaxHeight = window.innerHeight * 0.85;
+    dialog.style.maxHeight = `${newMaxHeight}px`;
+    dialogContent.style.maxHeight = `${newMaxHeight}px`;
+  });
 }
 // #endregion Add Task Dialog
 
@@ -968,7 +1163,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 });
 
-// Setup settings button to link to dashboard settings
 function setupSettingsButton(dashboardId) {
   const settingsButton = document.getElementById("settingsButton");
   if (settingsButton) {

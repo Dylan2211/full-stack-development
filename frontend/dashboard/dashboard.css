@@ -309,3 +309,98 @@ body {
 .overlay-button.secondary:hover {
   background-color: #e5e7eb;
 }
+
+/* Dark Mode Styles */
+html.dark-theme body.dark-theme {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+html.dark-theme .topbar {
+  background-color: #1f2937;
+  border-bottom: 1px solid #374151;
+}
+
+html.dark-theme .brand-title {
+  color: #f3f4f6;
+}
+
+html.dark-theme .brand-subtitle {
+  color: #9ca3af;
+}
+
+html.dark-theme .topbar-search {
+  background-color: #374151;
+  color: #f3f4f6;
+  border: 1px solid #4b5563;
+}
+
+html.dark-theme .topbar-search::placeholder {
+  color: #9ca3af;
+}
+
+html.dark-theme .user-pill {
+  background-color: #6366f1;
+}
+
+html.dark-theme .main {
+  background-color: #111827;
+}
+
+html.dark-theme .dashboard-header {
+  color: #f3f4f6;
+}
+
+html.dark-theme .page-title {
+  color: #f3f4f6;
+}
+
+html.dark-theme .page-subtitle {
+  color: #9ca3af;
+}
+
+html.dark-theme .dashboard-grid {
+  background-color: #111827;
+}
+
+html.dark-theme .card {
+  background-color: #1f2937;
+  color: #f3f4f6;
+  border: 1px solid #374151;
+}
+
+html.dark-theme .card:hover {
+  background-color: #374151;
+}
+
+html.dark-theme .create-card {
+  background-color: #1f2937;
+  color: #9ca3af;
+}
+
+html.dark-theme .overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+html.dark-theme .overlay-content {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+html.dark-theme .overlay-button.primary {
+  background-color: #6366f1;
+  color: #ffffff;
+}
+
+html.dark-theme .overlay-button.primary:hover {
+  background-color: #818cf8;
+}
+
+html.dark-theme .overlay-button.secondary {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+html.dark-theme .overlay-button.secondary:hover {
+  background-color: #4b5563;
+}

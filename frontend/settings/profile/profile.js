@@ -161,5 +161,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const darkModeToggle = document.getElementById('darkModeToggle');
     if (darkModeToggle) {
         darkModeToggle.checked = currentTheme === 'dark';
+        
+        // Add event listener to handle theme changes
+        darkModeToggle.addEventListener('change', (e) => {
+            const theme = e.target.checked ? 'dark' : 'light';
+            if (ThemeSwitcher && ThemeSwitcher.setTheme) {
+                ThemeSwitcher.setTheme(theme);
+            }
+        });
     }
 });

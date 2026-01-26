@@ -181,6 +181,78 @@ button:hover {
   transform: translateX(20px);
 }
 
+html.dark-theme body.dark-theme {
+  background: #111827;
+  color: #f3f4f6;
+}
+
+html.dark-theme .sidebar {
+  background: #1f2937;
+  border-right: 1px solid #374151;
+}
+
+html.dark-theme .sidebar h3 {
+  color: #f3f4f6;
+}
+
+html.dark-theme .back-btn:hover {
+  background-color: #374151;
+}
+
+html.dark-theme .sidebar a:not(.back-btn) {
+  color: #9ca3af;
+}
+
+html.dark-theme .sidebar a:not(.back-btn):hover {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+html.dark-theme .sidebar a.active {
+  background-color: #4f46e5;
+  color: #f3f4f6;
+}
+
+html.dark-theme input,
+html.dark-theme textarea {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+html.dark-theme input:focus,
+html.dark-theme textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+html.dark-theme button {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+html.dark-theme button:hover {
+  background: #4338ca;
+}
+
+html.dark-theme .toggle {
+  color: #d1d5db;
+}
+
+html.dark-theme .toggle input {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+html.dark-theme .toggle input:checked {
+  background: #4f46e5;
+  border-color: #4f46e5;
+}
+
+html.dark-theme .toggle input::before {
+  background: #1f2937;
+}
+
 body.dark-mode {
   background: #111827;
   color: #f9fafb;
@@ -197,10 +269,6 @@ body.dark-mode .sidebar h3 {
 
 body.dark-mode .back-btn:hover {
   background-color: #374151;
-}
-
-body.dark-mode .back-btn img {
-  filter: invert(1);
 }
 
 body.dark-mode .sidebar a {
