@@ -120,6 +120,7 @@ async function deleteDashboard(dashboardId) {
 
 async function getUsersByDashboardId(dashboardId) {
   const pool = await sql.connect(dbConfig);
+  console.log(`Query: Getting users for dashboard ${dashboardId}`);
   const result = await pool.request().input("DashboardId", sql.Int, dashboardId)
     .query(`
       SELECT ud.UserDashboardId, u.UserId, u.FullName, u.Email, ud.Role, ud.JoinedAt
@@ -127,6 +128,7 @@ async function getUsersByDashboardId(dashboardId) {
       JOIN Users u ON ud.UserId = u.UserId
       WHERE ud.DashboardId = @DashboardId
     `);
+  console.log(`Result: Found ${result.recordset.length} users for dashboard ${dashboardId}`);
   return result.recordset;
 }
 

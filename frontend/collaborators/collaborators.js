@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Listen for collaborators added in popup
     window.addEventListener('message', (event) => {
         if (event.data.type === 'collaboratorsAdded') {
-            loadCollaborators();
+            console.log('Collaborators added event received, reloading...');
+            setTimeout(() => loadCollaborators(), 100);
         }
     });
 });
@@ -57,6 +58,7 @@ async function loadCollaborators() {
         }
         
         const users = await response.json();
+        console.log('Collaborators loaded:', users);
         displayCollaborators(users);
     } catch (error) {
         console.error('Error loading collaborators:', error);
@@ -67,6 +69,9 @@ async function loadCollaborators() {
 function displayCollaborators(users) {
     const list = document.getElementById('collaboratorsList');
     
+    console.log('Displaying collaborators:', users);
+    console.log('Current user role:', currentUserRole);
+    
     if (users.length === 0) {
         list.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No collaborators yet</p>';
         return;
@@ -75,6 +80,8 @@ function displayCollaborators(users) {
     list.innerHTML = users.map(user => {
         const canChangeRole = currentUserRole === 'Owner' && user.Role !== 'Owner';
         const canRemove = currentUserRole === 'Owner' && user.Role !== 'Owner';
+        
+        console.log(`User: ${user.FullName}, Role: ${user.Role}, CanChange: ${canChangeRole}, CanRemove: ${canRemove}`);
         
         return `
             <div class="collaborator-item" data-user-id="${user.UserId}" data-name="${user.FullName.toLowerCase()}">

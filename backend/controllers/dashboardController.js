@@ -78,9 +78,12 @@ async function getAllDashboards(req, res) {
 async function getUsersByDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.params.id);
+    console.log(`Fetching users for dashboard: ${dashboardId}`);
     const users = await dashboardModel.getUsersByDashboardId(dashboardId);
+    console.log(`Found ${users.length} users:`, users);
     res.status(200).json(users);
   } catch (error) {
+    console.error('Error in getUsersByDashboard:', error);
     res.status(500).json({ error: error.message });
   }
 }
