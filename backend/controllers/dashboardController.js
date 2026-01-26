@@ -2,7 +2,7 @@ const dashboardModel = require("../models/dashboardModel");
 
 async function getDashboard(req, res) {
   try {
-    const dashboardId = parseInt(req.params.dashboardId);
+    const dashboardId = parseInt(req.dashboardId || req.params.dashboardId || req.params.id);
     const dashboard = await require("../models/dashboardModel").getDashboard(dashboardId);
     if (!dashboard) {
       return res.status(404).json({ error: "Dashboard not found" });
@@ -39,7 +39,7 @@ async function createDashboard(req, res) {
 
 async function updateDashboard(req, res) {
   try {
-    const dashboardId = parseInt(req.params.dashboardId);
+    const dashboardId = parseInt(req.dashboardId || req.params.dashboardId || req.params.id);
     const { name, description, isPrivate } = req.body;
     const updatedDashboard = await require("../models/dashboardModel").updateDashboard(
       dashboardId,
@@ -56,7 +56,7 @@ async function updateDashboard(req, res) {
 
 async function deleteDashboard(req, res) {
   try {
-    const dashboardId = parseInt(req.params.dashboardId);
+    const dashboardId = parseInt(req.dashboardId || req.params.dashboardId || req.params.id);
     const result = await require("../models/dashboardModel").deleteDashboard(dashboardId);
     res.json(result);
   } catch (error) {
@@ -87,27 +87,78 @@ async function getUsersByDashboard(req, res) {
 
 async function addUserToDashboard(req, res) {
   try {
-    const { userId, dashboardId, role } = req.body;
+    const dashboardId = parseInt(req.params.dashboardId || req.body.dashboardId);
+    const { userId, role } = req.body;
+    
+    if (!userId || !dashboardId) {
+      return res.status(400).json({ error: "User ID and Dashboard ID are required" });
+    }
+    
     const result = await dashboardModel.addUserToDashboard(
       userId,
       dashboardId,
-      role
+      role || 'Viewer'
     );
     res.status(201).json(result);
   } catch (error) {
+    console.error('Error adding user to dashboard:', error);
     res.status(500).json({ error: error.message });
   }
 }
 
 async function removeUser(req, res) {
   try {
-    const { userId, dashboardId } = req.body;
+    const dashboardId = parseInt(req.params.dashboardId || req.params.id);
+    const userId = parseInt(req.params.userId || req.body.userId);
+    
+    if (!userId || !dashboardId) {
+      return res.status(400).json({ error: "User ID and Dashboard ID are required" });
+    }
+    
     const result = await dashboardModel.removeUserFromDashboard(
       userId,
       dashboardId
     );
     res.status(200).json(result);
   } catch (error) {
+    console.error('Error removing user:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+async function getUserRole(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId || req.params.id);
+    const userId = req.user.userId || req.user.id;
+    const role = await dashboardModel.getUserRole(userId, dashboardId);
+    
+    if (!role) {
+      return res.status(404).json({ error: "User not found in this dashboard" });
+    }
+    
+    res.json({ role });
+  } catch (error) {
+    console.error('Error getting user role:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+async function updateUserRole(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId || req.params.id);
+    const targetUserId = parseInt(req.params.userId);
+    const { role } = req.body;
+    
+    // Validate role
+    const validRoles = ['Owner', 'Editor', 'Viewer'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: "Invalid role. Must be Owner, Editor, or Viewer" });
+    }
+    
+    const result = await dashboardModel.updateUserRole(targetUserId, dashboardId, role);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating user role:', error);
     res.status(500).json({ error: error.message });
   }
 }
@@ -121,4 +172,6 @@ module.exports = {
   getUsersByDashboard,
   addUserToDashboard,
   removeUser,
+  getUserRole,
+  updateUserRole,
 };

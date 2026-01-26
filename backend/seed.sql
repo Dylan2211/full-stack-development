@@ -24,19 +24,51 @@ VALUES
 (1, 5, 'Owner'),
 (1, 6, 'Owner'),
 (1, 7, 'Owner'),
-(2, 1, 'Viewer'),
+(2, 1, 'Editor'),
 (2, 2, 'Viewer'),
 (3, 3, 'Viewer');
 
-
-INSERT INTO Boards (DashboardId, Name)
+-- Create standard boards for all dashboards (To Do, In Progress, Completed, Error)
+INSERT INTO Boards (DashboardId, Position, Name)
 VALUES
-(1, 'Backlog'),
-(1, 'In Progress'),
-(1, 'Completed');
+-- Dashboard 1: EGRA Team Project
+(1, 0, 'To Do'),
+(1, 1, 'In Progress'),
+(1, 2, 'Completed'),
+(1, 3, 'Error'),
+-- Dashboard 2: Holiday Planning
+(2, 0, 'To Do'),
+(2, 1, 'In Progress'),
+(2, 2, 'Completed'),
+(2, 3, 'Error'),
+-- Dashboard 3: Daily Task Manager
+(3, 0, 'To Do'),
+(3, 1, 'In Progress'),
+(3, 2, 'Completed'),
+(3, 3, 'Error'),
+-- Dashboard 4: Gaming Checklist
+(4, 0, 'To Do'),
+(4, 1, 'In Progress'),
+(4, 2, 'Completed'),
+(4, 3, 'Error'),
+-- Dashboard 5: Dashmi Task Board
+(5, 0, 'To Do'),
+(5, 1, 'In Progress'),
+(5, 2, 'Completed'),
+(5, 3, 'Error'),
+-- Dashboard 6: Assignment 1 FSDP
+(6, 0, 'To Do'),
+(6, 1, 'In Progress'),
+(6, 2, 'Completed'),
+(6, 3, 'Error'),
+-- Dashboard 7
+(7, 0, 'To Do'),
+(7, 1, 'In Progress'),
+(7, 2, 'Completed'),
+(7, 3, 'Error');
 
 --  #region Kanban Board
--- Backlog Board (BoardId = 1)
+-- To Do Board (Dashboard 1)
 INSERT INTO Tasks (
     BoardId, Position, Title, Description, CreatedBy,
     AssignedAgent, Skills, Category, Status, EstimatedDuration, 
@@ -48,7 +80,7 @@ VALUES
 (1, 1, 'Define requirements', 'Collect and draft initial requirements.', 1,
  'Ollama', 'analysis,writing', 'Documentation', 'Pending', '4h', 78, 0, NULL);
 
--- In Progress Board (BoardId = 2)
+-- In Progress Board (Dashboard 1)
 INSERT INTO Tasks (
     BoardId, Position, Title, Description, CreatedBy,
     AssignedAgent, Skills, Category, Status, EstimatedDuration, 
@@ -58,7 +90,7 @@ VALUES
 (2, 0, 'Create database schema', 'Design SQL schema and relationships.', 1,
  'Ollama', 'sql,db-design', 'Development', 'In Progress', '3h', 90, 45, '100');
 
--- Completed Board (BoardId = 3)
+-- Completed Board (Dashboard 1)
 INSERT INTO Tasks(
     BoardId, Position, Title, Description, CreatedBy,
     AssignedAgent, Skills, Category, Status, EstimatedDuration,
@@ -69,5 +101,3 @@ VALUES
  NULL, NULL, 'Design', 'Done', '1h', NULL, 100, NULL);
 
 -- #endregion Kanban Board
-
--- do profile, do collaborators page

@@ -1,4 +1,85 @@
 let selectedUsers = [];
+let currentDashboardId = null;
+let availableUsers = [];
+
+// Initialize page on load
+document.addEventListener('DOMContentLoaded', async () => {
+    // Get dashboard ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    currentDashboardId = urlParams.get('dashboardId');
+    
+    if (!currentDashboardId) {
+        alert('Dashboard ID not found');
+        closeModal();
+        return;
+    }
+    
+    // Load available users
+    await loadAvailableUsers();
+});
+
+async function loadAvailableUsers() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login first');
+            window.location.href = '/login';
+            return;
+        }
+        
+        // Fetch all users
+        const usersResponse = await fetch('http://localhost:3000/api/users', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!usersResponse.ok) {
+            throw new Error('Failed to fetch users');
+        }
+        
+        const allUsers = await usersResponse.json();
+        
+        // Fetch current collaborators
+        const collabResponse = await fetch(`http://localhost:3000/api/dashboards/${currentDashboardId}/users`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!collabResponse.ok) {
+            throw new Error('Failed to fetch collaborators');
+        }
+        
+        const currentCollaborators = await collabResponse.json();
+        const collaboratorIds = new Set(currentCollaborators.map(c => c.UserId));
+        
+        // Filter out users who are already collaborators
+        availableUsers = allUsers.filter(user => !collaboratorIds.has(user.UserId));
+        
+        // Display available users
+        displayAvailableUsers();
+    } catch (error) {
+        console.error('Error loading users:', error);
+        alert('Failed to load available users');
+    }
+}
+
+function displayAvailableUsers() {
+    const suggestionsList = document.getElementById('suggestionsList');
+    
+    if (availableUsers.length === 0) {
+        suggestionsList.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No users available to add</p>';
+        return;
+    }
+    
+    suggestionsList.innerHTML = availableUsers.map(user => `
+        <div class="suggestion-item" data-user-id="${user.UserId}" data-name="${user.FullName}" data-email="${user.Email}">
+            <img src="" alt="${user.FullName}" class="suggestion-avatar">
+            <div class="suggestion-info">
+                <div class="suggestion-name">${user.FullName}</div>
+                <div class="suggestion-email">${user.Email}</div>
+            </div>
+            <button class="add-btn" onclick="event.stopPropagation(); selectUser(${user.UserId}, '${user.FullName}', '${user.Email}', '', this)">Add</button>
+        </div>
+    `).join('');
+}
 
 function closeModal() {
     if (window.opener) {
@@ -8,15 +89,15 @@ function closeModal() {
     }
 }
 
-function selectUser(name, email, avatar, buttonElement) {
-    const userExists = selectedUsers.find(user => user.email === email);
+function selectUser(userId, name, email, avatar, buttonElement) {
+    const userExists = selectedUsers.find(user => user.userId === userId);
     
     if (userExists) {
         alert('This user has already been added!');
         return;
     }
     
-    selectedUsers.push({ name, email, avatar });
+    selectedUsers.push({ userId, name, email, avatar });
     updateSelectedList();
     
     const suggestionItem = buttonElement.closest('.suggestion-item');
@@ -88,16 +169,72 @@ function searchUsers(query) {
     });
 }
 
-function sendInvites() {
+async function sendInvites() {
     if (selectedUsers.length === 0) {
         alert('Please select at least one person to invite.');
         return;
     }
     
-    const role = document.getElementById('roleSelect').value;
-    const permissions = {
-        canEdit: document.getElementById('canEdit').checked,
-        canDelete: document.getElementById('canDelete').checked,
+    const roleSelect = document.getElementById('roleSelect').value;
+    // Map frontend role values to backend role names
+    const roleMapping = {
+        'viewer': 'Viewer',
+        'editor': 'Editor',
+        'admin': 'Owner'
+    };
+    const role = roleMapping[roleSelect] || 'Viewer';
+    
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login first');
+            window.location.href = '/login';
+            return;
+        }
+        
+        // Add each selected user
+        const promises = selectedUsers.map(user => 
+            fetch(`http://localhost:3000/api/dashboards/${currentDashboardId}/users`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    userId: user.userId,
+                    role: role
+                })
+            })
+        );
+        
+        const results = await Promise.all(promises);
+        
+        // Check if all requests succeeded
+        const allSuccessful = results.every(res => res.ok);
+        
+        if (allSuccessful) {
+            const names = selectedUsers.map(user => user.name).join(', ');
+            alert(`Successfully added: ${names} as ${role}`);
+            
+            // Notify parent window if opened as popup
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'collaboratorsAdded',
+                    users: selectedUsers,
+                    role: role
+                }, '*');
+            }
+            
+            selectedUsers = [];
+            closeModal();
+        } else {
+            alert('Some invitations failed. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error sending invites:', error);
+        alert('Failed to send invitations. Please try again.');
+    }
+}
         canInvite: document.getElementById('canInvite').checked
     };
     

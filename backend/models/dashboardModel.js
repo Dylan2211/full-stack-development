@@ -154,6 +154,32 @@ async function removeUserFromDashboard(userId, dashboardId) {
   return { message: "User removed from dashboard successfully" };
 }
 
+async function getUserRole(userId, dashboardId) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("UserId", sql.Int, userId)
+    .input("DashboardId", sql.Int, dashboardId)
+    .query(`
+      SELECT Role FROM UserDashboards 
+      WHERE UserId = @UserId AND DashboardId = @DashboardId
+    `);
+  return result.recordset[0]?.Role || null;
+}
+
+async function updateUserRole(userId, dashboardId, role) {
+  const pool = await sql.connect(dbConfig);
+  await pool.request()
+    .input("UserId", sql.Int, userId)
+    .input("DashboardId", sql.Int, dashboardId)
+    .input("Role", sql.NVarChar, role)
+    .query(`
+      UPDATE UserDashboards 
+      SET Role = @Role 
+      WHERE UserId = @UserId AND DashboardId = @DashboardId
+    `);
+  return { message: "Role updated successfully" };
+}
+
 module.exports = {
   getDashboard,
   createDashboard,
@@ -164,4 +190,6 @@ module.exports = {
   getUsersByDashboardId,
   addUserToDashboard,
   removeUserFromDashboard,
+  getUserRole,
+  updateUserRole,
 };

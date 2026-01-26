@@ -7,6 +7,7 @@ import helmet from "helmet";
 const taskRoutes = require("../routes/taskRoutes");
 const userRoutes = require("../routes/userRoutes");
 const aiRoutes = require("../routes/aiRoutes");
+const dashboardRoutes = require("../routes/dashboardRoutes");
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
 const defaultPort = 3000;
@@ -36,6 +37,7 @@ app.use("/api/ai", aiRoutes);
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/users", userRoutes);
+app.use("/api/dashboards", dashboardRoutes);
 app.use("/api", taskRoutes);
 
 const ROUTES = {

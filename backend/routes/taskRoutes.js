@@ -4,45 +4,31 @@ const router = express.Router();
 // Controllers
 const taskController = require("../controllers/taskController");
 const boardController = require("../controllers/boardController");
-const dashboardController = require("../controllers/dashboardController");
-const userController = require("../controllers/userController");
 const { agents } = require("../ai/aiAssignAgent");
 
 // Middleware
 const { authMiddleware } = require("../middleware/jwtAuth");
-const { validateRegistration } = require("../middleware/registerValidation");
-const { validateLogin } = require("../middleware/loginValidation");
+const { checkDashboardPermission, checkDashboardAccess } = require("../middleware/permissionCheck");
+const { checkBoardPermission, checkDashboardForBoardCreation } = require("../middleware/boardPermissionCheck");
+const { checkTaskPermission, checkBoardForTaskCreation } = require("../middleware/taskPermissionCheck");
 
-// User routes
-router.get("/users", authMiddleware, userController.getAllUsers);
-router.get("/users/:id", authMiddleware, userController.getUserById);
-router.post("/register", validateRegistration, userController.registerUser);
-router.post("/login", validateLogin, userController.loginUser);
-router.put("/users/:id", authMiddleware, userController.updateUser);
-router.delete("/users/:id", authMiddleware, userController.deleteUser);
-
-// Dashboard routes
-router.get("/dashboards", authMiddleware, dashboardController.getAllDashboards);
-router.get("/dashboards/:dashboardId", authMiddleware, dashboardController.getDashboard);
-router.post("/dashboards", authMiddleware, dashboardController.createDashboard);
-router.put("/dashboards/:dashboardId", authMiddleware, dashboardController.updateDashboard);
-router.delete("/dashboards/:dashboardId", authMiddleware, dashboardController.deleteDashboard);
-
-// Board routes
-router.get("/dashboards/:dashboardId/boards", authMiddleware, boardController.getBoardByDashboardId);
-router.post("/dashboards/:dashboardId/boards", authMiddleware, boardController.createBoard);
-router.get("/boards/:boardId", authMiddleware, boardController.getBoard);
-router.put("/boards/:boardId", authMiddleware, boardController.updateBoard);
-router.delete("/boards/:boardId", authMiddleware, boardController.deleteBoard);
+// Board routes - nested under dashboards
+router.get("/dashboards/:dashboardId/boards", authMiddleware, checkDashboardAccess(), boardController.getBoardByDashboardId);
+router.post("/dashboards/:dashboardId/boards", authMiddleware, checkDashboardForBoardCreation(['Owner', 'Editor']), boardController.createBoard);
+router.get("/boards/:boardId", authMiddleware, checkBoardPermission(['Owner', 'Editor', 'Viewer']), boardController.getBoard);
+router.put("/boards/:boardId", authMiddleware, checkBoardPermission(['Owner', 'Editor']), boardController.updateBoard);
+router.delete("/boards/:boardId", authMiddleware, checkBoardPermission(['Owner']), boardController.deleteBoard);
 
 // Task routes
-router.get("/boards/:boardId/tasks", authMiddleware, taskController.getTasksByBoardId);
-router.get("/tasks/:id", authMiddleware, taskController.getTask);
-router.post("/tasks", authMiddleware, taskController.createTask);
-router.put("/tasks/:id", authMiddleware, taskController.updateTask);
-router.delete("/tasks/:id", authMiddleware, taskController.deleteTask);
+router.get("/boards/:boardId/tasks", authMiddleware, checkBoardPermission(['Owner', 'Editor', 'Viewer']), taskController.getTasksByBoardId);
+router.get("/tasks/:id", authMiddleware, checkTaskPermission(['Owner', 'Editor', 'Viewer']), taskController.getTask);
+router.post("/tasks", authMiddleware, checkBoardForTaskCreation(['Owner', 'Editor']), taskController.createTask);
+router.put("/tasks/:id", authMiddleware, checkTaskPermission(['Owner', 'Editor']), taskController.updateTask);
+router.delete("/tasks/:id", authMiddleware, checkTaskPermission(['Owner', 'Editor']), taskController.deleteTask);
 
+// Agents endpoint (public utility endpoint)
 router.get("/agents", (req, res) => {
   res.json(agents);
 });
+
 module.exports = router;
