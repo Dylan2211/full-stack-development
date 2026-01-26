@@ -156,7 +156,7 @@ function setupEventListeners() {
   // Delete dashboard
   document.getElementById("deleteDashboardBtn").addEventListener("click", deleteDashboard);
 
-  // Invite collaborator
+    // Add collaborator
   document.getElementById("inviteBtn").addEventListener("click", inviteCollaborator);
 
   // Enter key on dashboard name input
@@ -331,19 +331,29 @@ async function inviteCollaborator() {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error || "Failed to send invitation");
+      const errorBody = await response.text();
+      throw new Error(errorBody || "Failed to add collaborator");
     }
 
-    showSuccess(`Invitation sent to ${email}`);
+    // Parse response to determine action (added/updated/unchanged)
+    const result = await response.json();
+    const action = result.action || "added";
+    const successMessage =
+      action === "added"
+        ? `Collaborator added: ${email}`
+        : action === "updated"
+        ? `Collaborator role updated: ${email} → ${backendRole}`
+        : `User is already a collaborator: ${email}`;
+
+    showSuccess(successMessage);
     emailInput.value = "";
     roleSelect.value = "viewer";
 
     // Reload collaborators list
     await loadCollaborators();
   } catch (error) {
-    console.error("Error inviting collaborator:", error);
-    alert("Failed to send invitation: " + error.message);
+    console.error("Error adding collaborator:", error);
+    alert("Failed to add collaborator: " + error.message);
   }
 }
 
