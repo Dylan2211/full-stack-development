@@ -80,7 +80,7 @@ body{
 
 .kpi-row{
   display:grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
   margin-bottom: 14px;
 }
@@ -132,73 +132,13 @@ body{
   padding: 14px;
 }
 
-.mini-kpi{
-  display:grid;
-  gap: 12px;
-}
-.mini-value{
-  font-size: 28px;
-  font-weight: 800;
-}
-.mini-label{
-  font-size: 12px;
-  color: var(--muted);
-}
-.progress{
-  height: 12px;
-  background: #f1f5f9;
-  border-radius: 999px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-.progress-fill{
-  height: 100%;
-  border-radius: 999px;
-}
-.progress-fill.warn{ background: #fbbf24; }
-.progress-caption{
-  font-size: 12px;
-  text-align: right;
-}
-
-.quality h3{
-  margin:0 0 10px;
-  font-size: 14px;
-}
-.quality-row{
-  display:grid;
-  grid-template-columns: 130px 1fr 52px;
-  align-items:center;
-  gap: 10px;
-  margin: 10px 0;
-}
-.quality-label{
-  font-size: 12px;
-  color: var(--muted);
-}
-.quality-bar{
-  height: 12px;
-  background: #f1f5f9;
-  border-radius: 999px;
-  overflow:hidden;
-  border: 1px solid var(--border);
-}
-.quality-fill{ height: 100%; border-radius: 999px; }
-.quality-fill.good{ background: #22c55e; }
-.quality-fill.bad{ background: #ef4444; }
-.quality-num{ font-size: 12px; text-align:right; color: var(--muted); }
-
-.retry{
-  margin-top: 12px;
+.placeholder-card{
   display:flex;
-  justify-content: space-between;
-  align-items: baseline;
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
+  flex-direction: column;
+  gap: 6px;
 }
-.retry-value{
-  font-size: 28px;
-  font-weight: 800;
+.placeholder-title{
+  font-weight: 700;
 }
 
 .live-head{

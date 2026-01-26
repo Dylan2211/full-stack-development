@@ -1,4 +1,5 @@
 const Groq = require("groq-sdk");
+const aiTracker = require("../utils/aiTracker");
 
 async function groqPrompt(req, res) {
   try {
@@ -33,6 +34,7 @@ async function groqPrompt(req, res) {
     let attempt = 0;
     let lastErr = null;
 
+    const start = Date.now();
     while (attempt <= maxRetries) {
       try {
         const completion = await groq.chat.completions.create({
@@ -45,6 +47,17 @@ async function groqPrompt(req, res) {
         const choice = completion.choices?.[0];
         const output = choice?.message?.content ?? "";
         const usage = completion.usage || undefined;
+        const ms = Date.now() - start;
+
+        aiTracker.track({
+          provider: 'Groq',
+          model,
+          prompt: prompt || JSON.stringify(messages || []),
+          response: output,
+          tokens: (usage?.prompt_tokens || 0) + (usage?.completion_tokens || 0),
+          latencyMs: ms,
+          success: true
+        });
 
         return res.json({ output, model, usage });
       } catch (e) {
@@ -78,6 +91,16 @@ async function groqPrompt(req, res) {
 
     // If we exit loop, return a clear error to client
     console.error("Groq final error:", lastErr?.message || lastErr);
+    aiTracker.track({
+      provider: 'Groq',
+      model,
+      prompt: prompt || JSON.stringify(messages || []),
+      response: null,
+      tokens: 0,
+      latencyMs: Date.now() - start,
+      success: false,
+      errorMessage: lastErr?.message || String(lastErr)
+    });
       // Handle model decommissioned errors specifically
       const groqErrorCode = lastErr?.response?.data?.error?.code || lastErr?.code || null;
       const groqErrorMessage = lastErr?.response?.data?.error?.message || lastErr?.message || '';
@@ -103,6 +126,15 @@ async function groqPrompt(req, res) {
     });
   } catch (err) {
     console.error("Groq initialization error:", err?.message || err);
+    try {
+      await logAiRequest({
+        model: req.body?.model || process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+        request_path: "/api/ai/groq",
+        prompt: req.body?.prompt || JSON.stringify(req.body?.messages || []),
+        status: "error",
+        error_message: err?.message || String(err),
+      });
+    } catch (_) {}
     return res.status(500).json({
       error: "Groq request failed",
       details: err?.message || String(err),

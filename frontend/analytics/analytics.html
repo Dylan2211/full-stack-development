@@ -23,7 +23,7 @@
       <aside class="panel events">
         <h2>Events</h2>
 
-        <ul class="event-list">
+        <ul class="event-list" id="events-list">
           <li class="event-item">
             <div class="event-title">Task “Sync pipeline metadata refs” assigned to Agent Orion</div>
             <div class="event-sub">2 mins ago</div>
@@ -60,21 +60,9 @@
       <section class="panel main">
         <div class="kpi-row">
           <div class="card kpi">
-            <div class="kpi-value">320ms</div>
+            <div class="kpi-value" id="metric-latency">–</div>
             <div class="kpi-label">Avg response time</div>
-            <div class="kpi-note">+30% From Previous Months</div>
-          </div>
-
-          <div class="card kpi danger">
-            <div class="kpi-value">6%</div>
-            <div class="kpi-label">Average Error rate</div>
-            <div class="kpi-note">Higher than recommended!</div>
-          </div>
-
-          <div class="card kpi success">
-            <div class="kpi-value">87%</div>
-            <div class="kpi-label">Acceptance rate</div>
-            <div class="kpi-note">Quality of work</div>
+            <div class="kpi-note">Updates live</div>
           </div>
         </div>
 
@@ -85,7 +73,7 @@
           </div>
 
           <!-- Simple CSS bar chart -->
-          <div class="bar-chart" aria-label="Weekly token usage bar chart">
+          <div class="bar-chart" id="weekly-usage" aria-label="Weekly token usage bar chart">
             <div class="bar" style="--h: 54%;">
               <span class="bar-top">850</span>
               <span class="bar-label">Mon</span>
@@ -117,49 +105,6 @@
           </div>
         </div>
 
-        <div class="grid-2">
-          <div class="card">
-            <div class="mini-kpi">
-              <div>
-                <div class="mini-value">67%</div>
-                <div class="mini-label">model load</div>
-              </div>
-              <div class="progress">
-                <div class="progress-fill warn" style="width: 68%"></div>
-              </div>
-              <div class="progress-caption muted">68%</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="quality">
-              <div class="quality-head">
-                <h3>Quality checks</h3>
-              </div>
-
-              <div class="quality-row">
-                <div class="quality-label">Response Quality</div>
-                <div class="quality-bar">
-                  <div class="quality-fill good" style="width: 80%"></div>
-                </div>
-                <div class="quality-num">80%</div>
-              </div>
-
-              <div class="quality-row">
-                <div class="quality-label">Hallucination</div>
-                <div class="quality-bar">
-                  <div class="quality-fill bad" style="width: 6%"></div>
-                </div>
-                <div class="quality-num">6%</div>
-              </div>
-
-              <div class="retry">
-                <div class="retry-label muted">Retry Count</div>
-                <div class="retry-value">6</div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div class="card">
           <div class="live-head">
@@ -167,10 +112,10 @@
               <h3>Live requests</h3>
               <p class="muted">Request per Minute</p>
             </div>
-            <div class="live-badge">60</div>
+            <div class="live-badge" id="metric-live-requests">–</div>
           </div>
 
-          <div class="bar-chart small">
+          <div class="bar-chart small" id="live-chart">
             <div class="bar" style="--h: 45%;">
               <span class="bar-top">40</span>
               <span class="bar-label">60s</span>
@@ -201,35 +146,35 @@
 
         <div class="agent-card">
           <div class="agent-top">
-            <div class="agent-name">Ollama</div>
+            <div class="agent-name">Gemini</div>
           </div>
           <div class="agent-metrics">
             <div>
-              <div class="agent-metric-label muted">Load</div>
-              <div class="agent-metric-value">10%</div>
+              <div class="agent-metric-label muted">Calls</div>
+              <div class="agent-metric-value" id="agent-gemini-calls">–</div>
             </div>
             <div class="divider"></div>
             <div>
-              <div class="agent-metric-label muted">Response time ms</div>
-              <div class="agent-metric-value">130</div>
+              <div class="agent-metric-label muted">Avg ms</div>
+              <div class="agent-metric-value" id="agent-gemini-latency">–</div>
             </div>
-            <div class="agent-avatar">🤖</div>
+            <div class="agent-avatar">✨</div>
           </div>
         </div>
 
         <div class="agent-card">
           <div class="agent-top">
-            <div class="agent-name">Claude</div>
+            <div class="agent-name">Groq</div>
           </div>
           <div class="agent-metrics">
             <div>
-              <div class="agent-metric-label muted">Load</div>
-              <div class="agent-metric-value">15%</div>
+              <div class="agent-metric-label muted">Calls</div>
+              <div class="agent-metric-value" id="agent-groq-calls">–</div>
             </div>
             <div class="divider"></div>
             <div>
-              <div class="agent-metric-label muted">Response time ms</div>
-              <div class="agent-metric-value">163</div>
+              <div class="agent-metric-label muted">Avg ms</div>
+              <div class="agent-metric-value" id="agent-groq-latency">–</div>
             </div>
             <div class="agent-avatar">🧠</div>
           </div>
@@ -237,19 +182,19 @@
 
         <div class="agent-card">
           <div class="agent-top">
-            <div class="agent-name">Gemini</div>
+            <div class="agent-name">ChatGPT</div>
           </div>
           <div class="agent-metrics">
             <div>
-              <div class="agent-metric-label muted">Load</div>
-              <div class="agent-metric-value">13%</div>
+              <div class="agent-metric-label muted">Calls</div>
+              <div class="agent-metric-value" id="agent-openai-calls">–</div>
             </div>
             <div class="divider"></div>
             <div>
-              <div class="agent-metric-label muted">Response time ms</div>
-              <div class="agent-metric-value">67</div>
+              <div class="agent-metric-label muted">Avg ms</div>
+              <div class="agent-metric-value" id="agent-openai-latency">–</div>
             </div>
-            <div class="agent-avatar">✨</div>
+            <div class="agent-avatar">🤖</div>
           </div>
         </div>
        </aside>

@@ -234,27 +234,177 @@ function metricsFromQuery() {
   };
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const data = metricsFromQuery();
-  applyMetrics(data);
+async function fetchOverview() {
+  try {
+    const r = await fetch('/api/analytics/overview');
+    if (!r.ok) return;
+    const d = await r.json();
+    setText('metric-live-requests', d.liveRequests);
+    setText('metric-latency', Math.round(d.avgLatency || 0) + 'ms');
+  } catch (e) {
+    console.warn('overview fetch failed', e);
+  }
+}
 
-  const snapshotButton = document.getElementById("snapshot-button");
-  if (snapshotButton) {
-    snapshotButton.addEventListener("click", function () {
-      const now = new Date();
-      const label = now.toISOString().slice(0, 19).replace("T", " ");
-      const title = "dashboard snapshot " + label;
-      alert(title);
-    });
+async function fetchUsage() {
+  try {
+    const r = await fetch('/api/analytics/usage');
+    if (!r.ok) return;
+    const rows = await r.json();
+    renderWeeklyUsage(rows);
+  } catch (e) {
+    console.warn('usage fetch failed', e);
+  }
+}
+
+async function fetchEvents() {
+  try {
+    const r = await fetch('/api/analytics/events');
+    if (!r.ok) return;
+    const events = await r.json();
+    renderSimpleEvents(events);
+  } catch (e) {
+    console.warn('events fetch failed', e);
+  }
+}
+
+async function fetchAgents() {
+  try {
+    const r = await fetch('/api/analytics/agents');
+    if (!r.ok) return;
+    const rows = await r.json();
+    applyAgentCards(rows);
+  } catch (e) {
+    console.warn('agents fetch failed', e);
+  }
+}
+
+async function fetchLive() {
+  try {
+    const r = await fetch('/api/analytics/live');
+    if (!r.ok) return;
+    const arr = await r.json();
+    renderLiveChart(arr);
+  } catch (e) {
+    console.warn('live fetch failed', e);
+  }
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val == null ? '–' : String(val);
+}
+
+function renderWeeklyUsage(rows) {
+  const container = document.getElementById('weekly-usage');
+  if (!container) return;
+  container.innerHTML = '';
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  // Map dates to weekdays
+  const byDay = new Map();
+  rows.forEach(r => {
+    const d = new Date(r.day);
+    const wd = d.getDay(); // 0-6 Sun-Sat
+    const label = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][wd];
+    byDay.set(label, Number(r.tokens || 0));
+  });
+  const values = days.map(label => byDay.get(label) || 0);
+  const max = Math.max(1, ...values);
+  days.forEach((label, i) => {
+    const v = values[i];
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.setProperty('--h', ((v / max) * 100).toFixed(0) + '%');
+    const top = document.createElement('span');
+    top.className = 'bar-top';
+    top.textContent = String(v);
+    const bl = document.createElement('span');
+    bl.className = 'bar-label';
+    bl.textContent = label;
+    bar.appendChild(top);
+    bar.appendChild(bl);
+    container.appendChild(bar);
+  });
+}
+
+function renderLiveChart(buckets) {
+  const container = document.getElementById('live-chart');
+  if (!container) return;
+  container.innerHTML = '';
+  const max = Math.max(1, ...buckets.map(b => Number(b.value || 0)));
+  buckets.forEach(b => {
+    const v = Number(b.value || 0);
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.setProperty('--h', ((v / max) * 100).toFixed(0) + '%');
+    const top = document.createElement('span');
+    top.className = 'bar-top';
+    top.textContent = String(v);
+    const bl = document.createElement('span');
+    bl.className = 'bar-label';
+    bl.textContent = b.label;
+    bar.appendChild(top);
+    bar.appendChild(bl);
+    container.appendChild(bar);
+  });
+}
+
+function renderSimpleEvents(events) {
+  const list = document.getElementById('events-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!events || !events.length) {
+    const li = document.createElement('li');
+    li.className = 'event-item';
+    li.textContent = 'No events yet';
+    list.appendChild(li);
+    return;
+  }
+  events.forEach(e => {
+    const li = document.createElement('li');
+    li.className = 'event-item';
+    const title = document.createElement('div');
+    title.className = 'event-title';
+    title.textContent = e.message;
+    const sub = document.createElement('div');
+    sub.className = 'event-sub';
+    sub.textContent = e.time;
+    li.appendChild(title);
+    li.appendChild(sub);
+    list.appendChild(li);
+  });
+}
+
+function applyAgentCards(rows) {
+  // rows: [{provider, calls, avgLatencyMs, errorRate}]
+  const map = {};
+  rows.forEach(r => { map[(r.provider || '').toLowerCase()] = r; });
+
+  function setAgent(prefix, key) {
+    const callsEl = document.getElementById(`agent-${prefix}-calls`);
+    const latEl = document.getElementById(`agent-${prefix}-latency`);
+    const row = map[key] || null;
+    if (callsEl) callsEl.textContent = row ? row.calls : '0';
+    if (latEl) latEl.textContent = row ? `${row.avgLatencyMs || 0}` : '–';
   }
 
-  // Kanban navigation button – updated path
-  const navKanban = document.getElementById("nav-kanban");
-  if (navKanban) {
-    navKanban.addEventListener("click", function () {
-      window.location.href = "/kanban/kanban.html";
-    });
-  }
+  setAgent('gemini', 'gemini');
+  setAgent('groq', 'groq');
+  // OpenAI may be labeled 'OpenAI' in tracker
+  setAgent('openai', 'openai');
+  setAgent('openai', 'chatgpt');
+}
 
-  window.updateDashboard = applyMetrics;
+document.addEventListener('DOMContentLoaded', async () => {
+  await fetchOverview();
+  await fetchUsage();
+  await fetchEvents();
+   await fetchAgents();
+  await fetchLive();
+  // Refresh every 10s for live metrics
+  setInterval(fetchOverview, 10000);
+  setInterval(fetchEvents, 15000);
+  setInterval(fetchAgents, 12000);
+  setInterval(fetchLive, 10000);
 });

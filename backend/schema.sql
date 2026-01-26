@@ -82,3 +82,24 @@ CREATE TABLE Tasks (
     AIModel NVARCHAR(100) NULL,
     AIOutput NVARCHAR(MAX) NULL
 );
+
+-- Analytics logs for AI requests
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AiLogs]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE AiLogs (
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        Timestamp DATETIME NOT NULL DEFAULT(GETDATE()),
+        Model NVARCHAR(128) NULL,
+        RequestPath NVARCHAR(255) NULL,
+        Prompt NVARCHAR(MAX) NULL,
+        TokensIn INT NULL,
+        TokensOut INT NULL,
+        ResponseTimeMs INT NULL,
+        Status NVARCHAR(32) NULL,
+        ErrorMessage NVARCHAR(MAX) NULL,
+        Hallucination BIT NOT NULL DEFAULT(0),
+        RetryCount INT NOT NULL DEFAULT(0),
+        RequestId UNIQUEIDENTIFIER NULL,
+        Accepted BIT NOT NULL DEFAULT(0)
+    );
+END
