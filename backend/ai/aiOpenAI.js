@@ -1,4 +1,5 @@
 const OpenAI = require("openai");
+const aiTracker = require("../utils/aiTracker");
 
 async function openAIPrompt(req, res) {
   try {
@@ -33,6 +34,7 @@ async function openAIPrompt(req, res) {
     let attempt = 0;
     let lastErr = null;
 
+    const start = Date.now();
     while (attempt <= maxRetries) {
       try {
         const completion = await openai.chat.completions.create({
@@ -45,6 +47,18 @@ async function openAIPrompt(req, res) {
         const choice = completion.choices?.[0];
         const output = choice?.message?.content ?? "";
         const usage = completion.usage || undefined;
+        const ms = Date.now() - start;
+
+        // Track success
+        aiTracker.track({
+          provider: 'OpenAI',
+          model,
+          prompt: prompt || JSON.stringify(messages || []),
+          response: output,
+          tokens: (usage?.prompt_tokens || 0) + (usage?.completion_tokens || 0),
+          latencyMs: ms,
+          success: true
+        });
 
         return res.json({ output, model, usage });
       } catch (e) {
@@ -76,8 +90,18 @@ async function openAIPrompt(req, res) {
       }
     }
 
-    // If we exit loop, return a clear error to client
+    // If we exit loop, log error and return a clear error to client
     console.error("OpenAI final error:", lastErr?.message || lastErr);
+    aiTracker.track({
+      provider: 'OpenAI',
+      model,
+      prompt: prompt || JSON.stringify(messages || []),
+      response: null,
+      tokens: 0,
+      latencyMs: Date.now() - start,
+      success: false,
+      errorMessage: lastErr?.message || String(lastErr)
+    });
     if (lastErr?.status === 429 || (lastErr?.message && /quota|rate limit|429/i.test(lastErr.message))) {
       return res.status(429).json({
         error: "OpenAI quota or rate limit exceeded",
@@ -92,6 +116,15 @@ async function openAIPrompt(req, res) {
     });
   } catch (err) {
     console.error("OpenAI error:", err?.message || err);
+    try {
+      await logAiRequest({
+        model: req.body?.model || "gpt-4o-mini",
+        request_path: "/api/ai/openai",
+        prompt: req.body?.prompt || JSON.stringify(req.body?.messages || []),
+        status: "error",
+        error_message: err?.message || String(err),
+      });
+    } catch (_) {}
     return res.status(500).json({
       error: "OpenAI request failed",
       details: err?.message || String(err),

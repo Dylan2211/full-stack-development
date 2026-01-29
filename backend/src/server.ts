@@ -8,6 +8,7 @@ const taskRoutes = require("../routes/taskRoutes");
 const userRoutes = require("../routes/userRoutes");
 const aiRoutes = require("../routes/aiRoutes");
 const dashboardRoutes = require("../routes/dashboardRoutes");
+const analyticsRoutes = require("../routes/analyticsRoutes");
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
 const defaultPort = 3000;
@@ -33,6 +34,7 @@ app.use(cors({
 
 app.use(express.json());
 app.use("/api/ai", aiRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -49,6 +51,7 @@ const ROUTES = {
   DASHBOARD_SETTINGS: "/dashboard-settings",
   AI_FILES: "/ai-files",
   SETTINGS: "/settings",
+  ANALYTICS: "/analytics",
   INVITATIONS: "/invitations",
   TEST: "/test"
 };
@@ -76,6 +79,9 @@ app.get(ROUTES.AI_FILES, (req, res) => {
 });
 app.get(ROUTES.SETTINGS, (req, res) => {
   res.sendFile(path.join(frontendPath, "settings/profile.html"));
+});
+app.get(ROUTES.ANALYTICS, (req, res) => {
+  res.sendFile(path.join(frontendPath, "analytics/analytics.html"));
 });
 app.get(ROUTES.INVITATIONS, (req, res) => {
   res.sendFile(path.join(frontendPath, "invitations/invitations.html"));

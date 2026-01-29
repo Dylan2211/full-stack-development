@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const aiTracker = require("../utils/aiTracker");
 
 async function geminiPrompt(req, res) {
   try {
@@ -23,12 +24,34 @@ async function geminiPrompt(req, res) {
     // Good default model
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
+    const start = Date.now();
     const result = await model.generateContent(prompt);
     const output = result.response.text();
+    const ms = Date.now() - start;
+
+    aiTracker.track({
+      provider: 'Gemini',
+      model: "gemini-2.5-flash",
+      prompt,
+      response: output,
+      tokens: 0,
+      latencyMs: ms,
+      success: true
+    });
 
     return res.json({ output });
   } catch (err) {
     console.error("Gemini error:", err?.message || err);
+    aiTracker.track({
+      provider: 'Gemini',
+      model: "gemini-2.5-flash",
+      prompt: req.body?.prompt || null,
+      response: null,
+      tokens: 0,
+      latencyMs: 0,
+      success: false,
+      errorMessage: err?.message || String(err)
+    });
     return res.status(500).json({
       error: "Gemini request failed",
       details: err?.message || String(err),
