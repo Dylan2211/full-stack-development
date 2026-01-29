@@ -31,10 +31,6 @@ router.post("/:dashboardId/users", authMiddleware, checkDashboardPermission(['Ow
 // Add collaborator by email (Owner only)
 router.post("/:dashboardId/invite", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.addCollaboratorByEmail);
 
-// [DEPRECATED] These endpoints are kept for backward compatibility but no longer used
-// router.get("/invitations/pending", authMiddleware, dashboardController.getPendingInvitations);
-// router.post("/invitations/:token/accept", authMiddleware, dashboardController.acceptInvitation);
-// router.post("/invitations/:token/decline", authMiddleware, dashboardController.declineInvitation);
 
 // Update user role in dashboard (Owner only)
 router.put("/:dashboardId/users/:userId/role", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.updateUserRole);
