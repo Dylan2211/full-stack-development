@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+﻿import type { Request, Response, NextFunction } from "express";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -9,6 +9,7 @@ const userRoutes = require("../routes/userRoutes");
 const aiRoutes = require("../routes/aiRoutes");
 const dashboardRoutes = require("../routes/dashboardRoutes");
 const analyticsRoutes = require("../routes/analyticsRoutes");
+const notificationRoutes = require("../routes/notificationRoutes");
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
 const defaultPort = 3000;
@@ -40,6 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/users", userRoutes);
 app.use("/api/dashboards", dashboardRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api", taskRoutes);
 
 const ROUTES = {

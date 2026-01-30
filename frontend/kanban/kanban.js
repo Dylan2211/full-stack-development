@@ -192,7 +192,6 @@ async function createTask(taskData) {
     uiTask.Title = uiTask.Title || uiTask.title;
     uiTask.Description = uiTask.Description || uiTask.description;
 
-    console.log("Updating UI with:", uiTask); // Debugging line
     addTaskToBoard(uiTask);
     
     if (taskData.aiModel) {
