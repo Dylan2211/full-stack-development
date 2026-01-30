@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Accept Share Link</title>
+    <link rel="stylesheet" href="/accept-share/accept-share.css" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <script src="/auth-utils.js"></script>
+  </head>
+  <body>
+    <div class="page">
+      <div class="card">
+        <div class="icon">🔗</div>
+        <h1>Accepting share link</h1>
+        <p id="statusMessage">Please wait while we grant your access.</p>
+        <div class="actions" id="actions" style="display: none;">
+          <a class="btn" href="/dashboard">Go to Dashboard</a>
+          <a class="btn btn-primary" id="retryBtn" href="#">Try Again</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="/accept-share/accept-share.js"></script>
+  </body>
+</html>

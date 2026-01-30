@@ -14,16 +14,16 @@ VALUES
 ('Assignment 1 FSDP', 'Dashboard to help provide help for Full Stack Development Assignment 1', 0),
 ('Dashboard 7', 'This dashboard is used for interesting purposes', 1);
 
--- Admin = Owner, Regular User = Viewer
+-- Admin = Admin role (was previously Owner), Regular User = Viewer
 INSERT INTO UserDashboards (UserId, DashboardId, Role)
 VALUES
-(1, 1, 'Owner'),
-(1, 2, 'Owner'),
-(1, 3, 'Owner'),
-(1, 4, 'Owner'),
-(1, 5, 'Owner'),
-(1, 6, 'Owner'),
-(1, 7, 'Owner'),
+(1, 1, 'Admin'),
+(1, 2, 'Admin'),
+(1, 3, 'Admin'),
+(1, 4, 'Admin'),
+(1, 5, 'Admin'),
+(1, 6, 'Admin'),
+(1, 7, 'Admin'),
 (2, 1, 'Editor'),
 (2, 2, 'Viewer'),
 (3, 3, 'Viewer');

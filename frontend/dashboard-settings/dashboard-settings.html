@@ -31,6 +31,10 @@
             <span class="nav-icon">👥</span>
             Collaborators
           </a>
+          <a href="#sharelinks" class="nav-item" data-section="sharelinks">
+            <span class="nav-icon">🔗</span>
+            Share Links
+          </a>
         </nav>
 
         <main class="settings-content">
@@ -83,7 +87,7 @@
 
               <div class="danger-item">
                 <div class="danger-info">
-                  <strong>Transfer ownership</strong>
+                  <strong>Transfer admin role</strong>
                   <p>Transfer this dashboard to another user or organization.</p>
                 </div>
                 <button id="transferBtn" class="btn btn-danger-outline">Transfer</button>
@@ -111,10 +115,10 @@
                     <div class="collaborator-avatar" id="ownerInitials">👤</div>
                     <div class="collaborator-details">
                       <strong class="collaborator-name">You</strong>
-                      <span class="collaborator-role">Owner</span>
+                  <span class="collaborator-role">Admin</span>
                     </div>
                   </div>
-                  <span class="role-badge owner-badge">Owner</span>
+                  <span class="role-badge owner-badge">Admin</span>
                 </div>
                 <!-- More collaborators will be dynamically added here -->
               </div>
@@ -155,7 +159,49 @@
               </p>
             </div>
           </section>
+
+          <!-- Share Links Section -->
+          <section id="sharelinks-section" class="settings-section">
+            <h2 class="section-title">Share Links</h2>
+            <p class="section-description">Generate shareable links with specific permissions. Only admins can create and manage share links.</p>
+
+            <div class="setting-group">
+              <label class="setting-label">Create a share link</label>
+              <div class="share-token-creator">
+                <div class="share-token-row">
+                  <select id="shareTokenRole" class="setting-select">
+                    <option value="Viewer">Viewer (View only)</option>
+                    <option value="Editor">Editor (View and Edit)</option>
+                    <option value="Admin">Admin (Full Access)</option>
+                  </select>
+                  <input type="number" id="shareTokenExpiration" class="setting-input" placeholder="Expires in days (optional)" min="1" />
+                  <button id="createShareTokenBtn" class="btn btn-primary">Generate Link</button>
+                </div>
+              </div>
+              <p class="setting-description">
+                Share specific access levels without sending email invitations.
+              </p>
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label">Active Share Links</label>
+              <div id="shareTokensList" class="share-tokens-list">
+                <p style="color: #999; text-align: center; padding: 20px;">No share links yet</p>
+              </div>
+            </div>
+          </section>
         </main>
+      </div>
+    </div>
+
+    <!-- Viewing Mode Modal -->
+    <div id="viewingModeOverlay" class="viewing-mode-overlay" style="display: none;">
+      <div class="viewing-mode-banner">
+        <div class="banner-icon">🔒</div>
+        <div class="banner-content">
+          <h3>You are in viewing mode</h3>
+          <p>You are unable to make changes to this document.</p>
+        </div>
       </div>
     </div>
 

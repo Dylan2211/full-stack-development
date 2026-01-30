@@ -2,7 +2,7 @@ const dashboardModel = require("../models/dashboardModel");
 
 /**
  * Middleware to check if user has required role for a dashboard
- * @param {Array<string>} allowedRoles - Array of roles that can access (e.g., ['Owner', 'Editor'])
+ * @param {Array<string>} allowedRoles - Array of roles that can access (e.g., ['Admin', 'Editor'])
  */
 function checkDashboardPermission(allowedRoles) {
   return async (req, res, next) => {
