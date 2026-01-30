@@ -53,7 +53,8 @@ const ROUTES = {
   SETTINGS: "/settings",
   ANALYTICS: "/analytics",
   INVITATIONS: "/invitations",
-  TEST: "/test"
+  TEST: "/test",
+  ACCEPT_SHARE: "/accept-share"
 };
 //  #region Frontend routes
 app.get(ROUTES.HOME, (req, res) => {
@@ -88,6 +89,9 @@ app.get(ROUTES.INVITATIONS, (req, res) => {
 });
 app.get(ROUTES.TEST, (req, res) => {
   res.sendFile(path.join(frontendPath, "test/task.html"));
+});
+app.get(ROUTES.ACCEPT_SHARE, (req, res) => {
+  res.sendFile(path.join(frontendPath, "accept-share/accept-share.html"));
 });
 
 //  #endregion

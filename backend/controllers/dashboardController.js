@@ -21,8 +21,8 @@ async function createDashboard(req, res) {
     
     const newDashboard = await dashboardModel.createDashboard(name, description);
     
-    // Link the creator as Owner in UserDashboards
-    await dashboardModel.addUserToDashboard(userId, newDashboard.DashboardId, 'Owner');
+    // Link the creator as Admin in UserDashboards
+    await dashboardModel.addUserToDashboard(userId, newDashboard.DashboardId, 'Admin');
     
     const boardModel = require("../models/boardModel");
     await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "To Do"})
@@ -277,6 +277,104 @@ async function declineInvitation(req, res) {
   }
 }
 
+/**
+ * Create a share token
+ */
+async function createShareToken(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId || req.body.dashboardId);
+    const userId = req.user.userId || req.user.id;
+    const { role = "Viewer", expirationDays } = req.body;
+
+    if (!['Admin', 'Editor', 'Viewer'].includes(role)) {
+      return res.status(400).json({ error: "Invalid role. Must be 'Admin', 'Editor', or 'Viewer'" });
+    }
+
+    const token = await dashboardModel.createShareToken(dashboardId, userId, role, expirationDays);
+    res.status(201).json(token);
+  } catch (error) {
+    console.error('Error creating share token:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Get all share tokens for a dashboard
+ */
+async function getShareTokens(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId || req.body.dashboardId);
+    const tokens = await dashboardModel.getShareTokens(dashboardId);
+    res.json(tokens);
+  } catch (error) {
+    console.error('Error getting share tokens:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Update share token role
+ */
+async function updateShareTokenRole(req, res) {
+  try {
+    const shareTokenId = parseInt(req.params.shareTokenId);
+    const dashboardId = parseInt(req.params.dashboardId || req.body.dashboardId);
+    const { newRole } = req.body;
+
+    if (!['Admin', 'Editor', 'Viewer'].includes(newRole)) {
+      return res.status(400).json({ error: "Invalid role. Must be 'Admin', 'Editor', or 'Viewer'" });
+    }
+
+    const result = await dashboardModel.updateShareTokenRole(shareTokenId, dashboardId, newRole);
+    if (!result) {
+      return res.status(404).json({ error: "Share token not found" });
+    }
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating share token role:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Revoke a share token
+ */
+async function revokeShareToken(req, res) {
+  try {
+    const shareTokenId = parseInt(req.params.shareTokenId);
+    const dashboardId = parseInt(req.params.dashboardId || req.body.dashboardId);
+
+    const result = await dashboardModel.revokeShareToken(shareTokenId, dashboardId);
+    if (!result) {
+      return res.status(404).json({ error: "Share token not found" });
+    }
+    res.json(result);
+  } catch (error) {
+    console.error('Error revoking share token:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Accept a share token
+ */
+async function acceptShareToken(req, res) {
+  try {
+    const { token } = req.body;
+    const userId = req.user.userId || req.user.id;
+
+    if (!token) {
+      return res.status(400).json({ error: "Share token is required" });
+    }
+
+    const result = await dashboardModel.acceptShareToken(token, userId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error accepting share token:', error);
+    res.status(400).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getDashboard,
   createDashboard,
@@ -292,4 +390,9 @@ module.exports = {
   getPendingInvitations,
   acceptInvitation,
   declineInvitation,
+  createShareToken,
+  getShareTokens,
+  acceptShareToken,
+  updateShareTokenRole,
+  revokeShareToken,
 };

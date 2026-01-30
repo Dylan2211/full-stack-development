@@ -304,6 +304,207 @@ async function declineInvitation(token) {
   return { message: "Invitation declined" };
 }
 
+/**
+ * Creates a share token for a dashboard
+ * @param {number} dashboardId - Dashboard ID
+ * @param {number} createdBy - User ID of admin creating the token
+ * @param {string} role - Role for this token ('Admin', 'Editor', 'Viewer')
+ * @param {number} expirationDays - Days until token expires (null = no expiration)
+ * @returns {Promise<Object>} Share token object
+ */
+async function createShareToken(dashboardId, createdBy, role = "Viewer", expirationDays = null) {
+  const pool = await sql.connect(dbConfig);
+  const token = crypto.randomBytes(32).toString('hex');
+  let expiresAt = null;
+  
+  if (expirationDays) {
+    expiresAt = new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000);
+  }
+  
+  const result = await pool.request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .input("CreatedBy", sql.Int, createdBy)
+    .input("Token", sql.NVarChar, token)
+    .input("Role", sql.NVarChar, role)
+    .input("ExpiresAt", sql.DateTime, expiresAt)
+    .query(`
+      INSERT INTO ShareTokens (DashboardId, CreatedBy, Token, Role, ExpiresAt)
+      OUTPUT INSERTED.ShareTokenId, INSERTED.Token, INSERTED.Role, INSERTED.CreatedAt, INSERTED.ExpiresAt
+      VALUES (@DashboardId, @CreatedBy, @Token, @Role, @ExpiresAt)
+    `);
+  
+  return result.recordset[0];
+}
+
+/**
+ * Gets all share tokens for a dashboard
+ * @param {number} dashboardId - Dashboard ID
+ * @returns {Promise<Array>} Array of share tokens
+ */
+async function getShareTokens(dashboardId) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .query(`
+      SELECT ShareTokenId, Token, Role, ExpiresAt, IsActive, CreatedAt, RevokedAt, AccessCount
+      FROM ShareTokens
+      WHERE DashboardId = @DashboardId
+      ORDER BY CreatedAt DESC
+    `);
+  return result.recordset;
+}
+
+/**
+ * Validates and retrieves info for a share token
+ * @param {string} token - Share token
+ * @returns {Promise<Object>} Token info with dashboard and role
+ */
+async function getShareTokenInfo(token) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("Token", sql.NVarChar, token)
+    .query(`
+      SELECT st.ShareTokenId, st.DashboardId, st.Role, st.ExpiresAt, st.IsActive, st.AccessCount,
+             d.Name as DashboardName, d.Description
+      FROM ShareTokens st
+      JOIN Dashboards d ON st.DashboardId = d.DashboardId
+      WHERE st.Token = @Token AND st.IsActive = 1
+      AND (st.ExpiresAt IS NULL OR st.ExpiresAt > GETDATE())
+    `);
+  
+  if (!result.recordset[0]) {
+    return null;
+  }
+  
+  // Increment access count
+  await pool.request()
+    .input("Token", sql.NVarChar, token)
+    .query(`UPDATE ShareTokens SET AccessCount = AccessCount + 1 WHERE Token = @Token`);
+  
+  return result.recordset[0];
+}
+
+/**
+ * Accepts a share token and grants access to the dashboard
+ * @param {string} token - Share token
+ * @param {number} userId - User ID accepting
+ * @returns {Promise<Object>} Result with dashboard info
+ */
+async function acceptShareToken(token, userId) {
+  const tokenInfo = await getShareTokenInfo(token);
+  if (!tokenInfo) {
+    throw new Error("Invalid or expired share token");
+  }
+
+  const rolePriority = {
+    Viewer: 1,
+    Editor: 2,
+    Admin: 3
+  };
+
+  const pool = await sql.connect(dbConfig);
+
+  const existingResult = await pool.request()
+    .input("UserId", sql.Int, userId)
+    .input("DashboardId", sql.Int, tokenInfo.DashboardId)
+    .query(`
+      SELECT UserDashboardId, Role
+      FROM UserDashboards
+      WHERE UserId = @UserId AND DashboardId = @DashboardId
+    `);
+
+  const existing = existingResult.recordset[0];
+  const tokenRole = tokenInfo.Role;
+
+  if (!existing) {
+    await pool.request()
+      .input("UserId", sql.Int, userId)
+      .input("DashboardId", sql.Int, tokenInfo.DashboardId)
+      .input("Role", sql.NVarChar, tokenRole)
+      .query(`
+        INSERT INTO UserDashboards (UserId, DashboardId, Role)
+        VALUES (@UserId, @DashboardId, @Role)
+      `);
+    return {
+      message: "Access granted via share token",
+      DashboardId: tokenInfo.DashboardId,
+      Role: tokenRole
+    };
+  }
+
+  const existingPriority = rolePriority[existing.Role] || 0;
+  const tokenPriority = rolePriority[tokenRole] || 0;
+
+  if (tokenPriority > existingPriority) {
+    await pool.request()
+      .input("UserId", sql.Int, userId)
+      .input("DashboardId", sql.Int, tokenInfo.DashboardId)
+      .input("Role", sql.NVarChar, tokenRole)
+      .query(`
+        UPDATE UserDashboards
+        SET Role = @Role
+        WHERE UserId = @UserId AND DashboardId = @DashboardId
+      `);
+    return {
+      message: "Access updated to higher role",
+      DashboardId: tokenInfo.DashboardId,
+      Role: tokenRole
+    };
+  }
+
+  return {
+    message: "Access already granted",
+    DashboardId: tokenInfo.DashboardId,
+    Role: existing.Role
+  };
+}
+
+/**
+ * Revokes a share token
+ * @param {number} shareTokenId - Share token ID
+ * @param {number} dashboardId - Dashboard ID
+ * @returns {Promise<Object>} Result
+ */
+async function revokeShareToken(shareTokenId, dashboardId) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("ShareTokenId", sql.Int, shareTokenId)
+    .input("DashboardId", sql.Int, dashboardId)
+    .query(`
+      UPDATE ShareTokens
+      SET IsActive = 0, RevokedAt = GETDATE()
+      WHERE ShareTokenId = @ShareTokenId AND DashboardId = @DashboardId
+    `);
+  if (result.rowsAffected[0] === 0) {
+    return null;
+  }
+  return { message: "Share token revoked successfully" };
+}
+
+/**
+ * Updates share token role
+ * @param {number} shareTokenId - Share token ID
+ * @param {number} dashboardId - Dashboard ID
+ * @param {string} newRole - New role ('Admin', 'Editor', 'Viewer')
+ * @returns {Promise<Object>} Result
+ */
+async function updateShareTokenRole(shareTokenId, dashboardId, newRole) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("ShareTokenId", sql.Int, shareTokenId)
+    .input("DashboardId", sql.Int, dashboardId)
+    .input("Role", sql.NVarChar, newRole)
+    .query(`
+      UPDATE ShareTokens
+      SET Role = @Role
+      WHERE ShareTokenId = @ShareTokenId AND DashboardId = @DashboardId
+    `);
+  if (result.rowsAffected[0] === 0) {
+    return null;
+  }
+  return { message: "Share token role updated successfully" };
+}
+
 module.exports = {
   getDashboard,
   createDashboard,
@@ -320,4 +521,10 @@ module.exports = {
   getPendingInvitations,
   acceptInvitation,
   declineInvitation,
+  createShareToken,
+  getShareTokens,
+  getShareTokenInfo,
+  acceptShareToken,
+  revokeShareToken,
+  updateShareTokenRole,
 };

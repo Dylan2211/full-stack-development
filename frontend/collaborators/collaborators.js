@@ -78,8 +78,8 @@ function displayCollaborators(users) {
     }
     
     list.innerHTML = users.map(user => {
-        const canChangeRole = currentUserRole === 'Owner' && user.Role !== 'Owner';
-        const canRemove = currentUserRole === 'Owner' && user.Role !== 'Owner';
+        const canChangeRole = currentUserRole === 'Admin' && user.Role !== 'Admin';
+        const canRemove = currentUserRole === 'Admin' && user.Role !== 'Admin';
         
         console.log(`User: ${user.FullName}, Role: ${user.Role}, CanChange: ${canChangeRole}, CanRemove: ${canRemove}`);
         
@@ -98,7 +98,7 @@ function displayCollaborators(users) {
                         <select class="role-dropdown" onchange="updateRole(${user.UserId}, this.value)" style="margin-right: 10px;">
                             <option value="Viewer" ${user.Role === 'Viewer' ? 'selected' : ''}>Viewer</option>
                             <option value="Editor" ${user.Role === 'Editor' ? 'selected' : ''}>Editor</option>
-                            <option value="Owner" ${user.Role === 'Owner' ? 'selected' : ''}>Owner</option>
+                            <option value="Admin" ${user.Role === 'Admin' ? 'selected' : ''}>Admin</option>
                         </select>
                     ` : `<span class="role-badge" style="margin-right: 10px; padding: 4px 12px; background: #e5e7eb; border-radius: 12px; font-size: 0.85em;">${user.Role}</span>`}
                     ${canRemove ? `
@@ -144,8 +144,8 @@ function updateUIBasedOnRole() {
     const addPeopleBtn = document.querySelector('.add-people-btn');
     const selectAllCheckbox = document.getElementById('selectAll');
     
-    // Only Owners can add people
-    if (currentUserRole !== 'Owner') {
+    // Only Admins can add people
+    if (currentUserRole !== 'Admin') {
         addPeopleBtn.style.display = 'none';
     }
     

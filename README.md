@@ -8,7 +8,7 @@ A comprehensive task management and collaboration platform built with Node.js, E
 - **Dashboard Management**: Create and manage multiple dashboards with privacy controls
 - **Kanban Boards**: Visual task organization with drag-and-drop functionality
 - **Task Management**: Create, assign, and track tasks with detailed metadata
-- **Collaboration**: Invite users to dashboards with role-based permissions (Owner, Editor, Viewer)
+- **Collaboration**: Invite users to dashboards with role-based permissions (Admin, Editor, Viewer)
 - **AI Integration**: Gemini AI for task analysis and agent assignment
 - **User Profiles**: Customizable profiles with activity tracking
 - **Real-time Updates**: Dynamic UI updates without page reloads

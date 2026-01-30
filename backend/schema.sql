@@ -31,7 +31,7 @@ CREATE TABLE UserDashboards (
     UserDashboardId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL FOREIGN KEY REFERENCES Users(UserId),
     DashboardId INT NOT NULL FOREIGN KEY REFERENCES Dashboards(DashboardId) ON DELETE CASCADE,
-    Role NVARCHAR(50) DEFAULT 'Viewer',     -- e.g., 'Owner', 'Editor', 'Viewer'
+    Role NVARCHAR(50) DEFAULT 'Viewer',     -- e.g., 'Admin', 'Editor', 'Viewer'
     JoinedAt DATETIME DEFAULT GETDATE(),
     UNIQUE (UserId, DashboardId)            -- Prevent duplicate membership
 );
@@ -40,13 +40,26 @@ CREATE TABLE PendingInvitations (
     InvitationId INT IDENTITY(1,1) PRIMARY KEY,
     DashboardId INT NOT NULL FOREIGN KEY REFERENCES Dashboards(DashboardId) ON DELETE CASCADE,
     Email NVARCHAR(150) NOT NULL,
-    Role NVARCHAR(50) DEFAULT 'Viewer',     -- 'Owner', 'Editor', 'Viewer'
+    Role NVARCHAR(50) DEFAULT 'Viewer',     -- 'Admin', 'Editor', 'Viewer'
     InvitedBy INT NOT NULL FOREIGN KEY REFERENCES Users(UserId),
     Token NVARCHAR(255) UNIQUE,              -- Unique invitation token
     Status NVARCHAR(50) DEFAULT 'Pending',   -- 'Pending', 'Accepted', 'Expired'
     CreatedAt DATETIME DEFAULT GETDATE(),
     ExpiresAt DATETIME,                      -- Optional expiration
     UNIQUE (DashboardId, Email)              -- Prevent duplicate invitations to same email
+);
+
+CREATE TABLE ShareTokens (
+    ShareTokenId INT IDENTITY(1,1) PRIMARY KEY,
+    DashboardId INT NOT NULL FOREIGN KEY REFERENCES Dashboards(DashboardId) ON DELETE CASCADE,
+    CreatedBy INT NOT NULL FOREIGN KEY REFERENCES Users(UserId),
+    Token NVARCHAR(255) UNIQUE NOT NULL,     -- Unique share token
+    Role NVARCHAR(50) DEFAULT 'Viewer',      -- 'Admin', 'Editor', 'Viewer'
+    ExpiresAt DATETIME,                      -- NULL means no expiration
+    IsActive BIT DEFAULT 1,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    RevokedAt DATETIME NULL,
+    AccessCount INT DEFAULT 0                -- Track how many times token was used
 );
 
 CREATE TABLE Boards (
