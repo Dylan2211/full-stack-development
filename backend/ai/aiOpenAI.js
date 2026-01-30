@@ -1,9 +1,13 @@
 const OpenAI = require("openai");
-const aiTracker = require("../utils/aiTracker");
+const aiLogger = require("../utils/aiLogger");
 
 async function openAIPrompt(req, res) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
+    const userId = (req.user && (req.user.id || req.user.userId)) || req.body?.userId || null;
+    const dashboardId = req.body?.dashboardId || null;
+    const taskId = req.body?.taskId || null;
+
     if (!apiKey) {
       return res.status(500).json({ error: "OPENAI_API_KEY missing in .env" });
     }
@@ -49,14 +53,19 @@ async function openAIPrompt(req, res) {
         const usage = completion.usage || undefined;
         const ms = Date.now() - start;
 
-        // Track success
-        aiTracker.track({
-          provider: 'OpenAI',
+        // Log success to database
+        aiLogger.logAiCall({
+          userId,
+          dashboardId,
+          taskId,
+          provider: "OpenAI",
           model,
+          requestPath: "/api/ai/openai",
           prompt: prompt || JSON.stringify(messages || []),
           response: output,
-          tokens: (usage?.prompt_tokens || 0) + (usage?.completion_tokens || 0),
-          latencyMs: ms,
+          tokensIn: usage?.prompt_tokens || 0,
+          tokensOut: usage?.completion_tokens || 0,
+          responseTimeMs: ms,
           success: true
         });
 
@@ -77,7 +86,7 @@ async function openAIPrompt(req, res) {
         // Respect Retry-After header if provided
         let retryAfter = null;
         try {
-          const ra = e?.response?.headers?.get ? e.response.headers.get('retry-after') : e?.response?.headers?.['retry-after'];
+          const ra = e?.response?.headers?.get ? e.response.headers.get("retry-after") : e?.response?.headers?.["retry-after"];
           if (ra) retryAfter = parseInt(ra, 10);
         } catch (_) {
           retryAfter = null;
@@ -91,17 +100,23 @@ async function openAIPrompt(req, res) {
     }
 
     // If we exit loop, log error and return a clear error to client
+    const ms = Date.now() - start;
     console.error("OpenAI final error:", lastErr?.message || lastErr);
-    aiTracker.track({
-      provider: 'OpenAI',
+
+    aiLogger.logAiCall({
+      userId,
+      dashboardId,
+      taskId,
+      provider: "OpenAI",
       model,
+      requestPath: "/api/ai/openai",
       prompt: prompt || JSON.stringify(messages || []),
       response: null,
-      tokens: 0,
-      latencyMs: Date.now() - start,
+      responseTimeMs: ms,
       success: false,
       errorMessage: lastErr?.message || String(lastErr)
     });
+
     if (lastErr?.status === 429 || (lastErr?.message && /quota|rate limit|429/i.test(lastErr.message))) {
       return res.status(429).json({
         error: "OpenAI quota or rate limit exceeded",
@@ -115,16 +130,27 @@ async function openAIPrompt(req, res) {
       details: lastErr?.message || String(lastErr),
     });
   } catch (err) {
+    const ms = Date.now() - (req.body?.startTime || Date.now());
+    const userId = (req.user && (req.user.id || req.user.userId)) || req.body?.userId || null;
+    const dashboardId = req.body?.dashboardId || null;
+    const taskId = req.body?.taskId || null;
+
     console.error("OpenAI error:", err?.message || err);
-    try {
-      await logAiRequest({
-        model: req.body?.model || "gpt-4o-mini",
-        request_path: "/api/ai/openai",
-        prompt: req.body?.prompt || JSON.stringify(req.body?.messages || []),
-        status: "error",
-        error_message: err?.message || String(err),
-      });
-    } catch (_) {}
+
+    aiLogger.logAiCall({
+      userId,
+      dashboardId,
+      taskId,
+      provider: "OpenAI",
+      model: req.body?.model || "gpt-4o-mini",
+      requestPath: "/api/ai/openai",
+      prompt: req.body?.prompt || JSON.stringify(req.body?.messages || []),
+      response: null,
+      responseTimeMs: ms,
+      success: false,
+      errorMessage: err?.message || String(err)
+    });
+
     return res.status(500).json({
       error: "OpenAI request failed",
       details: err?.message || String(err),
@@ -133,3 +159,4 @@ async function openAIPrompt(req, res) {
 }
 
 module.exports = { openAIPrompt };
+

@@ -1,4 +1,5 @@
 const taskModel = require("../models/taskModel");
+const boardModel = require("../models/boardModel");
 const ai = require("../ai/aiAssignAgent");
 
 async function createTask(req, res) {
@@ -9,7 +10,17 @@ async function createTask(req, res) {
     if (req.body.position == undefined) {
       return res.status(400).json({ error: "Position is required" });
     }
-    const aiData = await ai.aiAssignAgent(req.body);
+
+    // Get dashboardId from boardId for logging
+    const board = await boardModel.getBoard(req.body.boardId);
+    if (!board) {
+      return res.status(400).json({ error: "Invalid boardId" });
+    }
+
+    const userId = req.user?.userId || req.user?.id;
+    const dashboardId = board.DashboardId;
+
+    const aiData = await ai.aiAssignAgent(req.body, userId, dashboardId, null); // taskId is null since task doesn't exist yet
     const task = { ...req.body, ...aiData };
     const taskId = await taskModel.createTask(task);
 

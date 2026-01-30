@@ -1,9 +1,13 @@
 const Groq = require("groq-sdk");
-const aiTracker = require("../utils/aiTracker");
+const aiLogger = require("../utils/aiLogger");
 
 async function groqPrompt(req, res) {
   try {
     const apiKey = process.env.GROQ_API_KEY;
+    const userId = (req.user && (req.user.id || req.user.userId)) || req.body?.userId || null;
+    const dashboardId = req.body?.dashboardId || null;
+    const taskId = req.body?.taskId || null;
+
     if (!apiKey) {
       return res.status(500).json({ error: "GROQ_API_KEY missing in .env" });
     }
@@ -49,13 +53,19 @@ async function groqPrompt(req, res) {
         const usage = completion.usage || undefined;
         const ms = Date.now() - start;
 
-        aiTracker.track({
-          provider: 'Groq',
+        // Log success to database
+        aiLogger.logAiCall({
+          userId,
+          dashboardId,
+          taskId,
+          provider: "Groq",
           model,
+          requestPath: "/api/ai/groq",
           prompt: prompt || JSON.stringify(messages || []),
           response: output,
-          tokens: (usage?.prompt_tokens || 0) + (usage?.completion_tokens || 0),
-          latencyMs: ms,
+          tokensIn: usage?.prompt_tokens || 0,
+          tokensOut: usage?.completion_tokens || 0,
+          responseTimeMs: ms,
           success: true
         });
 
@@ -90,14 +100,19 @@ async function groqPrompt(req, res) {
     }
 
     // If we exit loop, return a clear error to client
+    const ms = Date.now() - start;
     console.error("Groq final error:", lastErr?.message || lastErr);
-    aiTracker.track({
-      provider: 'Groq',
+
+    aiLogger.logAiCall({
+      userId,
+      dashboardId,
+      taskId,
+      provider: "Groq",
       model,
+      requestPath: "/api/ai/groq",
       prompt: prompt || JSON.stringify(messages || []),
       response: null,
-      tokens: 0,
-      latencyMs: Date.now() - start,
+      responseTimeMs: ms,
       success: false,
       errorMessage: lastErr?.message || String(lastErr)
     });
@@ -125,16 +140,27 @@ async function groqPrompt(req, res) {
       details: lastErr?.message || String(lastErr),
     });
   } catch (err) {
+    const ms = Date.now() - (req.body?.startTime || Date.now());
+    const userId = (req.user && (req.user.id || req.user.userId)) || req.body?.userId || null;
+    const dashboardId = req.body?.dashboardId || null;
+    const taskId = req.body?.taskId || null;
+
     console.error("Groq initialization error:", err?.message || err);
-    try {
-      await logAiRequest({
-        model: req.body?.model || process.env.GROQ_MODEL || "llama-3.1-8b-instant",
-        request_path: "/api/ai/groq",
-        prompt: req.body?.prompt || JSON.stringify(req.body?.messages || []),
-        status: "error",
-        error_message: err?.message || String(err),
-      });
-    } catch (_) {}
+
+    aiLogger.logAiCall({
+      userId,
+      dashboardId,
+      taskId,
+      provider: "Groq",
+      model: req.body?.model || process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+      requestPath: "/api/ai/groq",
+      prompt: req.body?.prompt || JSON.stringify(req.body?.messages || []),
+      response: null,
+      responseTimeMs: ms,
+      success: false,
+      errorMessage: err?.message || String(err)
+    });
+
     return res.status(500).json({
       error: "Groq request failed",
       details: err?.message || String(err),

@@ -249,32 +249,48 @@ async function deleteTask(taskId, cardElement) {
 async function executeAITask(taskId, aiModel, title, description) {
   try {
     const prompt = `Task: ${title}\nDescription: ${description}`;
-    
+
     let apiEndpoint;
-    if (aiModel === "gemini-2.5-flash") {
+    // Auto-assign if no model specified or unknown model
+    if (!aiModel || aiModel === "auto" || aiModel === "Auto") {
+      apiEndpoint = "/api/ai/auto";
+    } else if (aiModel === "gemini-2.5-flash") {
       apiEndpoint = "/api/ai/gemini";
     } else if (aiModel === "gpt-4o-mini") {
       apiEndpoint = "/api/ai/openai";
     } else if (aiModel === "llama-3.1-8b-instant") {
       apiEndpoint = "/api/ai/groq";
+    } else if (aiModel === "gemma3:4b" || aiModel.startsWith("ollama")) {
+      apiEndpoint = "/api/ai/ollama";
     } else {
-      console.error("Unknown AI model:", aiModel);
-      return;
+      console.log("Unknown AI model, using auto-assign:", aiModel);
+      apiEndpoint = "/api/ai/auto";
     }
-    
+
+    // Get context for logging
+    const dashboardId = getDashboardId();
+
     const res = await authFetch(apiEndpoint, {
       method: "POST",
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({
+        prompt,
+        dashboardId,
+        taskId
+      }),
     });
-    
+
     if (res.ok) {
       const result = await res.json();
       const aiOutput = result.output;
-      
+
       await authFetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         body: JSON.stringify({ aiOutput }),
       });
+    } else {
+      console.error("AI request failed:", res.status, res.statusText);
+      const errorText = await res.text();
+      console.error("Error details:", errorText);
     }
   } catch (error) {
     console.error("Error executing AI task:", error);

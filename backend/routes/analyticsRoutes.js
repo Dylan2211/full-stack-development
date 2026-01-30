@@ -1,18 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const aiTracker = require("../utils/aiTracker");
+const { authMiddleware } = require("../middleware/jwtAuth");
+
+// Require authentication for all analytics endpoints
+router.use(authMiddleware);
 
 router.get("/overview", async (req, res) => {
   try {
     const recentCalls = aiTracker.getCallsSince(1); // Last 1 minute
-    const errorRate = aiTracker.getErrorRate();
     const avgLatency = aiTracker.getAvgLatency();
     const successRate = aiTracker.getSuccessRate();
 
     res.json({
       liveRequests: recentCalls.length,
       avgLatency,
-      errorRate,
       successRate
     });
   } catch (err) {
@@ -95,7 +97,6 @@ router.get('/stats', async (req, res) => {
     res.json({
       totalCalls: aiTracker.getTotalCalls(),
       successRate: aiTracker.getSuccessRate() + '%',
-      errorRate: aiTracker.getErrorRate() + '%',
       avgLatency: aiTracker.getAvgLatency() + 'ms',
       recentCalls: aiTracker.getAllCalls().slice(-10).map(c => ({
         provider: c.provider,
@@ -147,6 +148,42 @@ router.post('/simulate', async (req, res) => {
   } catch (err) {
     console.error('/simulate error:', err?.message || err);
     res.status(500).json({ error: 'simulate_failed', details: err?.message || String(err) });
+  }
+});
+
+// Failures/errors endpoint
+router.get('/failures', async (req, res) => {
+  try {
+    const allCalls = aiTracker.getAllCalls();
+    const failures = allCalls.filter(c => !c.success);
+    
+    const failuresByProvider = {};
+    failures.forEach(f => {
+      const p = f.provider || 'unknown';
+      if (!failuresByProvider[p]) failuresByProvider[p] = 0;
+      failuresByProvider[p]++;
+    });
+
+    const totalCalls = allCalls.length;
+    const failureRate = totalCalls ? Number(((failures.length / totalCalls) * 100).toFixed(1)) : 0;
+    const recentFailures = failures.slice(-10).reverse().map(f => ({
+      id: f.id,
+      provider: f.provider,
+      model: f.model,
+      error: f.errorMessage || 'Unknown error',
+      time: f.timestamp.toLocaleString(),
+      latencyMs: f.latencyMs
+    }));
+
+    res.json({
+      totalFailures: failures.length,
+      failureRate,
+      failuresByProvider,
+      recentFailures
+    });
+  } catch (err) {
+    console.error('/failures error:', err?.message || err);
+    res.status(500).json({ error: 'failures_failed', details: err?.message || String(err) });
   }
 });
 
