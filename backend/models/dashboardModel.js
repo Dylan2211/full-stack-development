@@ -368,6 +368,48 @@ async function createInvitation(dashboardId, email, role, invitedBy) {
 }
 
 /**
+ * Get any invitation by dashboard and email (regardless of status)
+ */
+async function getInvitationByDashboardAndEmail(dashboardId, email) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .input("Email", sql.NVarChar, email)
+    .query(`
+      SELECT * FROM PendingInvitations 
+      WHERE DashboardId = @DashboardId AND Email = @Email
+    `);
+  
+  return result.recordset[0] || null;
+}
+
+/**
+ * Update existing invitation
+ */
+async function updateInvitation(invitationId, role, invitedBy) {
+  const pool = await sql.connect(dbConfig);
+  const token = require("crypto").randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+  
+  const result = await pool.request()
+    .input("InvitationId", sql.Int, invitationId)
+    .input("Role", sql.NVarChar, role)
+    .input("InvitedBy", sql.Int, invitedBy)
+    .input("Token", sql.NVarChar, token)
+    .input("ExpiresAt", sql.DateTime, expiresAt)
+    .query(`
+      UPDATE PendingInvitations 
+      SET Role = @Role, InvitedBy = @InvitedBy, Token = @Token, 
+          Status = 'Pending', ExpiresAt = @ExpiresAt, CreatedAt = GETDATE()
+      WHERE InvitationId = @InvitationId;
+      
+      SELECT * FROM PendingInvitations WHERE InvitationId = @InvitationId;
+    `);
+  
+  return result.recordset[0];
+}
+
+/**
  * Get pending invitation by dashboard and email
  */
 async function getPendingInvitation(dashboardId, email) {
@@ -491,7 +533,9 @@ module.exports = {
   acceptInvitation,
   declineInvitation,
   createInvitation,
+  updateInvitation,
   getPendingInvitation,
+  getInvitationByDashboardAndEmail,
   getDashboardInvitations,
   acceptInvitationById,
   declineInvitationById,

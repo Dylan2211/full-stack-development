@@ -208,16 +208,27 @@ async function addCollaboratorByEmail(req, res) {
       });
     }
     
-    // Check if there's already a pending invitation
-    const existingInvitation = await dashboardModel.getPendingInvitation(dashboardId, email);
-    if (existingInvitation) {
-      return res.status(400).json({ 
-        error: "User already has a pending invitation to this dashboard"
-      });
-    }
+    // Check if there's already any invitation (pending, declined, or expired)
+    const existingInvitation = await dashboardModel.getInvitationByDashboardAndEmail(dashboardId, email);
     
-    // Create invitation
-    const invitation = await dashboardModel.createInvitation(dashboardId, email, role, inviterId);
+    let invitation;
+    let action;
+    
+    if (existingInvitation) {
+      if (existingInvitation.Status === 'Pending') {
+        return res.status(400).json({ 
+          error: "User already has a pending invitation to this dashboard"
+        });
+      }
+      
+      // Update existing invitation (for declined/expired invitations)
+      invitation = await dashboardModel.updateInvitation(existingInvitation.InvitationId, role, inviterId);
+      action = "re-invited";
+    } else {
+      // Create new invitation
+      invitation = await dashboardModel.createInvitation(dashboardId, email, role, inviterId);
+      action = "invited";
+    }
     
     // Try to create notification (optional - don't fail if table doesn't exist)
     try {
@@ -243,11 +254,11 @@ async function addCollaboratorByEmail(req, res) {
     }
     
     res.status(201).json({ 
-      message: "Invitation sent successfully",
+      message: action === "re-invited" ? "Invitation updated and resent successfully" : "Invitation sent successfully",
       invitationId: invitation.InvitationId,
       email: email,
       role: role,
-      action: "invited"
+      action: action
     });
   } catch (error) {
     console.error('Error sending invitation:', error);
