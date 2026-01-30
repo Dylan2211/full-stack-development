@@ -19,16 +19,22 @@ async function createDashboard(req, res) {
     const { name, description } = req.body;
     const userId = req.user.userId || req.user.id;
     
+    console.log(`Creating dashboard for user ${userId}: ${name}`);
+    
     const newDashboard = await dashboardModel.createDashboard(name, description);
+    console.log(`Dashboard created with ID: ${newDashboard.DashboardId}`);
     
     // Link the creator as Owner in UserDashboards
     await dashboardModel.addUserToDashboard(userId, newDashboard.DashboardId, 'Owner');
+    console.log(`User ${userId} added as Owner to dashboard ${newDashboard.DashboardId}`);
     
     const boardModel = require("../models/boardModel");
     await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "To Do"})
     await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "In Progress"})
     await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "Completed"})
     await boardModel.createBoard({ dashboardId: newDashboard.DashboardId, name: "Error"})
+    
+    console.log(`Default boards created for dashboard ${newDashboard.DashboardId}`);
     
     res.status(201).json(newDashboard);
   } catch (error) {
@@ -167,12 +173,13 @@ async function updateUserRole(req, res) {
 }
 
 /**
- * Add collaborator by email
+ * Add collaborator by email (send invitation)
  */
 async function addCollaboratorByEmail(req, res) {
   try {
     const dashboardId = parseInt(req.params.dashboardId || req.params.id);
     const { email, role } = req.body;
+    const inviterId = req.user.userId || req.user.id;
     
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
@@ -196,39 +203,54 @@ async function addCollaboratorByEmail(req, res) {
     // Check if user is already in dashboard
     const existingRole = await dashboardModel.getUserRole(userId, dashboardId);
     if (existingRole) {
-      // User already exists, update their role if different
-      if (existingRole !== role) {
-        await dashboardModel.updateUserRole(userId, dashboardId, role);
-        return res.status(200).json({ 
-          message: "Collaborator role updated successfully",
-          userId: userId,
-          email: email,
-          role: role,
-          action: "updated"
-        });
-      } else {
-        // Role is the same, just return success
-        return res.status(200).json({ 
-          message: "User is already a collaborator with this role",
-          userId: userId,
-          email: email,
-          role: role,
-          action: "unchanged"
-        });
-      }
+      return res.status(400).json({ 
+        error: "User is already a collaborator on this dashboard"
+      });
     }
     
-    // Add user directly to dashboard
-    await dashboardModel.addUserToDashboard(userId, dashboardId, role);
+    // Check if there's already a pending invitation
+    const existingInvitation = await dashboardModel.getPendingInvitation(dashboardId, email);
+    if (existingInvitation) {
+      return res.status(400).json({ 
+        error: "User already has a pending invitation to this dashboard"
+      });
+    }
+    
+    // Create invitation
+    const invitation = await dashboardModel.createInvitation(dashboardId, email, role, inviterId);
+    
+    // Try to create notification (optional - don't fail if table doesn't exist)
+    try {
+      const dashboard = await dashboardModel.getDashboard(dashboardId);
+      const inviter = await userModel.findById(inviterId);
+      const inviterName = inviter.recordset[0]?.FullName || 'Someone';
+      
+      const notificationModel = require("../models/notificationModel");
+      await notificationModel.createNotification(
+        userId,
+        'invitation',
+        'Dashboard Invitation',
+        `${inviterName} invited you to collaborate on "${dashboard.Name}" as ${role}`,
+        invitation.InvitationId,
+        'invitation'
+      );
+      console.log(`✅ Notification created successfully for user ${userId} about invitation ${invitation.InvitationId}`);
+    } catch (notificationError) {
+      console.error('❌ Notification creation failed:', notificationError.message);
+      console.log('This is likely because the Notifications table does not exist in your database.');
+      console.log('Run the SQL script: backend/add-notifications-table.sql to fix this.');
+      // Continue without failing - notifications are optional
+    }
+    
     res.status(201).json({ 
-      message: "Collaborator added successfully",
-      userId: userId,
+      message: "Invitation sent successfully",
+      invitationId: invitation.InvitationId,
       email: email,
       role: role,
-      action: "added"
+      action: "invited"
     });
   } catch (error) {
-    console.error('Error adding collaborator:', error);
+    console.error('Error sending invitation:', error);
     res.status(500).json({ error: error.message });
   }
 }
@@ -248,14 +270,28 @@ async function getPendingInvitations(req, res) {
 }
 
 /**
+ * Get dashboard invitations (for dashboard owners)
+ */
+async function getDashboardInvitations(req, res) {
+  try {
+    const dashboardId = parseInt(req.params.dashboardId || req.params.id);
+    const invitations = await dashboardModel.getDashboardInvitations(dashboardId);
+    res.json(invitations);
+  } catch (error) {
+    console.error('Error getting dashboard invitations:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
  * Accept invitation
  */
-async function acceptInvitation(req, res) {
+async function acceptInvitationById(req, res) {
   try {
-    const { token } = req.params;
+    const invitationId = parseInt(req.params.invitationId);
     const userId = req.user.userId || req.user.id;
     
-    const result = await dashboardModel.acceptInvitation(token, userId);
+    const result = await dashboardModel.acceptInvitationById(invitationId, userId);
     res.json(result);
   } catch (error) {
     console.error('Error accepting invitation:', error);
@@ -266,13 +302,27 @@ async function acceptInvitation(req, res) {
 /**
  * Decline invitation
  */
-async function declineInvitation(req, res) {
+async function declineInvitationById(req, res) {
   try {
-    const { token } = req.params;
-    const result = await dashboardModel.declineInvitation(token);
+    const invitationId = parseInt(req.params.invitationId);
+    const result = await dashboardModel.declineInvitationById(invitationId);
     res.json(result);
   } catch (error) {
     console.error('Error declining invitation:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+/**
+ * Rescind invitation (owner only)
+ */
+async function rescindInvitation(req, res) {
+  try {
+    const invitationId = parseInt(req.params.invitationId);
+    const result = await dashboardModel.rescindInvitation(invitationId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error rescinding invitation:', error);
     res.status(500).json({ error: error.message });
   }
 }
@@ -290,6 +340,8 @@ module.exports = {
   updateUserRole,
   addCollaboratorByEmail,
   getPendingInvitations,
-  acceptInvitation,
-  declineInvitation,
+  getDashboardInvitations,
+  acceptInvitationById,
+  declineInvitationById,
+  rescindInvitation,
 };

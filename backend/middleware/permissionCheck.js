@@ -10,11 +10,14 @@ function checkDashboardPermission(allowedRoles) {
       const userId = req.user.userId || req.user.id;
       const dashboardId = parseInt(req.params.dashboardId || req.params.id || req.body.dashboardId);
 
+      console.log(`Permission check - UserId: ${userId}, DashboardId: ${dashboardId}, Required roles: ${allowedRoles.join(', ')}`);
+
       if (!dashboardId) {
         return res.status(400).json({ error: "Dashboard ID is required" });
       }
 
       const userRole = await dashboardModel.getUserRole(userId, dashboardId);
+      console.log(`User role found: ${userRole}`);
 
       if (!userRole) {
         return res.status(403).json({ error: "You do not have access to this dashboard" });

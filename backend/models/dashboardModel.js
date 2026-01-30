@@ -17,13 +17,15 @@ async function getAllDashboards() {
 }
 
 /**
- * Retrieves all dashboards for a specific user
+ * Retrieves all dashboards for a specific user with collaborator information
  * @param {number} userId - The user's ID
  * @returns {Promise<Array>} Array of dashboard objects the user has access to
  */
 async function getDashboardsByUserId(userId) {
   const pool = await sql.connect(dbConfig);
-  const result = await pool.request()
+  
+  // First get the dashboards
+  const dashboardsResult = await pool.request()
     .input("UserId", sql.Int, userId)
     .query(`
       SELECT d.DashboardId, d.Name, d.Description, d.CreatedAt
@@ -32,7 +34,30 @@ async function getDashboardsByUserId(userId) {
       WHERE ud.UserId = @UserId
       ORDER BY d.DashboardId DESC
     `);
-  return result.recordset;
+  
+  // Then get collaborators for each dashboard
+  const dashboards = [];
+  for (const dashboard of dashboardsResult.recordset) {
+    const collaboratorsResult = await pool.request()
+      .input("DashboardId", sql.Int, dashboard.DashboardId)
+      .query(`
+        SELECT 
+          u.FullName as Name,
+          u.Email,
+          ud.Role,
+          'accepted' as Status
+        FROM UserDashboards ud
+        JOIN Users u ON u.UserId = ud.UserId
+        WHERE ud.DashboardId = @DashboardId
+      `);
+    
+    dashboards.push({
+      ...dashboard,
+      Collaborators: collaboratorsResult.recordset
+    });
+  }
+  
+  return dashboards;
 }
 
 /**
@@ -133,17 +158,24 @@ async function getUsersByDashboardId(dashboardId) {
 }
 
 async function addUserToDashboard(userId, dashboardId, role = "Viewer") {
+  console.log(`Adding user ${userId} to dashboard ${dashboardId} with role ${role}`);
   
   const pool = await sql.connect(dbConfig);
-  await pool
-    .request()
-    .input("UserId", sql.Int, userId)
-    .input("DashboardId", sql.Int, dashboardId)
-    .input("Role", sql.NVarChar, role).query(`
-      INSERT INTO UserDashboards (UserId, DashboardId, Role)
-      VALUES (@UserId, @DashboardId, @Role)
-    `);
-  return { message: "User added to dashboard successfully" };
+  try {
+    await pool
+      .request()
+      .input("UserId", sql.Int, userId)
+      .input("DashboardId", sql.Int, dashboardId)
+      .input("Role", sql.NVarChar, role).query(`
+        INSERT INTO UserDashboards (UserId, DashboardId, Role)
+        VALUES (@UserId, @DashboardId, @Role)
+      `);
+    console.log(`Successfully added user ${userId} to dashboard ${dashboardId} as ${role}`);
+    return { message: "User added to dashboard successfully" };
+  } catch (error) {
+    console.error(`Error adding user to dashboard:`, error);
+    throw error;
+  }
 }
 
 async function removeUserFromDashboard(userId, dashboardId) {
@@ -304,6 +336,144 @@ async function declineInvitation(token) {
   return { message: "Invitation declined" };
 }
 
+/**
+ * Create a new invitation
+ */
+async function createInvitation(dashboardId, email, role, invitedBy) {
+  const pool = await sql.connect(dbConfig);
+  const token = require("crypto").randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+  
+  const result = await pool.request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .input("Email", sql.NVarChar, email)
+    .input("Role", sql.NVarChar, role)
+    .input("InvitedBy", sql.Int, invitedBy)
+    .input("Token", sql.NVarChar, token)
+    .input("ExpiresAt", sql.DateTime, expiresAt)
+    .query(`
+      INSERT INTO PendingInvitations (DashboardId, Email, Role, InvitedBy, Token, ExpiresAt)
+      VALUES (@DashboardId, @Email, @Role, @InvitedBy, @Token, @ExpiresAt);
+      SELECT SCOPE_IDENTITY() AS InvitationId;
+    `);
+  
+  return {
+    InvitationId: result.recordset[0].InvitationId,
+    DashboardId: dashboardId,
+    Email: email,
+    Role: role,
+    Token: token,
+    Status: 'Pending'
+  };
+}
+
+/**
+ * Get pending invitation by dashboard and email
+ */
+async function getPendingInvitation(dashboardId, email) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .input("Email", sql.NVarChar, email)
+    .query(`
+      SELECT * FROM PendingInvitations 
+      WHERE DashboardId = @DashboardId AND Email = @Email AND Status = 'Pending'
+    `);
+  
+  return result.recordset[0] || null;
+}
+
+/**
+ * Get all pending invitations for a dashboard
+ */
+async function getDashboardInvitations(dashboardId) {
+  const pool = await sql.connect(dbConfig);
+  const result = await pool.request()
+    .input("DashboardId", sql.Int, dashboardId)
+    .query(`
+      SELECT pi.*, u.FullName as InviterName
+      FROM PendingInvitations pi
+      JOIN Users u ON u.UserId = pi.InvitedBy
+      WHERE pi.DashboardId = @DashboardId AND pi.Status = 'Pending'
+      ORDER BY pi.CreatedAt DESC
+    `);
+  
+  return result.recordset;
+}
+
+/**
+ * Accept an invitation
+ */
+async function acceptInvitationById(invitationId, userId) {
+  const pool = await sql.connect(dbConfig);
+  
+  // Get invitation details
+  const invitationResult = await pool.request()
+    .input("InvitationId", sql.Int, invitationId)
+    .query(`
+      SELECT * FROM PendingInvitations 
+      WHERE InvitationId = @InvitationId AND Status = 'Pending'
+    `);
+  
+  if (!invitationResult.recordset.length) {
+    throw new Error("Invitation not found or already processed");
+  }
+  
+  const invitation = invitationResult.recordset[0];
+  
+  // Check if invitation has expired
+  if (invitation.ExpiresAt && new Date() > new Date(invitation.ExpiresAt)) {
+    throw new Error("Invitation has expired");
+  }
+  
+  // Add user to dashboard
+  await addUserToDashboard(userId, invitation.DashboardId, invitation.Role);
+  
+  // Mark invitation as accepted
+  await pool.request()
+    .input("InvitationId", sql.Int, invitationId)
+    .query(`
+      UPDATE PendingInvitations 
+      SET Status = 'Accepted' 
+      WHERE InvitationId = @InvitationId
+    `);
+  
+  return { message: "Invitation accepted successfully" };
+}
+
+/**
+ * Decline an invitation by ID
+ */
+async function declineInvitationById(invitationId) {
+  const pool = await sql.connect(dbConfig);
+  
+  await pool.request()
+    .input("InvitationId", sql.Int, invitationId)
+    .query(`
+      UPDATE PendingInvitations 
+      SET Status = 'Declined' 
+      WHERE InvitationId = @InvitationId AND Status = 'Pending'
+    `);
+  
+  return { message: "Invitation declined" };
+}
+
+/**
+ * Rescind an invitation (owner only)
+ */
+async function rescindInvitation(invitationId) {
+  const pool = await sql.connect(dbConfig);
+  
+  await pool.request()
+    .input("InvitationId", sql.Int, invitationId)
+    .query(`
+      DELETE FROM PendingInvitations 
+      WHERE InvitationId = @InvitationId AND Status = 'Pending'
+    `);
+  
+  return { message: "Invitation rescinded" };
+}
+
 module.exports = {
   getDashboard,
   createDashboard,
@@ -320,4 +490,10 @@ module.exports = {
   getPendingInvitations,
   acceptInvitation,
   declineInvitation,
+  createInvitation,
+  getPendingInvitation,
+  getDashboardInvitations,
+  acceptInvitationById,
+  declineInvitationById,
+  rescindInvitation,
 };

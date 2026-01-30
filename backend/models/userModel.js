@@ -25,6 +25,14 @@ async function findByEmail(email) {
     .query(`SELECT * FROM Users WHERE Email = @Email`);
 }
 
+async function findById(id) {
+  const pool = await poolPromise;
+  return pool
+    .request()
+    .input("UserId", sql.Int, id)
+    .query(`SELECT * FROM Users WHERE UserId = @UserId`);
+}
+
 async function getAll() {
   const pool = await poolPromise;
   return pool.request().query(`SELECT * FROM Users ORDER BY UserId`);
@@ -81,6 +89,7 @@ async function updatePassword(id, passwordHash) {
 module.exports = {
   createUser,
   findByEmail,
+  findById,
   getAll,
   getById,
   deleteUser,

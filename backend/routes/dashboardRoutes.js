@@ -22,14 +22,47 @@ router.delete("/:dashboardId", authMiddleware, checkDashboardPermission(['Owner'
 // Get current user's role in a dashboard
 router.get("/:dashboardId/my-role", authMiddleware, dashboardController.getUserRole);
 
+// Debug endpoint to check user dashboard relationships
+router.get("/:dashboardId/debug", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId || req.user.id;
+    const dashboardId = parseInt(req.params.dashboardId);
+    
+    const dashboardModel = require("../models/dashboardModel");
+    const userRole = await dashboardModel.getUserRole(userId, dashboardId);
+    
+    res.json({
+      userId,
+      dashboardId,
+      userRole,
+      hasAccess: !!userRole,
+      isOwner: userRole === 'Owner'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all users/collaborators in a dashboard (any member can view)
 router.get("/:id/users", authMiddleware, checkDashboardAccess(), dashboardController.getUsersByDashboard);
 
 // Add user to dashboard (Owner only)
 router.post("/:dashboardId/users", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.addUserToDashboard);
 
-// Add collaborator by email (Owner only)
+// Add collaborator by email (Owner only) - now sends invitation
 router.post("/:dashboardId/invite", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.addCollaboratorByEmail);
+
+// Get dashboard invitations (Owner only)
+router.get("/:dashboardId/invitations", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.getDashboardInvitations);
+
+// Rescind invitation (Owner only)
+router.delete("/invitations/:invitationId", authMiddleware, dashboardController.rescindInvitation);
+
+// Accept invitation
+router.post("/invitations/:invitationId/accept", authMiddleware, dashboardController.acceptInvitationById);
+
+// Decline invitation
+router.post("/invitations/:invitationId/decline", authMiddleware, dashboardController.declineInvitationById);
 
 
 // Update user role in dashboard (Owner only)
