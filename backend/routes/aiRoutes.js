@@ -7,7 +7,7 @@ const { openAIPrompt } = require("../ai/aiOpenAI");
 const { groqPrompt } = require("../ai/aiGroq");
 const { ollamaPrompt } = require("../ai/aiOllama");
 const { autoAssignAI, getAvailableProviders } = require("../ai/aiAutoAssign");
-const aiLogger = require("../utils/aiLogger");
+const aiTracker = require("../utils/aiTracker");
 
 router.get("/ping", (req, res) => {
   res.json({ ok: true, msg: "ai route mounted" });
@@ -49,7 +49,7 @@ router.post("/auto", async (req, res) => {
     const ms = Date.now() - start;
 
     // Log the successful auto-assign call
-    aiLogger.logAiCall({
+    aiTracker.track({
       userId,
       dashboardId,
       taskId,

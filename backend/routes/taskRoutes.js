@@ -14,17 +14,17 @@ const { checkTaskPermission, checkBoardForTaskCreation } = require("../middlewar
 
 // Board routes - nested under dashboards
 router.get("/dashboards/:dashboardId/boards", authMiddleware, checkDashboardAccess(), boardController.getBoardByDashboardId);
-router.post("/dashboards/:dashboardId/boards", authMiddleware, checkDashboardForBoardCreation(['Admin', 'Editor']), boardController.createBoard);
-router.get("/boards/:boardId", authMiddleware, checkBoardPermission(['Admin', 'Editor', 'Viewer']), boardController.getBoard);
-router.put("/boards/:boardId", authMiddleware, checkBoardPermission(['Admin', 'Editor']), boardController.updateBoard);
-router.delete("/boards/:boardId", authMiddleware, checkBoardPermission(['Admin']), boardController.deleteBoard);
+router.post("/dashboards/:dashboardId/boards", authMiddleware, checkDashboardForBoardCreation(['Owner', 'Admin', 'Editor']), boardController.createBoard);
+router.get("/boards/:boardId", authMiddleware, checkBoardPermission(['Owner', 'Admin', 'Editor', 'Viewer']), boardController.getBoard);
+router.put("/boards/:boardId", authMiddleware, checkBoardPermission(['Owner', 'Admin', 'Editor']), boardController.updateBoard);
+router.delete("/boards/:boardId", authMiddleware, checkBoardPermission(['Owner', 'Admin']), boardController.deleteBoard);
 
 // Task routes
 router.get("/boards/:boardId/tasks", authMiddleware, checkBoardPermission(['Admin', 'Editor', 'Viewer']), taskController.getTasksByBoardId);
 router.get("/tasks/:id", authMiddleware, checkTaskPermission(['Admin', 'Editor', 'Viewer']), taskController.getTask);
-router.post("/tasks", authMiddleware, checkBoardForTaskCreation(['Admin', 'Editor']), taskController.createTask);
-router.put("/tasks/:id", authMiddleware, checkTaskPermission(['Admin', 'Editor']), taskController.updateTask);
-router.delete("/tasks/:id", authMiddleware, checkTaskPermission(['Admin', 'Editor']), taskController.deleteTask);
+router.post("/tasks", authMiddleware, checkBoardForTaskCreation(['Owner', 'Admin', 'Editor']), taskController.createTask);
+router.put("/tasks/:id", authMiddleware, checkTaskPermission(['Owner', 'Admin', 'Editor']), taskController.updateTask);
+router.delete("/tasks/:id", authMiddleware, checkTaskPermission(['Owner', 'Admin', 'Editor']), taskController.deleteTask);
 
 // Agents endpoint (public utility endpoint)
 router.get("/agents", (req, res) => {

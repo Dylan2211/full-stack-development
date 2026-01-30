@@ -101,16 +101,25 @@ async function loadBoards(dashboardId) {
 }
 
 async function loadBoardName(dashboardId) {
-  const res = await authFetch(`/api/dashboards/${dashboardId}`, {
-    method: "GET",
-  });
-  if (!res.ok) {
-    console.error("Dashboard not found");
-    throw new Error("Dashboard not found");
+  try {
+    const res = await authFetch(`/api/dashboards/${dashboardId}`, {
+      method: "GET",
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Failed to load dashboard:", res.status, errorText);
+      throw new Error(`Dashboard not found: ${res.status}`);
+    }
+    const dashboard = await res.json();
+    document.title = dashboard.Name;
+    setText("dashboardTitle", dashboard.Name);
+  } catch (error) {
+    console.error("Error loading dashboard name:", error);
+    // Set a default title so the page still works
+    document.title = "Dashboard";
+    setText("dashboardTitle", "Dashboard");
+    throw error; // Re-throw to be caught by initializeDashboard
   }
-  const dashboard = await res.json();
-  document.title = dashboard.Name;
-  setText("dashboardTitle", dashboard.Name);
 }
 
 function updateBoardName(boardId, nameElement) {
@@ -1027,13 +1036,20 @@ function initializeAddTaskDialog(userId) {
     }
 
     const title = document.getElementById("taskTitle").value.trim();
+    if (!title) {
+      alert("Please enter a task title");
+      return;
+    }
+    
     const description = document.getElementById("taskDesc").value.trim();
     const agentSelect = document.getElementById("taskAgents");
     // Handle agent select possibly being null/missing
     const assignedAgents = agentSelect ? Array.from(agentSelect.selectedOptions).map((o) => o.value) : [];
     
     const skillsEl = document.getElementById("taskSkills");
-    const skills = skillsEl ? skillsEl.value.trim() : "";
+    const skillsInput = skillsEl ? skillsEl.value.trim() : "";
+    // Parse skills as array (split by comma)
+    const requiredSkills = skillsInput ? skillsInput.split(",").map(s => s.trim()).filter(s => s) : [];
     
     const aiModelEl = document.getElementById("taskAIModel");
     const aiModel = aiModelEl ? aiModelEl.value.trim() : "";
@@ -1043,7 +1059,7 @@ function initializeAddTaskDialog(userId) {
         await updateTask(editingTaskId, {
             title,
             description,
-            skills,
+            skills: requiredSkills,
             boardId
         });
         
@@ -1059,11 +1075,11 @@ function initializeAddTaskDialog(userId) {
             title,
             description,
             assignedAgents,
-            skills,
+            requiredSkills,
             boardId,
             createdBy: userId,
             position: 0,
-            status: "todo",
+            status: "To Do",
             aiModel: aiModel || null,
         });
     }
@@ -1173,7 +1189,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupSettingsButton(dashboardId);
   } catch (error) {
     console.error("Error during initialization:", error);
-    document.body.innerHTML = "<h2>Error: Unable to load dashboard data</h2>";
+    // Instead of replacing the entire page, show a user-friendly message
+    const boardTitle = document.getElementById("boardTitle");
+    if (boardTitle) {
+      boardTitle.textContent = "Unable to load dashboard. Please try again.";
+    }
+    // Keep the page structure intact
   }
 
 });

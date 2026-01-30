@@ -35,25 +35,27 @@ app.use(cors({
 
 app.use(express.json());
 
-// Inject mock analytics data on startup
+// Inject mock analytics data on startup (only if INJECT_MOCK_DATA is set)
 const aiTracker = require("../utils/aiTracker");
-(() => {
-  const providers = ["Gemini", "OpenAI", "Groq"];
-  for (let i = 0; i < 15; i++) {
-    const provider = providers[Math.floor(Math.random() * providers.length)];
-    aiTracker.track({
-      provider,
-      model: provider === "Gemini" ? "gemini-2.5-flash" : provider === "OpenAI" ? "gpt-4" : "llama-3.1-8b-instant",
-      prompt: `Mock task ${i + 1}`,
-      response: `Mock result for task ${i + 1}`,
-      tokens: Math.floor(100 + Math.random() * 500),
-      latencyMs: Math.floor(50 + Math.random() * 300),
-      success: Math.random() > 0.2,
-      userId: "demo"
-    });
-  }
-  console.log("[Server] Injected 15 mock analytics records");
-})();
+if (process.env.INJECT_MOCK_DATA === 'true') {
+  (() => {
+    const providers = ["Gemini", "OpenAI", "Groq"];
+    for (let i = 0; i < 15; i++) {
+      const provider = providers[Math.floor(Math.random() * providers.length)];
+      aiTracker.track({
+        provider,
+        model: provider === "Gemini" ? "gemini-2.5-flash" : provider === "OpenAI" ? "gpt-4" : "llama-3.1-8b-instant",
+        prompt: `Mock task ${i + 1}`,
+        response: `Mock result for task ${i + 1}`,
+        tokens: Math.floor(100 + Math.random() * 500),
+        latencyMs: Math.floor(50 + Math.random() * 300),
+        success: Math.random() > 0.2,
+        userId: "demo"
+      });
+    }
+    console.log("[Server] Injected 15 mock analytics records");
+  })();
+}
 
 app.use("/api/ai", aiRoutes);
 app.use("/api/analytics", analyticsRoutes);

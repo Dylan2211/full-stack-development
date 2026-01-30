@@ -6,10 +6,33 @@ const agents = [
   },
 ];
 
-const { queryOllama } = require("./aiOllama");
-const { autoAssignAI } = require("./aiAutoAssign");
+async function queryOllama(prompt, model = "gemma3:4b") {
+  try {
+    const response = await fetch("http://localhost:11434/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        prompt,
+        stream: false,
+      }),
+    });
 
-async function aiAssignAgent(task, userId = null, dashboardId = null, taskId = null) {
+    const data = await response.json();
+    console.log("Ollama response:", data);
+
+    if (!data || !data.response) {
+      throw new Error("Invalid response from Ollama");
+    }
+
+    return data.response.trim();
+  } catch (error) {
+    // Ollama not available, silently use fallback
+    return null;
+  }
+}
+
+async function aiAssignAgent(task) {
   const taskSkills = task.requiredSkills || [];
   console.log(`[Agent Assignment] Task: "${task.title}" | Required skills: [${taskSkills.join(", ")}]`);
   
@@ -54,37 +77,19 @@ async function aiAssignAgent(task, userId = null, dashboardId = null, taskId = n
     {"assignedAgent": "Ollama", "agentMatchScore": 90, "agentProgress": 0, "status": "Pending", "category": "Analysis", "estimatedDuration": "2 hours"}
   `;
 
-    // Try Ollama first
-    let raw = await queryOllama(analysisPrompt, "gemma3:4b", {
-      userId,
-      dashboardId,
-      taskId,
-      requestPath: "/api/ai/assign-agent"
-    });
+    const raw = await queryOllama(analysisPrompt);
 
-    // If Ollama is not available, try auto-assign (will try other providers)
+    // If Ollama is not available, use fallback values
     if (raw === null) {
-      console.log("[aiAssignAgent] Ollama unavailable, trying auto-assign...");
-      try {
-        const autoResult = await autoAssignAI(analysisPrompt, {
-          userId,
-          dashboardId,
-          taskId,
-          requestPath: "/api/ai/assign-agent"
-        });
-        raw = autoResult.output;
-        console.log(`[aiAssignAgent] Auto-assign succeeded with ${autoResult.provider}`);
-      } catch (err) {
-        console.log("[aiAssignAgent] All AI providers failed, using manual fallback");
-        return {
-          assignedAgent: "Manual",
-          agentMatchScore: 0,
-          agentProgress: 0,
-          status: "Pending",
-          category: "General",
-          estimatedDuration: "Not estimated",
-        };
-      }
+      console.log(`[Agent Assignment] Ollama unavailable - using Manual assignment (fallback)`);
+      return {
+        assignedAgent: "Manual",
+        agentMatchScore: 0,
+        agentProgress: 0,
+        status: "Pending",
+        category: "General",
+        estimatedDuration: "Not estimated",
+      };
     }
 
     // Try to parse JSON safely
@@ -117,7 +122,7 @@ async function aiAssignAgent(task, userId = null, dashboardId = null, taskId = n
     status: "Pending",
   };
 }
-module.exports = { aiAssignAgent, agents };
+module.exports = { aiAssignAgent, queryOllama, agents };
 
 // Assign Default Position Value
 // SELECT ISNULL(MAX(Position), 0) + 1

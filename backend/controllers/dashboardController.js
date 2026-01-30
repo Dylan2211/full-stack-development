@@ -3,14 +3,25 @@ const dashboardModel = require("../models/dashboardModel");
 async function getDashboard(req, res) {
   try {
     const dashboardId = parseInt(req.dashboardId || req.params.dashboardId || req.params.id);
+    
+    if (!dashboardId || isNaN(dashboardId)) {
+      console.error('Invalid dashboard ID provided');
+      return res.status(400).json({ error: "Invalid dashboard ID" });
+    }
+    
+    console.log(`Fetching dashboard ${dashboardId}`);
     const dashboard = await require("../models/dashboardModel").getDashboard(dashboardId);
+    
     if (!dashboard) {
+      console.error(`Dashboard ${dashboardId} not found in database`);
       return res.status(404).json({ error: "Dashboard not found" });
     }
+    
+    console.log(`Dashboard ${dashboardId} found: ${dashboard.Name}`);
     res.json(dashboard);
   } catch (error) {
-    console.error(`Error getting dashboard by id: ${error}`);
-    res.status(500).json({ error: "Internal server error" });
+    console.error(`Error getting dashboard: ${error.message}`, error);
+    res.status(500).json({ error: "Failed to load dashboard data" });
   }
 }
 

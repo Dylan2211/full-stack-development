@@ -61,35 +61,45 @@ function checkBoardForTaskCreation(allowedRoles) {
       const userId = req.user.userId || req.user.id;
       const boardId = parseInt(req.body.boardId);
 
-      if (!boardId) {
+      console.log(`[Task Creation Check] User ${userId} attempting to create task in board ${boardId}`);
+
+      if (!boardId || isNaN(boardId)) {
+        console.error('[Task Creation Check] Invalid or missing board ID');
         return res.status(400).json({ error: "Board ID is required" });
       }
 
       // Get the board to find its dashboard
       const board = await boardModel.getBoard(boardId);
       if (!board) {
+        console.error(`[Task Creation Check] Board ${boardId} not found`);
         return res.status(404).json({ error: "Board not found" });
       }
 
       const dashboardId = board.DashboardId;
+      console.log(`[Task Creation Check] Board ${boardId} belongs to dashboard ${dashboardId}`);
+      
       const userRole = await dashboardModel.getUserRole(userId, dashboardId);
+      console.log(`[Task Creation Check] User ${userId} has role: ${userRole || 'none'}`);
 
       if (!userRole) {
+        console.error(`[Task Creation Check] User ${userId} has no access to dashboard ${dashboardId}`);
         return res.status(403).json({ error: "You do not have access to this dashboard" });
       }
 
       if (!allowedRoles.includes(userRole)) {
+        console.error(`[Task Creation Check] User role ${userRole} not in allowed roles: ${allowedRoles.join(', ')}`);
         return res.status(403).json({ 
           error: `Access denied. Required role: ${allowedRoles.join(" or ")}. Your role: ${userRole}` 
         });
       }
 
+      console.log(`[Task Creation Check] Access granted to user ${userId} with role ${userRole}`);
       req.userRole = userRole;
       req.dashboardId = dashboardId;
       next();
     } catch (error) {
-      console.error("Task creation permission check error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("Task creation permission check error:", error.message, error);
+      res.status(500).json({ error: "Failed to verify task creation permissions" });
     }
   };
 }

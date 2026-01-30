@@ -1,33 +1,72 @@
 const taskModel = require("../models/taskModel");
 const boardModel = require("../models/boardModel");
-const ai = require("../ai/aiAssignAgent");
+const aiAssignAgent = require("../ai/aiAssignAgent");
 
 async function createTask(req, res) {
   try {
+    console.log("[createTask] Starting task creation with body:", JSON.stringify(req.body));
+    
     if (!req.body.boardId) {
+      console.error("[createTask] Missing boardId");
       return res.status(400).json({ error: "BoardId is required" });
     }
     if (req.body.position == undefined) {
+      console.error("[createTask] Missing position");
       return res.status(400).json({ error: "Position is required" });
     }
 
     // Get dashboardId from boardId for logging
     const board = await boardModel.getBoard(req.body.boardId);
     if (!board) {
+      console.error("[createTask] Invalid boardId:", req.body.boardId);
       return res.status(400).json({ error: "Invalid boardId" });
     }
 
     const userId = req.user?.userId || req.user?.id;
     const dashboardId = board.DashboardId;
+    
+    console.log(`[createTask] User ${userId} creating task in board ${req.body.boardId}, dashboard ${dashboardId}`);
 
-    const aiData = await ai.aiAssignAgent(req.body, userId, dashboardId, null); // taskId is null since task doesn't exist yet
-    const task = { ...req.body, ...aiData };
-    const taskId = await taskModel.createTask(task);
+    try {
+      console.log("[createTask] Calling aiAssignAgent...");
+      const aiData = await aiAssignAgent.aiAssignAgent(req.body, userId, dashboardId, null);
+      console.log("[createTask] AI agent assignment returned:", JSON.stringify(aiData));
+      
+      const task = { 
+        ...req.body, 
+        ...aiData,
+        // Map requiredSkills to skills if provided
+        skills: req.body.requiredSkills || req.body.skills || [],
+        // Map assignedAgents to assignedAgent if provided and no aiData assignment
+        assignedAgent: aiData.assignedAgent || (req.body.assignedAgents ? req.body.assignedAgents.join(',') : undefined)
+      };
+      // Remove the plural form so it doesn't conflict
+      delete task.assignedAgents;
+      console.log("[createTask] Final task object:", JSON.stringify(task));
+      
+      const taskId = await taskModel.createTask(task);
+      console.log("[createTask] Task created successfully with ID:", taskId);
 
-    res.status(201).json({ message: "Task created", taskId }); //, subtaskIds
+      res.status(201).json({ message: "Task created", taskId });
+    } catch (aiError) {
+      console.error("[createTask] AI assignment failed:", aiError.message, aiError);
+      // Continue without AI assignment if it fails
+      const task = { 
+        ...req.body, 
+        assignedAgent: "Manual", 
+        agentMatchScore: 0,
+        // Map requiredSkills to skills if provided
+        skills: req.body.requiredSkills || req.body.skills || []
+      };
+      // Remove the plural form so it doesn't conflict
+      delete task.assignedAgents;
+      const taskId = await taskModel.createTask(task);
+      console.log("[createTask] Task created with manual fallback, ID:", taskId);
+      res.status(201).json({ message: "Task created", taskId });
+    }
   } catch (error) {
-    console.error("Error creating task:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("[createTask] Fatal error:", error.message, error);
+    res.status(500).json({ error: "Internal server error", details: error.message });
   }
 }
 
@@ -74,8 +113,10 @@ async function updateTask(req, res) {
     })();
 
     const mergedSkills = (() => {
-      if (Array.isArray(req.body.skills)) return JSON.stringify(req.body.skills);
-      if (typeof req.body.skills === "string") return req.body.skills;
+      // Check for either requiredSkills or skills from request
+      const skillsFromRequest = req.body.requiredSkills || req.body.skills;
+      if (Array.isArray(skillsFromRequest)) return JSON.stringify(skillsFromRequest);
+      if (typeof skillsFromRequest === "string") return skillsFromRequest;
       return existing.Skills || "[]";
     })();
 

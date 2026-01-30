@@ -1,5 +1,5 @@
 const OpenAI = require("openai");
-const aiLogger = require("../utils/aiLogger");
+const aiTracker = require("../utils/aiTracker");
 
 async function openAIPrompt(req, res) {
   try {
@@ -54,7 +54,7 @@ async function openAIPrompt(req, res) {
         const ms = Date.now() - start;
 
         // Log success to database
-        aiLogger.logAiCall({
+        aiTracker.track({
           userId,
           dashboardId,
           taskId,
@@ -103,7 +103,7 @@ async function openAIPrompt(req, res) {
     const ms = Date.now() - start;
     console.error("OpenAI final error:", lastErr?.message || lastErr);
 
-    aiLogger.logAiCall({
+    aiTracker.track({
       userId,
       dashboardId,
       taskId,
@@ -137,7 +137,7 @@ async function openAIPrompt(req, res) {
 
     console.error("OpenAI error:", err?.message || err);
 
-    aiLogger.logAiCall({
+    aiTracker.track({
       userId,
       dashboardId,
       taskId,

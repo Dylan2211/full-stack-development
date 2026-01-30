@@ -27,21 +27,30 @@ async function createTask(task) {
     const {
       title,
       description,
-      category = null, // Frontend, backend, DevOps, etc., Python, JavaScript, HTML etc.
+      category = null,
       position = 0,
-      status = "To Do", // To Do, In Progress, Done
-      skills = [], // Required skills for the task
-      assignedAgent, // Possible assigned AI agent
+      status = "To Do",
+      skills = [],
+      assignedAgent = "Manual",
       boardId,
       estimatedDuration = null,
       agentMatchScore = null,
       agentProgress = 0,
-      dependencies = [], // Other task IDs that this task depends on
+      dependencies = [],
       createdBy = null,
       createdAt = new Date(),
       aiModel = null,
       aiOutput = null,
     } = task;
+
+    console.log("[taskModel.createTask] Creating task:", {
+      title,
+      description,
+      boardId,
+      position,
+      status,
+      assignedAgent
+    });
 
     const pool = await dbConfig;
     const result = await pool
@@ -53,11 +62,11 @@ async function createTask(task) {
       .input("status", sql.NVarChar, status)
       .input("assignedAgent", sql.NVarChar, assignedAgent)
       .input("boardId", sql.Int, boardId)
-      .input("skills", sql.NVarChar, JSON.stringify(skills))
+      .input("skills", sql.NVarChar, JSON.stringify(Array.isArray(skills) ? skills : []))
       .input("estimatedDuration", sql.NVarChar, estimatedDuration)
       .input("agentMatchScore", sql.Int, agentMatchScore)
       .input("agentProgress", sql.Int, agentProgress)
-      .input("dependencies", sql.NVarChar, JSON.stringify(dependencies))
+      .input("dependencies", sql.NVarChar, JSON.stringify(Array.isArray(dependencies) ? dependencies : []))
       .input("createdBy", sql.Int, createdBy)
       .input("createdAt", sql.DateTime, createdAt || new Date())
       .input("aiModel", sql.NVarChar, aiModel)
@@ -73,10 +82,12 @@ async function createTask(task) {
         )
       `);
 
-    return result.recordset[0].TaskId;
+    const taskId = result.recordset[0]?.TaskId;
+    console.log("[taskModel.createTask] Task created successfully with ID:", taskId);
+    return taskId;
   } catch (error) {
-    console.error("Error in createTask:", error.message);
-    throw new Error("Database query failed");
+    console.error("[taskModel.createTask] Error:", error.message, error);
+    throw error;
   }
 }
 

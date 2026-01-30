@@ -49,22 +49,28 @@ function checkDashboardAccess() {
       const userId = req.user.userId || req.user.id;
       const dashboardId = parseInt(req.params.dashboardId || req.params.id || req.body.dashboardId);
 
-      if (!dashboardId) {
+      console.log(`Access check - UserId: ${userId}, DashboardId: ${dashboardId}`);
+
+      if (!dashboardId || isNaN(dashboardId)) {
+        console.error('Invalid dashboard ID in access check');
         return res.status(400).json({ error: "Dashboard ID is required" });
       }
 
       const userRole = await dashboardModel.getUserRole(userId, dashboardId);
+      console.log(`User ${userId} role in dashboard ${dashboardId}: ${userRole || 'none'}`);
 
       if (!userRole) {
+        console.error(`User ${userId} has no access to dashboard ${dashboardId}`);
         return res.status(403).json({ error: "You do not have access to this dashboard" });
       }
 
       req.userRole = userRole;
       req.dashboardId = dashboardId;
+      console.log(`Access granted to user ${userId} for dashboard ${dashboardId} with role ${userRole}`);
       next();
     } catch (error) {
-      console.error("Access check error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("Access check error:", error.message, error);
+      res.status(500).json({ error: "Failed to verify dashboard access" });
     }
   };
 }
