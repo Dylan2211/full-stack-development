@@ -60,9 +60,16 @@
       <section class="panel main">
         <div class="kpi-row">
           <div class="card kpi">
-            <div class="kpi-value" id="metric-latency">–</div>
+            <div class="kpi-value-row">
+              <div class="kpi-value" id="metric-latency">–</div>
+            </div>
             <div class="kpi-label">Avg response time</div>
-            <div class="kpi-note">Updates live</div>
+          </div>
+        </div>
+
+        <div class="card" style="background: #fafafa; border-left: 3px solid #ddd; padding: 12px;">
+          <div id="failures-summary">
+            <div style="padding: 10px; color: #999; text-align: center; font-size: 0.9em;">Loading...</div>
           </div>
         </div>
 
@@ -200,6 +207,7 @@
        </aside>
      </main>
    </div>
-   <script src="/analytics/analytics.js"></script>
+  <script src="/auth-utils.js"></script>
+  <script src="/analytics/analytics.js"></script>
  </body>
  </html>

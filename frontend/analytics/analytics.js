@@ -112,15 +112,6 @@ function applyMetrics(data) {
     setText("metric-acceptance-badge", "unknown");
   }
 
-  if (data.errorRate !== null && data.errorRate !== undefined) {
-    const err = clampPercent(data.errorRate);
-    setText("metric-error", err.toFixed(2));
-    setText("metric-error-badge", badgeFromError(err));
-  } else {
-    setText("metric-error", null);
-    setText("metric-error-badge", "unknown");
-  }
-
   if (data.loadPercent !== null && data.loadPercent !== undefined) {
     const lp = clampPercent(data.loadPercent);
     setText("metric-load-value", lp.toFixed(1) + "%");
@@ -220,7 +211,7 @@ function metricsFromQuery() {
     latencyMs: readMetricNumber(params, "latency"),
     latencyTrendLabel: params.get("latency_label") || null,
     acceptanceRate: readMetricNumber(params, "accept"),
-    errorRate: readMetricNumber(params, "error"),
+    // errorRate removed
     loadPercent: readMetricNumber(params, "load"),
     codingShare: readMetricNumber(params, "coding_share"),
     analysisShare: readMetricNumber(params, "analysis_share"),
@@ -236,19 +227,32 @@ function metricsFromQuery() {
 
 async function fetchOverview() {
   try {
-    const r = await fetch('/api/analytics/overview');
-    if (!r.ok) return;
+    const r = await authFetch('/api/analytics/overview');
+    if (!r.ok) {
+      setLatencyValue(null);
+      // error rate removed — only clear latency
+      return;
+    }
     const d = await r.json();
     setText('metric-live-requests', d.liveRequests);
-    setText('metric-latency', Math.round(d.avgLatency || 0) + 'ms');
+    setLatencyValue(d.avgLatency);
   } catch (e) {
     console.warn('overview fetch failed', e);
+    setLatencyValue(null);
+    // error rate removed
   }
 }
 
 async function fetchUsage() {
   try {
-    const r = await fetch('/api/analytics/usage');
+    // Fetch usage scoped to current user if available
+    let url = '/api/analytics/usage';
+    if (typeof getUserInfoFromToken === 'function') {
+      const u = getUserInfoFromToken();
+      const uid = u && (u.id || u.userId || u.sub);
+      if (uid) url = '/api/analytics/usage?user=' + encodeURIComponent(uid);
+    }
+    const r = await authFetch(url);
     if (!r.ok) return;
     const rows = await r.json();
     renderWeeklyUsage(rows);
@@ -259,7 +263,7 @@ async function fetchUsage() {
 
 async function fetchEvents() {
   try {
-    const r = await fetch('/api/analytics/events');
+    const r = await authFetch('/api/analytics/events');
     if (!r.ok) return;
     const events = await r.json();
     renderSimpleEvents(events);
@@ -270,7 +274,7 @@ async function fetchEvents() {
 
 async function fetchAgents() {
   try {
-    const r = await fetch('/api/analytics/agents');
+    const r = await authFetch('/api/analytics/agents');
     if (!r.ok) return;
     const rows = await r.json();
     applyAgentCards(rows);
@@ -281,7 +285,7 @@ async function fetchAgents() {
 
 async function fetchLive() {
   try {
-    const r = await fetch('/api/analytics/live');
+    const r = await authFetch('/api/analytics/live');
     if (!r.ok) return;
     const arr = await r.json();
     renderLiveChart(arr);
@@ -295,6 +299,17 @@ function setText(id, val) {
   if (!el) return;
   el.textContent = val == null ? '–' : String(val);
 }
+
+function setLatencyValue(ms) {
+  const el = document.getElementById('metric-latency');
+  if (!el) return;
+  if (ms == null || !isFinite(ms)) {
+    el.textContent = '–';
+    return;
+  }
+  el.textContent = Math.round(ms) + 'ms';
+}
+
 
 function renderWeeklyUsage(rows) {
   const container = document.getElementById('weekly-usage');
@@ -396,15 +411,69 @@ function applyAgentCards(rows) {
   setAgent('openai', 'chatgpt');
 }
 
+async function fetchFailures() {
+  try {
+    const r = await authFetch('/api/analytics/failures');
+    if (!r.ok) return;
+    const data = await r.json();
+    renderFailures(data);
+  } catch (e) {
+    console.warn('failures fetch failed', e);
+  }
+}
+
+function renderFailures(data) {
+  const container = document.getElementById('failures-summary');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  if (!data || data.totalFailures === 0) {
+    const msg = document.createElement('div');
+    msg.textContent = '✓ No failures detected';
+    msg.style.cssText = 'padding: 10px; color: #666; text-align: center;';
+    container.appendChild(msg);
+    return;
+  }
+
+  const title = document.createElement('h4');
+  title.textContent = `⚠ ${data.totalFailures} Failures (${data.failureRate}%)`;
+  title.style.cssText = 'margin: 0 0 10px 0; color: #c33;';
+  container.appendChild(title);
+
+  if (Object.keys(data.failuresByProvider).length > 0) {
+    const providerDiv = document.createElement('div');
+    providerDiv.style.cssText = 'font-size: 0.9em; color: #666; margin-bottom: 8px;';
+    const providerList = Object.entries(data.failuresByProvider)
+      .map(([p, c]) => `${p}: ${c}`)
+      .join(' • ');
+    providerDiv.textContent = providerList;
+    container.appendChild(providerDiv);
+  }
+
+  if (data.recentFailures && data.recentFailures.length > 0) {
+    const recentDiv = document.createElement('div');
+    recentDiv.style.cssText = 'font-size: 0.85em; color: #999; max-height: 80px; overflow-y: auto;';
+    data.recentFailures.slice(0, 3).forEach(f => {
+      const line = document.createElement('div');
+      line.textContent = `${f.provider}: ${f.error}`;
+      line.style.cssText = 'margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
+      recentDiv.appendChild(line);
+    });
+    container.appendChild(recentDiv);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await fetchOverview();
   await fetchUsage();
   await fetchEvents();
    await fetchAgents();
   await fetchLive();
+  await fetchFailures();
   // Refresh every 10s for live metrics
   setInterval(fetchOverview, 10000);
   setInterval(fetchEvents, 15000);
   setInterval(fetchAgents, 12000);
   setInterval(fetchLive, 10000);
+  setInterval(fetchFailures, 15000);
 });
