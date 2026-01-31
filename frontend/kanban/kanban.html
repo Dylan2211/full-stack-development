@@ -65,13 +65,15 @@
         <label>Board</label>
         <select id="taskBoard" required></select>
 
-        <label>Assign Agent(s)</label>
-        <select id="taskAgents" multiple></select>
+        <label>Skills (comma-separated, e.g. "JavaScript, React")</label>
+        <input type="text" id="taskSkills" placeholder="Used by system to auto-assign agents" />
 
-        <label>Skills</label>
-        <input type="text" id="taskSkills" />
+        <!-- NOTE: Assign Agent field is captured but backend ignores it. 
+             Backend ALWAYS auto-assigns agents based on task skills. -->
+        <label style="color: #666; font-size: 0.9em;">Assign Agent(s) (informational only)</label>
+        <select id="taskAgents" multiple style="opacity: 0.7;"></select>
 
-        <label>AI Model (Optional)</label>
+        <label>AI Model (Optional - for content generation)</label>
         <select id="taskAIModel">
           <option value="">None</option>
           <option value="auto">Auto (Smart Selection)</option>
@@ -80,6 +82,7 @@
           <option value="llama-3.1-8b-instant">Groq Llama 3.1 (8B) Instant</option>
           <option value="gemma3:4b">Ollama Gemma 3 (4B)</option>
         </select>
+        <div id="agentModelNote" style="display:none; color:#666; font-size:0.9em; margin-top:6px;"></div>
 
         <div class="form-buttons">
           <button id="cancelTask" type="button">Cancel</button>

@@ -1,8 +1,19 @@
 const agents = [
-  // { name: "Claude Code", skills: ["Node.js", "Express", "JWT"] },
   {
     name: "Ollama",
     skills: ["Reasoning", "Natural Language", "Task Analysis"],
+  },
+  {
+    name: "ChatGPT (GPT-4o Mini)",
+    skills: ["Code Generation", "Problem Solving", "Documentation"],
+  },
+  {
+    name: "Google Gemini 2.5 Flash",
+    skills: ["Multimodal Analysis", "Code Review", "Content Generation"],
+  },
+  {
+    name: "Groq (Llama 3.1)",
+    skills: ["Fast Processing", "Reasoning", "Task Automation"],
   },
 ];
 
@@ -18,16 +29,34 @@ async function queryOllama(prompt, model = "gemma3:4b") {
       }),
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      console.error(`Ollama responded with status ${response.status}: ${response.statusText}`, text);
+      throw new Error(`Ollama HTTP ${response.status}`);
+    }
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonErr) {
+      const raw = await response.text().catch(() => "");
+      console.error("Ollama returned non-JSON response:", raw);
+      throw new Error("Ollama returned non-JSON response");
+    }
+
     console.log("Ollama response:", data);
 
-    if (!data || !data.response) {
+    if (!data || (!data.response && !data.output && !data.result)) {
+      console.error("Ollama response missing expected keys:", data);
       throw new Error("Invalid response from Ollama");
     }
 
-    return data.response.trim();
+    // Support common fields: response, output, result
+    const textResponse = data.response || data.output || data.result;
+    return String(textResponse).trim();
   } catch (error) {
-    // Ollama not available, silently use fallback
+    // Ollama not available or returned bad data — log error for debugging and use fallback
+    console.error("queryOllama error:", error?.message || error);
     return null;
   }
 }

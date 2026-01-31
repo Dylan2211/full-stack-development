@@ -179,6 +179,13 @@ async function createTask(taskData) {
   notification.classList.add("show");
 
   try {
+    console.log("📋 Creating task:", {
+      title: taskData.title,
+      requiredSkills: taskData.requiredSkills,
+      willGenerateAI: !!taskData.aiModel,
+      aiModel: taskData.aiModel
+    });
+
     const res = await authFetch("/api/tasks", {
       method: "POST",
       body: JSON.stringify(taskData),
@@ -192,6 +199,14 @@ async function createTask(taskData) {
     
     // Server response (might only contain ID)
     const saved = await res.json();
+    
+    // Log server response to show what backend did
+    console.log("✅ Task created by backend:", {
+      taskId: saved.taskId || saved.TaskId,
+      assignedAgent: saved.assignedAgent,
+      agentMatchScore: saved.agentMatchScore,
+      status: saved.status
+    });
     
     // FIX: Merge the form data (taskData) with the server response (saved)
     // This ensures we have the BoardId, Title, and Description to update the UI immediately
@@ -207,6 +222,7 @@ async function createTask(taskData) {
     addTaskToBoard(uiTask);
     
     if (taskData.aiModel) {
+      console.log("🤖 Generating AI content using model:", taskData.aiModel);
       executeAITask(saved.taskId || saved.TaskId, taskData.aiModel, taskData.title, taskData.description);
     }
   } catch (error) {
@@ -282,6 +298,12 @@ async function executeAITask(taskId, aiModel, title, description) {
     // Get context for logging
     const dashboardId = getDashboardId();
 
+    console.log("🔄 Sending AI content generation request:", {
+      taskId,
+      endpoint: apiEndpoint,
+      aiModel
+    });
+
     const res = await authFetch(apiEndpoint, {
       method: "POST",
       body: JSON.stringify({
@@ -295,10 +317,19 @@ async function executeAITask(taskId, aiModel, title, description) {
       const result = await res.json();
       const aiOutput = result.output;
 
+      console.log("✨ AI content generated successfully:", {
+        taskId,
+        provider: result.provider || "N/A",
+        outputLength: aiOutput?.length || 0,
+        latency: result.latencyMs || "N/A"
+      });
+
       await authFetch(`/api/tasks/${taskId}`, {
         method: "PUT",
         body: JSON.stringify({ aiOutput }),
       });
+
+      console.log("💾 AI output saved to task");
     } else {
       console.error("AI request failed:", res.status, res.statusText);
       const errorText = await res.text();
@@ -809,11 +840,47 @@ async function populateAgents() {
   const agents = await loadAgents();
 
   agentSelect.innerHTML = "";
+  // Map backend agent display names to AI model keys used by executeAITask()
+  const agentToModel = {
+    Ollama: "ollama:gemma3:4b",
+    "ChatGPT (GPT-4o Mini)": "gpt-4o-mini",
+    "Google Gemini 2.5 Flash": "gemini-2.5-flash",
+    "Groq (Llama 3.1)": "llama-3.1-8b-instant",
+  };
+
   agents.forEach((a) => {
     const opt = document.createElement("option");
-    opt.value = a.name;
+    // store model key in option value so selecting an agent can set the AI model
+    const modelKey = agentToModel[a.name] || a.name;
+    opt.value = modelKey;
     opt.textContent = a.name;
     agentSelect.appendChild(opt);
+  });
+
+  // When a user selects an agent in the dialog, automatically set the AI Model select
+  const aiModelSelect = document.getElementById("taskAIModel");
+  const agentModelNote = document.getElementById("agentModelNote");
+  agentSelect.addEventListener("change", (e) => {
+    const firstSelected = Array.from(agentSelect.selectedOptions)[0];
+    if (!firstSelected) return;
+    const selectedModel = firstSelected.value;
+    // set the AI model select to the mapped model (if available)
+    if (aiModelSelect) {
+      // try to find an option with matching value; if not found, add a temporary option
+      let opt = Array.from(aiModelSelect.options).find((o) => o.value === selectedModel);
+      if (!opt) {
+        opt = document.createElement("option");
+        opt.value = selectedModel;
+        opt.textContent = `Selected: ${firstSelected.textContent}`;
+        aiModelSelect.appendChild(opt);
+      }
+      aiModelSelect.value = selectedModel;
+    }
+    if (agentModelNote) {
+      agentModelNote.textContent = `Selected agent will use model: ${selectedModel}`;
+      agentModelNote.style.display = "block";
+    }
+    console.log("Agent selected -> mapped AI model:", firstSelected.textContent, selectedModel);
   });
 }
 
@@ -1086,10 +1153,12 @@ function initializeAddTaskDialog(userId) {
         }
     } else {
         // Handle Create
+        // NOTE: Backend AUTOMATICALLY assigns agents based on task requiredSkills
+        // We don't send assignedAgents - backend will use aiAssignAgent() to determine it
+        // aiModel is only for optional CONTENT GENERATION (separate from agent assignment)
         await createTask({
             title,
             description,
-            assignedAgents,
             requiredSkills,
             boardId,
             createdBy: userId,

@@ -29,32 +29,40 @@ async function ollamaPrompt(req, res) {
       });
 
       if (!response.ok) {
+        const raw = await response.text().catch(() => "");
+        console.error(`[Ollama] HTTP ${response.status} ${response.statusText}:`, raw.substring ? raw.substring(0, 1000) : raw);
         throw new Error(`Ollama server returned ${response.status}`);
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonErr) {
+        const raw = await response.text().catch(() => "");
+        console.error("[Ollama] non-JSON response:", raw.substring ? raw.substring(0, 1000) : raw);
+        throw new Error("Ollama returned non-JSON response");
+      }
+
       console.log("[Ollama] response received:", data);
 
-      if (!data || !data.response) {
+      // Accept multiple possible response fields from different Ollama configurations
+      const text = data.response || data.output || data.result || null;
+      if (!text) {
+        console.error("[Ollama] response missing expected keys:", Object.keys(data));
         throw new Error("Invalid response from Ollama");
       }
 
       const ms = Date.now() - start;
-      const output = data.response.trim();
+      const output = String(text).trim();
 
       // Log success to database
-      aiLogger.logAiCall({
-        userId,
-        dashboardId,
-        taskId,
-        provider: "Ollama",
+      aiLogger.logAiRequest({
         model,
-        requestPath: req.path || "/api/ai/ollama",
+        request_path: req.path || "/api/ai/ollama",
         prompt,
-        response: output,
-        responseTimeMs: ms,
-        success: true
-      });
+        response_time_ms: ms,
+        status: "success"
+      }).catch(err => console.error("Failed to log AI request:", err.message));
 
       console.log("[Ollama] success in", ms, "ms");
       return res.json({
@@ -70,19 +78,14 @@ async function ollamaPrompt(req, res) {
       console.error("[Ollama] error:", error.message);
 
       // Log failure to database
-      aiLogger.logAiCall({
-        userId,
-        dashboardId,
-        taskId,
-        provider: "Ollama",
+      aiLogger.logAiRequest({
         model,
-        requestPath: req.path || "/api/ai/ollama",
+        request_path: req.path || "/api/ai/ollama",
         prompt,
-        response: null,
-        responseTimeMs: ms,
-        success: false,
-        errorMessage: error.message
-      });
+        response_time_ms: ms,
+        status: "error",
+        error_message: error.message
+      }).catch(err => console.error("Failed to log AI request:", err.message));
 
       return res.status(500).json({
         error: "Ollama request failed",
@@ -122,32 +125,38 @@ async function queryOllama(prompt, model = "gemma3:4b", context = {}) {
     });
 
     if (!response.ok) {
+      const raw = await response.text().catch(() => "");
+      console.error(`[queryOllama] HTTP ${response.status} ${response.statusText}:`, raw.substring ? raw.substring(0, 1000) : raw);
       throw new Error(`Ollama server returned ${response.status}`);
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonErr) {
+      const raw = await response.text().catch(() => "");
+      console.error("[queryOllama] non-JSON response:", raw.substring ? raw.substring(0, 1000) : raw);
+      throw new Error("Ollama returned non-JSON response");
+    }
 
-    if (!data || !data.response) {
+    const text = data.response || data.output || data.result || null;
+    if (!text) {
+      console.error("[queryOllama] response missing expected keys:", Object.keys(data));
       throw new Error("Invalid response from Ollama");
     }
 
     const ms = Date.now() - start;
-    const output = data.response.trim();
+    const output = String(text).trim();
 
     // Log success to database if context provided
     if (context.userId || context.dashboardId || context.taskId) {
-      aiLogger.logAiCall({
-        userId: context.userId || null,
-        dashboardId: context.dashboardId || null,
-        taskId: context.taskId || null,
-        provider: "Ollama",
+      aiLogger.logAiRequest({
         model,
-        requestPath: context.requestPath || "/internal/ollama",
+        request_path: context.requestPath || "/internal/ollama",
         prompt,
-        response: output,
-        responseTimeMs: ms,
-        success: true
-      });
+        response_time_ms: ms,
+        status: "success"
+      }).catch(err => console.error("Failed to log AI request:", err.message));
     }
 
     return output;
@@ -158,19 +167,14 @@ async function queryOllama(prompt, model = "gemma3:4b", context = {}) {
 
     // Log failure to database if context provided
     if (context.userId || context.dashboardId || context.taskId) {
-      aiLogger.logAiCall({
-        userId: context.userId || null,
-        dashboardId: context.dashboardId || null,
-        taskId: context.taskId || null,
-        provider: "Ollama",
+      aiLogger.logAiRequest({
         model,
-        requestPath: context.requestPath || "/internal/ollama",
+        request_path: context.requestPath || "/internal/ollama",
         prompt,
-        response: null,
-        responseTimeMs: ms,
-        success: false,
-        errorMessage: error.message
-      });
+        response_time_ms: ms,
+        status: "error",
+        error_message: error.message
+      }).catch(err => console.error("Failed to log AI request:", err.message));
     }
 
     return null;
