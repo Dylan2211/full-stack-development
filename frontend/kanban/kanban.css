@@ -72,9 +72,10 @@
   align-items: center;
 }
 .board-title {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 600;
   letter-spacing: 0.04em;
+  color: #111111;
 }
 /* #endregion header bar */
 
@@ -168,7 +169,7 @@
 .board-name {
   font-size: 12px;
   font-weight: 600;
-  color: #6366f1;
+  color: #111111;
   cursor: pointer;
   transition: background-color 0.2s;
   padding: 4px 6px;
@@ -178,7 +179,7 @@
   word-break: break-word;
 }
 .board-name:hover {
-  background-color: #e0e7ff;
+  background-color: #f3f4f6;
 }
 .board-menu-button {
   background: none;
@@ -847,12 +848,54 @@ html.dark-theme .card:hover {
 }
 
 html.dark-theme .board-name {
-  color: #818cf8;
+  color: #f3f4f6;
 }
 
 html.dark-theme .board-name:hover {
-  background-color: #4f46e5;
+  background-color: #4b5563;
   color: #f3f4f6;
+}
+
+html.dark-theme .board-menu-button {
+  color: #d1d5db;
+}
+
+html.dark-theme .board-menu-button:hover {
+  color: #f3f4f6;
+}
+
+html.dark-theme .board-menu-dropdown {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+html.dark-theme .board-menu-item {
+  color: #f3f4f6;
+}
+
+html.dark-theme .board-menu-item:hover {
+  background-color: #374151;
+}
+
+html.dark-theme .board-menu-item-danger {
+  color: #fca5a5;
+  border-top-color: #374151;
+}
+
+html.dark-theme .board-menu-item-danger:hover {
+  background-color: #7f1d1d;
+}
+
+html.dark-theme .board-add-task-btn {
+  background-color: #374151;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+html.dark-theme .board-add-task-btn:hover {
+  background-color: #4b5563;
+  color: #f3f4f6;
+  border-color: #6b7280;
 }
 
 html.dark-theme .task-dialog {

@@ -103,9 +103,9 @@ body {
   gap: 8px;
   width: 100%;
   padding: 12px 16px;
-  background-color: #ef4444;
-  color: #ffffff;
-  border: none;
+  background-color: transparent;
+  color: #ef4444;
+  border: 2px solid #ef4444;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
@@ -114,7 +114,9 @@ body {
 }
 
 .logout-btn:hover {
-  background-color: #dc2626;
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #dc2626;
   transform: translateY(-1px);
 }
 
@@ -437,9 +439,13 @@ html.dark-theme .activity-badge.error {
 }
 
 html.dark-theme .logout-btn {
-  background-color: #ef4444;
+  background-color: transparent;
+  color: #ef4444;
+  border-color: #ef4444;
 }
 
 html.dark-theme .logout-btn:hover {
-  background-color: #dc2626;
+  background-color: #7f1d1d;
+  color: #fca5a5;
+  border-color: #fca5a5;
 }
