@@ -1,12 +1,25 @@
 
-function applyAgentStatus(id, statusText) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = statusText || "unknown";
-  el.classList.remove("agent-status-online", "agent-status-busy", "agent-status-offline");
-  const cls = statusClassFromText(statusText);
-  if (cls) el.classList.add(cls);
-}
+// Initialize both analytics on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // Load both AI and User analytics
+  loadAIAnalytics();
+  loadUserAnalytics();
+  
+  // Set up back to kanban button
+  const backBtn = document.getElementById('back-to-kanban-btn');
+  if (backBtn) {
+    backBtn.addEventListener('click', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const dashboardId = urlParams.get('id');
+      if (dashboardId) {
+        window.location.href = `/kanban?id=${dashboardId}`;
+      } else {
+        window.location.href = '/kanban';
+      }
+    });
+  }
+});
+
 
 
 
@@ -172,12 +185,7 @@ function applyMetrics(data) {
     renderUsageBars([]);
   }
 
-  if (data.agents) {
-    applyAgentStatus("agent-gemini-status", data.agents.gemini);
-    applyAgentStatus("agent-claude-status", data.agents.claude);
-    applyAgentStatus("agent-amp-status", data.agents.amp);
-    applyAgentStatus("agent-custom-status", data.agents.custom);
-  }
+  // agent status removed from analytics view
 
   if (data.events) {
     renderEvents(data.events);
@@ -463,17 +471,344 @@ function renderFailures(data) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await fetchOverview();
-  await fetchUsage();
-  await fetchEvents();
-   await fetchAgents();
-  await fetchLive();
-  await fetchFailures();
+// User Analytics Functions
+let currentDashboardId = null;
+
+// Helper function to get dashboard ID from URL
+function getDashboardIdFromURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('id');
+}
+
+// Helper function for authenticated fetch
+async function authFetch(url) {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    window.location.href = '/login/login.html';
+    throw new Error('No token found');
+  }
+
+  return fetch(`http://localhost:3000${url}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+}
+
+// Format time ago
+function formatTimeAgo(timestamp) {
+  const now = new Date();
+  const then = new Date(timestamp);
+  const seconds = Math.floor((now - then) / 1000);
+
+  if (seconds < 60) return 'Just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} mins ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hrs ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+  return then.toLocaleDateString();
+}
+
+// Load User Analytics Data
+async function loadUserAnalytics() {
+  currentDashboardId = getDashboardIdFromURL();
+  if (!currentDashboardId) {
+    console.warn('No dashboard ID found in URL');
+    return;
+  }
+
+  await Promise.all([
+    fetchDashboardOverview(),
+    fetchUserProductivity(),
+    fetchTaskOwnership(),
+    fetchTeamActivity(),
+    fetchTopContributors()
+  ]);
+}
+
+// Fetch and display dashboard overview
+async function fetchDashboardOverview() {
+  try {
+    if (!currentDashboardId) return;
+
+    const response = await authFetch(`/api/user-analytics/overview?dashboardId=${currentDashboardId}`);
+    if (!response.ok) {
+      console.error('Failed to fetch overview:', response.status);
+      return;
+    }
+
+    const data = await response.json();
+    document.getElementById('metric-total-tasks').textContent = data.totalTasks || 0;
+    document.getElementById('metric-active-users').textContent = data.activeUsers || 0;
+  } catch (error) {
+    console.error('Error fetching dashboard overview:', error);
+  }
+}
+
+// Fetch user productivity data
+async function fetchUserProductivity() {
+  try {
+    if (!currentDashboardId) return;
+
+    const response = await authFetch(`/api/user-analytics/productivity?dashboardId=${currentDashboardId}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    renderUserProductivity(data.userProductivity);
+  } catch (error) {
+    console.error('Error fetching user productivity:', error);
+  }
+}
+
+// Render user productivity list
+function renderUserProductivity(users) {
+  const container = document.getElementById('user-productivity-list');
+  if (!container) return;
+
+  if (!users || users.length === 0) {
+    container.innerHTML = '<div style="padding: 10px; color: #999; text-align: center;">No user data available</div>';
+    return;
+  }
+
+  container.innerHTML = users.map(user => `
+    <div class="productivity-item">
+      <div class="user-info">
+        <span class="user-name">${user.fullName || 'Unknown'}</span>
+        <span class="user-email">${user.email || ''}</span>
+      </div>
+      <div class="productivity-stats">
+        <span class="stat">${user.totalTasks || 0} tasks</span>
+        <span class="stat">${user.completedTasks || 0} completed</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Fetch task ownership data
+async function fetchTaskOwnership() {
+  try {
+    if (!currentDashboardId) return;
+
+    const response = await authFetch(`/api/user-analytics/ownership?dashboardId=${currentDashboardId}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    renderOwnershipChart(data.taskOwnership);
+  } catch (error) {
+    console.error('Error fetching task ownership:', error);
+  }
+}
+
+// Render ownership chart
+function renderOwnershipChart(ownershipData) {
+  const container = document.getElementById('ownership-chart');
+  if (!container) return;
+
+  if (!ownershipData || ownershipData.length === 0) {
+    container.innerHTML = '<div class="bar" style="--h: 0%;"><span class="bar-top">0</span><span class="bar-label">No data</span></div>';
+    return;
+  }
+
+  const maxTasks = Math.max(...ownershipData.map(item => item.taskCount || 0));
+
+  container.innerHTML = ownershipData.map(item => {
+    const height = maxTasks > 0 ? (item.taskCount / maxTasks) * 100 : 0;
+    return `
+      <div class="bar" style="--h: ${height}%;">
+        <span class="bar-top">${item.taskCount || 0}</span>
+        <span class="bar-label">${item.fullName || 'Unknown'}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// Fetch team activity
+async function fetchTeamActivity() {
+  try {
+    if (!currentDashboardId) return;
+
+    const response = await authFetch(`/api/user-analytics/team-activity?dashboardId=${currentDashboardId}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    renderTeamActivity(data.activities);
+  } catch (error) {
+    console.error('Error fetching team activity:', error);
+  }
+}
+
+// Render team activity
+function renderTeamActivity(activities) {
+  const container = document.getElementById('events-list');
+  if (!container) return;
+
+  if (!activities || activities.length === 0) {
+    container.innerHTML = '<li class="event-item"><div class="event-title">No recent activity</div><div class="event-sub">Activity will appear here as team members work</div></li>';
+    return;
+  }
+
+  container.innerHTML = activities.map(activity => `
+    <li class="event-item">
+      <div class="event-title">${activity.description || 'Unknown activity'}</div>
+      <div class="event-sub">${formatTimeAgo(activity.timestamp)}</div>
+    </li>
+  `).join('');
+}
+
+// Fetch top contributors
+async function fetchTopContributors() {
+  try {
+    if (!currentDashboardId) return;
+
+    const response = await authFetch(`/api/user-analytics/top-contributors?dashboardId=${currentDashboardId}`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    renderTopContributors(data.contributors);
+  } catch (error) {
+    console.error('Error fetching top contributors:', error);
+  }
+}
+
+// Render top contributors
+function renderTopContributors(contributors) {
+  const container = document.getElementById('top-contributors');
+  if (!container) return;
+
+  if (!contributors || contributors.length === 0) {
+    container.innerHTML = '<div style="padding: 20px; color: #999; text-align: center;">No contributor data available</div>';
+    return;
+  }
+
+  container.innerHTML = contributors.map((contributor, index) => `
+    <div class="contributor-item">
+      <div class="contributor-rank">#${index + 1}</div>
+      <div class="contributor-info">
+        <div class="contributor-name">${contributor.fullName || 'Unknown'}</div>
+        <div class="contributor-stats">${contributor.totalTasks || 0} tasks • ${contributor.completedTasks || 0} completed</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Load AI Analytics (using original functions)
+function loadAIAnalytics() {
+  // Call original AI analytics functions
+  fetchOverview();
+  fetchUsage();
+  fetchEvents();
+  fetchAgents();
+  fetchLive();
   // Refresh every 10s for live metrics
   setInterval(fetchOverview, 10000);
   setInterval(fetchEvents, 15000);
   setInterval(fetchAgents, 12000);
   setInterval(fetchLive, 10000);
-  setInterval(fetchFailures, 15000);
-});
+}
+
+// Utility functions from old AI analytics
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val == null ? '–' : String(val);
+}
+
+function renderWeeklyUsage(rows) {
+  const container = document.getElementById('weekly-usage');
+  if (!container) return;
+  container.innerHTML = '';
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  // Map dates to weekdays
+  const byDay = new Map();
+  rows.forEach(r => {
+    const d = new Date(r.day);
+    const wd = d.getDay(); // 0-6 Sun-Sat
+    const label = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][wd];
+    byDay.set(label, Number(r.tokens || 0));
+  });
+  const values = days.map(label => byDay.get(label) || 0);
+  const max = Math.max(1, ...values);
+  days.forEach((label, i) => {
+    const v = values[i];
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.setProperty('--h', ((v / max) * 100).toFixed(0) + '%');
+    const top = document.createElement('span');
+    top.className = 'bar-top';
+    top.textContent = String(v);
+    const bl = document.createElement('span');
+    bl.className = 'bar-label';
+    bl.textContent = label;
+    bar.appendChild(top);
+    bar.appendChild(bl);
+    container.appendChild(bar);
+  });
+}
+
+function renderLiveChart(buckets) {
+  const container = document.getElementById('live-chart');
+  if (!container) return;
+  container.innerHTML = '';
+  const max = Math.max(1, ...buckets.map(b => Number(b.value || 0)));
+  buckets.forEach(b => {
+    const v = Number(b.value || 0);
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.setProperty('--h', ((v / max) * 100).toFixed(0) + '%');
+    const top = document.createElement('span');
+    top.className = 'bar-top';
+    top.textContent = String(v);
+    const bl = document.createElement('span');
+    bl.className = 'bar-label';
+    bl.textContent = b.label;
+    bar.appendChild(top);
+    bar.appendChild(bl);
+    container.appendChild(bar);
+  });
+}
+
+function renderSimpleEvents(events) {
+  const list = document.getElementById('events-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!events || !events.length) {
+    const li = document.createElement('li');
+    li.className = 'event-item';
+    li.textContent = 'No events yet';
+    list.appendChild(li);
+    return;
+  }
+  events.forEach(e => {
+    const li = document.createElement('li');
+    li.className = 'event-item';
+    const title = document.createElement('div');
+    title.className = 'event-title';
+    title.textContent = e.message;
+    const sub = document.createElement('div');
+    sub.className = 'event-sub';
+    sub.textContent = e.time;
+    li.appendChild(title);
+    li.appendChild(sub);
+    list.appendChild(li);
+  });
+}
+
+function applyAgentCards(rows) {
+  // rows: [{provider, calls, avgLatencyMs, errorRate}]
+  const map = {};
+  rows.forEach(r => { map[(r.provider || '').toLowerCase()] = r; });
+
+  function setAgent(prefix, key) {
+    const callsEl = document.getElementById(`agent-${prefix}-calls`);
+    const latEl = document.getElementById(`agent-${prefix}-latency`);
+    const row = map[key] || null;
+    if (callsEl) callsEl.textContent = row ? row.calls : '0';
+    if (latEl) latEl.textContent = row ? `${row.avgLatencyMs || 0}` : '–';
+  }
+
+  setAgent('gemini', 'gemini');
+  setAgent('groq', 'groq');
+  // OpenAI may be labeled 'OpenAI' in tracker
+  setAgent('openai', 'openai');
+  setAgent('openai', 'chatgpt');
+}

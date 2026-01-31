@@ -9,6 +9,7 @@ const userRoutes = require("../routes/userRoutes");
 const aiRoutes = require("../routes/aiRoutes");
 const dashboardRoutes = require("../routes/dashboardRoutes");
 const analyticsRoutes = require("../routes/analyticsRoutes");
+const userAnalyticsRoutes = require("../routes/userAnalyticsRoutes");
 const notificationRoutes = require("../routes/notificationRoutes");
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
@@ -59,6 +60,7 @@ if (process.env.INJECT_MOCK_DATA === 'true') {
 
 app.use("/api/ai", aiRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/user-analytics", userAnalyticsRoutes);
 
 app.use(express.urlencoded({ extended: true }));
 

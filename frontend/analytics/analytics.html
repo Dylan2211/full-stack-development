@@ -13,200 +13,248 @@
       <div class="brand">
         <div class="logo">S</div>
         <div class="brand-text">
-          <div class="brand-title">EGRA Team Project</div>
+          <div class="brand-title">EGRA Team Project - Analytics</div>
         </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="dashboard-btn" id="back-to-kanban-btn">Back to Board</button>
       </div>
     </header>
 
-    <main class="layout">
-      <!-- Left: Events -->
-      <aside class="panel events">
-        <h2>Events</h2>
+    <!-- Analytics Sections -->
+    <div class="analytics-content">
+      <!-- AI Analytics Section -->
+      <div class="analytics-section">
+        <h2 class="section-title">AI Analytics</h2>
+        <main class="layout">
+          <!-- Center: main stats -->
+          <section class="panel main">
+            <!-- AI Usage Overview -->
+            <div class="kpi-row">
+              <div class="card kpi">
+                <div class="kpi-value-row">
+                  <div class="kpi-value" id="metric-latency">–</div>
+                </div>
+                <div class="kpi-label">Avg response time</div>
+                <div class="kpi-note">Updates live</div>
+              </div>
+              <div class="card kpi">
+                <div class="kpi-value-row">
+                  <div class="kpi-value" id="metric-live-requests">–</div>
+                </div>
+                <div class="kpi-label">Live requests</div>
+                <div class="kpi-note">Per minute</div>
+              </div>
+            </div>
 
-        <ul class="event-list" id="events-list">
-          <li class="event-item">
-            <div class="event-title">Task “Sync pipeline metadata refs” assigned to Agent Orion</div>
-            <div class="event-sub">2 mins ago</div>
-          </li>
+            <!-- Weekly Usage Chart -->
+            <div class="card chart-card">
+              <div class="card-header">
+                <h3>Weekly Usage</h3>
+                <p class="muted">Tokens used per day</p>
+              </div>
+              <div class="bar-chart" id="weekly-usage" aria-label="Weekly token usage bar chart">
+                <div class="bar" style="--h: 54%;">
+                  <span class="bar-top">850</span>
+                  <span class="bar-label">Mon</span>
+                </div>
+                <div class="bar" style="--h: 79%;">
+                  <span class="bar-top">1250</span>
+                  <span class="bar-label">Tue</span>
+                </div>
+                <div class="bar" style="--h: 88%;">
+                  <span class="bar-top">1400</span>
+                  <span class="bar-label">Wed</span>
+                </div>
+                <div class="bar" style="--h: 82%;">
+                  <span class="bar-top">1300</span>
+                  <span class="bar-label">Thu</span>
+                </div>
+                <div class="bar" style="--h: 60%;">
+                  <span class="bar-top">950</span>
+                  <span class="bar-label">Fri</span>
+                </div>
+                <div class="bar" style="--h: 8%;">
+                  <span class="bar-top">90</span>
+                  <span class="bar-label">Sat</span>
+                </div>
+                <div class="bar" style="--h: 50%;">
+                  <span class="bar-top">780</span>
+                  <span class="bar-label">Sun</span>
+                </div>
+              </div>
+            </div>
 
-          <li class="event-item">
-            <div class="event-title">Agent Orion started execution on “Sync pipeline metadata refs”</div>
-            <div class="event-sub">6 mins ago</div>
-          </li>
+            <!-- Live Requests Chart -->
+            <div class="card">
+              <div class="live-head">
+                <div>
+                  <h3>Live requests</h3>
+                  <p class="muted">Request per Minute</p>
+                </div>
+                <div class="live-badge" id="metric-live-requests">–</div>
+              </div>
+              <div class="bar-chart small" id="live-chart">
+                <div class="bar" style="--h: 45%;">
+                  <span class="bar-top">40</span>
+                  <span class="bar-label">60s</span>
+                </div>
+                <div class="bar" style="--h: 10%;">
+                  <span class="bar-top">8</span>
+                  <span class="bar-label">45s</span>
+                </div>
+                <div class="bar" style="--h: 82%;">
+                  <span class="bar-top">78</span>
+                  <span class="bar-label">30s</span>
+                </div>
+                <div class="bar" style="--h: 92%;">
+                  <span class="bar-top">88</span>
+                  <span class="bar-label">15s</span>
+                </div>
+                <div class="bar" style="--h: 65%;">
+                  <span class="bar-top">62</span>
+                  <span class="bar-label">Now</span>
+                </div>
+              </div>
+            </div>
+          </section>
 
-          <li class="event-item">
-            <div class="event-title">Workflow Trigger: New PR opened on /backend/auth</div>
-            <div class="event-sub">12 mins ago</div>
-          </li>
+          <!-- Right: AI agents -->
+          <aside class="panel agents">
+            <h3>AI Agents</h3>
 
-          <li class="event-item">
-            <div class="event-title">Agent Gemini status changed: Idle</div>
-            <div class="event-sub">20 mins ago</div>
-          </li>
+            <div class="agent-card">
+              <div class="agent-top">
+                <div class="agent-name">Gemini</div>
+              </div>
+              <div class="agent-metrics">
+                <div>
+                  <div class="agent-metric-label muted">Calls</div>
+                  <div class="agent-metric-value" id="agent-gemini-calls">–</div>
+                </div>
+                <div class="divider"></div>
+                <div>
+                  <div class="agent-metric-label muted">Avg ms</div>
+                  <div class="agent-metric-value" id="agent-gemini-latency">–</div>
+                </div>
+                <div class="agent-avatar"><img src="/images/ai-logos/gemini.png" alt="Gemini" /></div>
+              </div>
+            </div>
 
-          <li class="event-item">
-            <div class="event-title">Agent Gemini completed “Make report”</div>
-            <div class="event-sub">35 mins ago</div>
-          </li>
+            <div class="agent-card">
+              <div class="agent-top">
+                <div class="agent-name">Groq</div>
+              </div>
+              <div class="agent-metrics">
+                <div>
+                  <div class="agent-metric-label muted">Calls</div>
+                  <div class="agent-metric-value" id="agent-groq-calls">–</div>
+                </div>
+                <div class="divider"></div>
+                <div>
+                  <div class="agent-metric-label muted">Avg ms</div>
+                  <div class="agent-metric-value" id="agent-groq-latency">–</div>
+                </div>
+                <div class="agent-avatar"><img src="/images/ai-logos/groq.png" alt="Groq" /></div>
+              </div>
+            </div>
 
-          <li class="event-item">
-            <div class="event-title">Task created: “Sync pipeline metadata refs”</div>
-            <div class="event-sub">1 hr ago</div>
-          </li>
-        </ul>
-      </aside>
+            <div class="agent-card">
+              <div class="agent-top">
+                <div class="agent-name">ChatGPT</div>
+              </div>
+              <div class="agent-metrics">
+                <div>
+                  <div class="agent-metric-label muted">Calls</div>
+                  <div class="agent-metric-value" id="agent-openai-calls">–</div>
+                </div>
+                <div class="divider"></div>
+                <div>
+                  <div class="agent-metric-label muted">Avg ms</div>
+                  <div class="agent-metric-value" id="agent-openai-latency">–</div>
+                </div>
+                <div class="agent-avatar"><img src="/images/ai-logos/openai.png" alt="ChatGPT" /></div>
+              </div>
+            </div>
+          </aside>
+        </main>
+      </div>
 
-      <!-- Center: main stats -->
-      <section class="panel main">
-        <div class="kpi-row">
-          <div class="card kpi">
-            <div class="kpi-value-row">
-              <div class="kpi-value" id="metric-latency">–</div>
-            </div>
-            <div class="kpi-label">Avg response time</div>
-          </div>
-        </div>
+      <!-- User Analytics Section -->
+      <div class="analytics-section">
+        <h2 class="section-title">User Analytics</h2>
+        <main class="layout">
+          <!-- Center: main stats -->
+          <section class="panel main">
+            <!-- Dashboard Overview -->
+            <div class="kpi-row">
+              <div class="card kpi">
+                <div class="kpi-value-row">
+                  <div class="kpi-value" id="metric-total-tasks">–</div>
+                </div>
+                <div class="kpi-label">Total Tasks</div>
+              </div>
 
-        <div class="card" style="background: #fafafa; border-left: 3px solid #ddd; padding: 12px;">
-          <div id="failures-summary">
-            <div style="padding: 10px; color: #999; text-align: center; font-size: 0.9em;">Loading...</div>
-          </div>
-        </div>
+              <div class="card kpi">
+                <div class="kpi-value-row">
+                  <div class="kpi-value" id="metric-active-users">–</div>
+                </div>
+                <div class="kpi-label">Active Users</div>
+              </div>
+            </div>
 
-        <div class="card chart-card">
-          <div class="card-header">
-            <h3>Weekly Usage</h3>
-            <p class="muted">Tokens used per day</p>
-          </div>
+            <!-- Task Ownership Chart -->
+            <div class="card chart-card">
+              <div class="card-header">
+                <h3>Task Ownership Distribution</h3>
+                <p class="muted">Tasks per team member</p>
+              </div>
 
-          <!-- Simple CSS bar chart -->
-          <div class="bar-chart" id="weekly-usage" aria-label="Weekly token usage bar chart">
-            <div class="bar" style="--h: 54%;">
-              <span class="bar-top">850</span>
-              <span class="bar-label">Mon</span>
+              <div class="bar-chart" id="ownership-chart" aria-label="Task ownership distribution">
+                <div class="bar" style="--h: 0%;">
+                  <span class="bar-top">0</span>
+                  <span class="bar-label">Loading...</span>
+                </div>
+              </div>
             </div>
-            <div class="bar" style="--h: 79%;">
-              <span class="bar-top">1250</span>
-              <span class="bar-label">Tue</span>
-            </div>
-            <div class="bar" style="--h: 88%;">
-              <span class="bar-top">1400</span>
-              <span class="bar-label">Wed</span>
-            </div>
-            <div class="bar" style="--h: 82%;">
-              <span class="bar-top">1300</span>
-              <span class="bar-label">Thu</span>
-            </div>
-            <div class="bar" style="--h: 60%;">
-              <span class="bar-top">950</span>
-              <span class="bar-label">Fri</span>
-            </div>
-            <div class="bar" style="--h: 8%;">
-              <span class="bar-top">90</span>
-              <span class="bar-label">Sat</span>
-            </div>
-            <div class="bar" style="--h: 50%;">
-              <span class="bar-top">780</span>
-              <span class="bar-label">Sun</span>
-            </div>
-          </div>
-        </div>
 
+            <!-- User Productivity List -->
+            <div class="card">
+              <div class="card-header">
+                <h3>User Productivity</h3>
+                <p class="muted">Performance by team member</p>
+              </div>
+              <div id="user-productivity-list">
+                <div style="padding: 10px; color: #999; text-align: center;">Loading productivity data...</div>
+              </div>
+            </div>
 
-        <div class="card">
-          <div class="live-head">
-            <div>
-              <h3>Live requests</h3>
-              <p class="muted">Request per Minute</p>
+            <!-- Recent Team Activity -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Recent Activity</h3>
+                <p class="muted">Latest team actions</p>
+              </div>
+              <ul class="event-list" id="events-list">
+                <li class="event-item">
+                  <div class="event-title">Loading activity...</div>
+                  <div class="event-sub">Please wait</div>
+                </li>
+              </ul>
             </div>
-            <div class="live-badge" id="metric-live-requests">–</div>
-          </div>
+          </section>
 
-          <div class="bar-chart small" id="live-chart">
-            <div class="bar" style="--h: 45%;">
-              <span class="bar-top">40</span>
-              <span class="bar-label">60s</span>
-            </div>
-            <div class="bar" style="--h: 10%;">
-              <span class="bar-top">8</span>
-              <span class="bar-label">45s</span>
-            </div>
-            <div class="bar" style="--h: 82%;">
-              <span class="bar-top">78</span>
-              <span class="bar-label">30s</span>
-            </div>
-            <div class="bar" style="--h: 92%;">
-              <span class="bar-top">88</span>
-              <span class="bar-label">15s</span>
-            </div>
-            <div class="bar" style="--h: 65%;">
-              <span class="bar-top">62</span>
-              <span class="bar-label">Now</span>
-            </div>
-          </div>
-        </div>
-      </section>
+          <!-- Right: Top Contributors -->
+          <aside class="panel agents">
+            <h3>Top Contributors</h3>
 
-      <!-- Right: AI agents -->
-      <aside class="panel agents">
-        <h2>Ai agents</h2>
-
-        <div class="agent-card">
-          <div class="agent-top">
-            <div class="agent-name">Gemini</div>
-          </div>
-          <div class="agent-metrics">
-            <div>
-              <div class="agent-metric-label muted">Calls</div>
-              <div class="agent-metric-value" id="agent-gemini-calls">–</div>
+            <div id="top-contributors">
+              <div style="padding: 20px; color: #999; text-align: center;">Loading contributors...</div>
             </div>
-            <div class="divider"></div>
-            <div>
-              <div class="agent-metric-label muted">Avg ms</div>
-              <div class="agent-metric-value" id="agent-gemini-latency">–</div>
-            </div>
-            <div class="agent-avatar">✨</div>
-          </div>
-        </div>
-
-        <div class="agent-card">
-          <div class="agent-top">
-            <div class="agent-name">Groq</div>
-          </div>
-          <div class="agent-metrics">
-            <div>
-              <div class="agent-metric-label muted">Calls</div>
-              <div class="agent-metric-value" id="agent-groq-calls">–</div>
-            </div>
-            <div class="divider"></div>
-            <div>
-              <div class="agent-metric-label muted">Avg ms</div>
-              <div class="agent-metric-value" id="agent-groq-latency">–</div>
-            </div>
-            <div class="agent-avatar">🧠</div>
-          </div>
-        </div>
-
-        <div class="agent-card">
-          <div class="agent-top">
-            <div class="agent-name">ChatGPT</div>
-          </div>
-          <div class="agent-metrics">
-            <div>
-              <div class="agent-metric-label muted">Calls</div>
-              <div class="agent-metric-value" id="agent-openai-calls">–</div>
-            </div>
-            <div class="divider"></div>
-            <div>
-              <div class="agent-metric-label muted">Avg ms</div>
-              <div class="agent-metric-value" id="agent-openai-latency">–</div>
-            </div>
-            <div class="agent-avatar">🤖</div>
-          </div>
-        </div>
-       </aside>
-     </main>
-   </div>
+          </aside>
+        </main>
+      </div>
+    </div>
   <script src="/auth-utils.js"></script>
   <script src="/analytics/analytics.js"></script>
  </body>
