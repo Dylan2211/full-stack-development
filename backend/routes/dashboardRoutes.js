@@ -52,6 +52,9 @@ router.post("/:dashboardId/users", authMiddleware, checkDashboardPermission(['Ow
 // Add collaborator by email (Owner only) - now sends invitation
 router.post("/:dashboardId/invite", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.addCollaboratorByEmail);
 
+// Get pending invitations for current user
+router.get("/invitations/pending", authMiddleware, dashboardController.getPendingInvitations);
+
 // Get dashboard invitations (Owner only)
 router.get("/:dashboardId/invitations", authMiddleware, checkDashboardPermission(['Owner']), dashboardController.getDashboardInvitations);
 

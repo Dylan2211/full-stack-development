@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadAvailableUsers() {
     try {
-        const token = localStorage.getItem('token');
+        const token = getAuthToken();
         if (!token) {
             alert('Please login first');
             window.location.href = '/login';
@@ -190,7 +190,7 @@ async function sendInvites() {
     const role = roleMapping[roleSelect] || 'Viewer';
     
     try {
-        const token = localStorage.getItem('token');
+        const token = getAuthToken();
         if (!token) {
             alert('Please login first');
             window.location.href = '/login';

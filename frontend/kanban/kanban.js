@@ -3,6 +3,9 @@
 // Check authentication
 requireAuth();
 
+const currentUser = getUserInfoFromToken();
+const userId = currentUser?.userId || currentUser?.id;
+
 let hiddenDragImage = null;
 let dragPreview = null;
 let dragPreviewOffset = { x: 0, y: 0 };
@@ -307,11 +310,23 @@ async function executeAITask(taskId, aiModel, title, description) {
 }
 
 async function loadTasks(boardId) {
-  const res = await authFetch(`/api/boards/${boardId}/tasks`, {
-    method: "GET",
-  });
-  const tasks = await res.json();
-  tasks.forEach(addTaskToBoard);
+  try {
+    const res = await authFetch(`/api/boards/${boardId}/tasks`, {
+      method: "GET",
+    });
+    if (!res.ok) {
+      console.error(`Failed to load tasks for board ${boardId}:`, res.status);
+      return;
+    }
+    const tasks = await res.json();
+    if (Array.isArray(tasks)) {
+      tasks.forEach(addTaskToBoard);
+    } else {
+      console.error(`Invalid tasks response for board ${boardId}:`, tasks);
+    }
+  } catch (error) {
+    console.error(`Error loading tasks for board ${boardId}:`, error);
+  }
 }
 
 async function updateTaskPositions(boardId, orderedCards) {
@@ -1203,6 +1218,11 @@ function setupSettingsButton(dashboardId) {
   const settingsButton = document.getElementById("settingsButton");
   if (settingsButton) {
     settingsButton.href = `/dashboard-settings?id=${dashboardId}`;
+  }
+  
+  const analyticsButton = document.getElementById("analyticsButton");
+  if (analyticsButton) {
+    analyticsButton.href = `/analytics/analytics.html?id=${dashboardId}`;
   }
 }
 // #endregion Initialization

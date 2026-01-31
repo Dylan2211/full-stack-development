@@ -1,6 +1,7 @@
 const taskModel = require("../models/taskModel");
 const boardModel = require("../models/boardModel");
 const aiAssignAgent = require("../ai/aiAssignAgent");
+const userAnalyticsModel = require("../models/userAnalyticsModel");
 
 async function createTask(req, res) {
   try {
@@ -38,7 +39,9 @@ async function createTask(req, res) {
         // Map requiredSkills to skills if provided
         skills: req.body.requiredSkills || req.body.skills || [],
         // Map assignedAgents to assignedAgent if provided and no aiData assignment
-        assignedAgent: aiData.assignedAgent || (req.body.assignedAgents ? req.body.assignedAgents.join(',') : undefined)
+        assignedAgent: aiData.assignedAgent || (req.body.assignedAgents ? req.body.assignedAgents.join(',') : undefined),
+        // Ensure createdBy is set to the authenticated user
+        createdBy: userId
       };
       // Remove the plural form so it doesn't conflict
       delete task.assignedAgents;
@@ -46,6 +49,16 @@ async function createTask(req, res) {
       
       const taskId = await taskModel.createTask(task);
       console.log("[createTask] Task created successfully with ID:", taskId);
+
+      // Log user activity
+      await userAnalyticsModel.logUserActivity(
+        userId,
+        dashboardId,
+        'task_created',
+        `Created task "${req.body.title || 'Untitled'}"`,
+        taskId,
+        req.body.boardId
+      );
 
       res.status(201).json({ message: "Task created", taskId });
     } catch (aiError) {
@@ -62,6 +75,17 @@ async function createTask(req, res) {
       delete task.assignedAgents;
       const taskId = await taskModel.createTask(task);
       console.log("[createTask] Task created with manual fallback, ID:", taskId);
+      
+      // Log user activity
+      await userAnalyticsModel.logUserActivity(
+        userId,
+        dashboardId,
+        'task_created',
+        `Created task "${req.body.title || 'Untitled'}" (manual assignment)`,
+        taskId,
+        req.body.boardId
+      );
+      
       res.status(201).json({ message: "Task created", taskId });
     }
   } catch (error) {
@@ -145,6 +169,20 @@ async function updateTask(req, res) {
       return res.json({ error: "Task not found" });
     }
 
+    // Log user activity
+    const userId = req.user?.userId || req.user?.id;
+    const board = await boardModel.getBoard(taskData.boardId);
+    if (board) {
+      await userAnalyticsModel.logUserActivity(
+        userId,
+        board.DashboardId,
+        'task_updated',
+        `Updated task "${taskData.title || 'Untitled'}"`,
+        taskId,
+        taskData.boardId
+      );
+    }
+
     res.json({ message: "Task updated successfully", taskId });
   } catch (error) {
     console.error("Error in updateTask:", error.message);
@@ -155,10 +193,29 @@ async function updateTask(req, res) {
 async function deleteTask(req, res) {
   try {
     const taskId = parseInt(req.params.id);
+    const existing = await taskModel.getTask(taskId);
+    
     const deleted = await taskModel.deleteTask(taskId);
     if (!deleted) {
       return res.status(404).json({ error: "Task not found" });
     }
+
+    // Log user activity
+    const userId = req.user?.userId || req.user?.id;
+    if (existing) {
+      const board = await boardModel.getBoard(existing.BoardId);
+      if (board) {
+        await userAnalyticsModel.logUserActivity(
+          userId,
+          board.DashboardId,
+          'task_deleted',
+          `Deleted task "${existing.Title || 'Untitled'}"`,
+          taskId,
+          existing.BoardId
+        );
+      }
+    }
+
     res.json({ message: "Task deleted successfully" });
   } catch (error) {
     console.error(`Error deleting task: ${error}`);

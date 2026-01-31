@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchCurrentUserRole() {
     try {
-        const token = localStorage.getItem('token');
+        const token = getAuthToken();
         const response = await fetch(`http://localhost:3000/api/dashboards/${currentDashboardId}/my-role`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -47,7 +47,7 @@ async function fetchCurrentUserRole() {
 
 async function loadCollaborators() {
     try {
-        const token = localStorage.getItem('token');
+        const token = getAuthToken();
         const response = await fetch(`http://localhost:3000/api/dashboards/${currentDashboardId}/users`, {
             headers: { 'Authorization': `Bearer ${token}` },
             cache: 'no-store'  // Prevent caching
@@ -112,7 +112,7 @@ function displayCollaborators(users) {
 
 async function updateRole(userId, newRole) {
     try {
-        const token = localStorage.getItem('token');
+        const token = getAuthToken();
         const response = await fetch(
             `http://localhost:3000/api/dashboards/${currentDashboardId}/users/${userId}/role`,
             {

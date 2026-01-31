@@ -20,8 +20,8 @@ router.put("/boards/:boardId", authMiddleware, checkBoardPermission(['Owner', 'A
 router.delete("/boards/:boardId", authMiddleware, checkBoardPermission(['Owner', 'Admin']), boardController.deleteBoard);
 
 // Task routes
-router.get("/boards/:boardId/tasks", authMiddleware, checkBoardPermission(['Admin', 'Editor', 'Viewer']), taskController.getTasksByBoardId);
-router.get("/tasks/:id", authMiddleware, checkTaskPermission(['Admin', 'Editor', 'Viewer']), taskController.getTask);
+router.get("/boards/:boardId/tasks", authMiddleware, checkBoardPermission(['Owner', 'Admin', 'Editor', 'Viewer']), taskController.getTasksByBoardId);
+router.get("/tasks/:id", authMiddleware, checkTaskPermission(['Owner', 'Admin', 'Editor', 'Viewer']), taskController.getTask);
 router.post("/tasks", authMiddleware, checkBoardForTaskCreation(['Owner', 'Admin', 'Editor']), taskController.createTask);
 router.put("/tasks/:id", authMiddleware, checkTaskPermission(['Owner', 'Admin', 'Editor']), taskController.updateTask);
 router.delete("/tasks/:id", authMiddleware, checkTaskPermission(['Owner', 'Admin', 'Editor']), taskController.deleteTask);
