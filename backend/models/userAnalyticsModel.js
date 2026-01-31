@@ -270,6 +270,104 @@ async function getTopContributors(dashboardId, limit = 10) {
   }
 }
 
+/**
+ * Get detailed user activity log (individual activities, not grouped)
+ * @param {number} dashboardId - Dashboard ID
+ * @param {number} userId - User ID to filter by specific user
+ * @param {number} days - Number of days to look back (default 30)
+ * @param {number} limit - Max number of activities to return (default 500)
+ */
+async function getUserDetailedActivityLog(dashboardId, userId, days = 30, limit = 500) {
+  try {
+    const pool = await dbConfig;
+    const request = pool.request();
+    request.input("dashboardId", sql.Int, dashboardId);
+    request.input("userId", sql.Int, userId);
+    request.input("days", sql.Int, days);
+    request.input("limit", sql.Int, limit);
+
+    const query = `
+      SELECT TOP (@limit)
+        ual.ActivityId,
+        ual.UserId,
+        u.FullName as UserName,
+        u.Email as UserEmail,
+        ual.ActivityType,
+        ual.Description,
+        ual.Timestamp,
+        ual.TaskId,
+        t.Title as TaskTitle,
+        ual.BoardId,
+        b.Name as BoardName,
+        ual.OldValue,
+        ual.NewValue
+      FROM UserActivityLogs ual
+      LEFT JOIN Users u ON ual.UserId = u.UserId
+      LEFT JOIN Tasks t ON ual.TaskId = t.TaskId
+      LEFT JOIN Boards b ON ual.BoardId = b.BoardId
+      WHERE ual.DashboardId = @dashboardId 
+        AND ual.UserId = @userId
+        AND ual.Timestamp >= DATEADD(DAY, -@days, CAST(GETDATE() AS DATE))
+      ORDER BY ual.Timestamp DESC
+    `;
+
+    const result = await request.query(query);
+    return result.recordset || [];
+  } catch (err) {
+    console.error("[UserAnalytics Model] Failed to fetch detailed activity log:", err?.message || err);
+    return [];
+  }
+}
+
+/**
+ * Get detailed user activity log across ALL dashboards (individual activities, not grouped)
+ * @param {number} userId - User ID to filter by specific user
+ * @param {number} days - Number of days to look back (default 30)
+ * @param {number} limit - Max number of activities to return (default 500)
+ */
+async function getUserAllActivitiesLog(userId, days = 30, limit = 500) {
+  try {
+    const pool = await dbConfig;
+    const request = pool.request();
+    request.input("userId", sql.Int, userId);
+    request.input("days", sql.Int, days);
+    request.input("limit", sql.Int, limit);
+
+    const query = `
+      SELECT TOP (@limit)
+        ual.ActivityId,
+        ual.UserId,
+        u.FullName as UserName,
+        u.Email as UserEmail,
+        ual.ActivityType,
+        ual.Description,
+        ual.Timestamp,
+        ual.TaskId,
+        t.Title as TaskTitle,
+        ual.BoardId,
+        b.Name as BoardName,
+        ual.DashboardId,
+        d.Name as DashboardName,
+        ual.OldValue,
+        ual.NewValue
+      FROM UserActivityLogs ual
+      LEFT JOIN Users u ON ual.UserId = u.UserId
+      LEFT JOIN Tasks t ON ual.TaskId = t.TaskId
+      LEFT JOIN Boards b ON ual.BoardId = b.BoardId
+      LEFT JOIN Dashboards d ON ual.DashboardId = d.DashboardId
+      WHERE ual.UserId = @userId
+        AND ual.Timestamp >= DATEADD(DAY, -@days, GETDATE())
+      ORDER BY ual.Timestamp DESC
+    `;
+
+    const result = await request.query(query);
+    return result.recordset || [];
+  } catch (error) {
+    console.error('Error fetching user all activities log:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   getUserProductivityStats,
   getUserActivityTimeline,
@@ -277,5 +375,7 @@ module.exports = {
   getRecentTeamActivity,
   getDashboardOverview,
   getTopContributors,
-  logUserActivity
+  logUserActivity,
+  getUserDetailedActivityLog,
+  getUserAllActivitiesLog
 };

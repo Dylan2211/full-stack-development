@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE html>
 <html>
   <head>
-    <title>Activity</title>
+    <title>Your Activity</title>
     <script src="/colour/theme-loader.js"></script>
     <link rel="stylesheet" href="/colour/colour.css">
     <link rel="stylesheet" href="activity.css" />
@@ -19,7 +19,7 @@
 
       <a href="../profile/profile.html">Profile</a>
       <a href="../security/security.html">Security</a>
-      <a class="active">Activity</a>
+      <a class="active">Your Activity</a>
       
       <div class="sidebar-footer">
         <button class="logout-btn" id="logoutBtn">
@@ -34,26 +34,26 @@
     </div>
 
     <div class="page">
-      <h2>Activity</h2>
+      <h2>Your Activity</h2>
+      <p style="color: #6b7280; font-size: 14px; margin-bottom: 20px;">
+        View all actions you've taken across all dashboards
+      </p>
 
       <div class="filter-tabs">
-        <button class="tab-btn active">All Activity</button>
-        <button class="tab-btn">Today</button>
-        <button class="tab-btn">Past Week</button>
-        <button class="tab-btn">Older</button>
+        <button class="tab-btn active" data-filter="all">All Activity</button>
+        <button class="tab-btn" data-filter="today">Today</button>
+        <button class="tab-btn" data-filter="past_week">Past Week</button>
+        <button class="tab-btn" data-filter="older">Older</button>
       </div>
 
-      <div class="activity-container">
-        <div class="empty-state">
-          <p>No activity yet. Updates will appear here!</p>
-        </div>
+      <div class="activity-container empty-state">
+        <p>Loading activities...</p>
       </div>
 
-      <div class="activity-list" id="activity-list">
-      </div>
+      <div id="activity-list"></div>
     </div>
   </body>
   <script src="/auth-utils.js"></script>
   <script src="/colour/colour.js"></script>
-  <script src="activity.js"></script>
+  <script src="activity.js?v=2"></script>
 </html>

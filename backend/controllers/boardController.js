@@ -1,4 +1,5 @@
 const boardModel = require("../models/boardModel");
+const userAnalyticsModel = require("../models/userAnalyticsModel");
 
 async function createBoard(req, res) {
   try {
@@ -14,6 +15,20 @@ async function createBoard(req, res) {
     }
 
     const board = await boardModel.createBoard({ dashboardId, name });
+    
+    // Log user activity
+    const userId = req.user?.userId || req.user?.id;
+    if (userId) {
+      await userAnalyticsModel.logUserActivity(
+        userId,
+        dashboardId,
+        'board_created',
+        `Created board "${name}"`,
+        null,
+        board.BoardId
+      );
+    }
+    
     res.status(201).json(board);
   } catch (error) {
     console.error("Error creating board:", error);
@@ -56,10 +71,28 @@ async function updateBoard(req, res) {
       return res.status(400).json({ error: "Board name or position is required" });
     }
 
+    // Get board info before update for activity logging
+    const board = await boardModel.getBoard(boardId);
+    
     const updated = await boardModel.updateBoard({ boardId, name, position });
     if (!updated) {
       return res.status(404).json({ error: "Board not found" });
     }
+
+    // Log user activity
+    const userId = req.user?.userId || req.user?.id;
+    if (userId && board) {
+      const changeDescription = name ? `renamed board to "${name}"` : `updated board position`;
+      await userAnalyticsModel.logUserActivity(
+        userId,
+        board.DashboardId,
+        'board_updated',
+        `${changeDescription}`,
+        null,
+        boardId
+      );
+    }
+
     res.json({ message: "Board updated successfully" });
   } catch (error) {
     console.error(`Error updating board: ${error}`);
@@ -72,10 +105,27 @@ async function deleteBoard(req, res) {
     const boardId = parseInt(req.params.boardId);
     const targetBoardId = req.body.targetBoardId ? parseInt(req.body.targetBoardId) : null;
     
+    // Get board info before delete for activity logging
+    const board = await boardModel.getBoard(boardId);
+    
     const deleted = await boardModel.deleteBoard(boardId, targetBoardId); 
     if (!deleted) {
       return res.status(404).json({ error: "Board not found" });
     }
+
+    // Log user activity
+    const userId = req.user?.userId || req.user?.id;
+    if (userId && board) {
+      await userAnalyticsModel.logUserActivity(
+        userId,
+        board.DashboardId,
+        'board_deleted',
+        `Deleted board "${board.Name || 'Untitled'}"`,
+        null,
+        boardId
+      );
+    }
+
     res.json({ message: "Board deleted successfully" });
   } catch (error) {
     console.error(`Error deleting board: ${error}`);
