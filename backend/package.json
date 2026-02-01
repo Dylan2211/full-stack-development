@@ -16,7 +16,8 @@
     "mysql2": "^3.15.3",
     "node-fetch": "^3.3.2",
     "openai": "^6.16.0",
-    "puppeteer": "^24.34.0"
+    "puppeteer": "^24.34.0",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

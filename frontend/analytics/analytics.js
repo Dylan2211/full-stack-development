@@ -484,17 +484,18 @@ function getDashboardIdFromURL() {
 async function authFetch(url) {
   const token = localStorage.getItem('authToken');
   if (!token) {
-    window.location.href = '/login/login.html';
+    window.location.href = '/login';
     throw new Error('No token found');
   }
 
-  return fetch(`http://localhost:3000${url}`, {
+  return fetch(url, {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     }
   });
 }
+
 
 // Format time ago
 function formatTimeAgo(timestamp) {

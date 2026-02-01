@@ -1,4 +1,7 @@
-﻿import type { Request, Response, NextFunction } from "express";
+import http from "http";
+import { Server as SocketIOServer } from "socket.io";
+
+import type { Request, Response, NextFunction } from "express";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -11,8 +14,10 @@ const dashboardRoutes = require("../routes/dashboardRoutes");
 const analyticsRoutes = require("../routes/analyticsRoutes");
 const userAnalyticsRoutes = require("../routes/userAnalyticsRoutes");
 const notificationRoutes = require("../routes/notificationRoutes");
+
 const app = express();
 const frontendPath = path.join(__dirname, "../../frontend");
+
 const defaultPort = 3000;
 
 // cd backend
@@ -29,29 +34,54 @@ requiredEnvVars.forEach((varName) => {
 });
 //  #endregion
 
-app.use(helmet());
-app.use(cors({ 
-  origin: process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:3000", "http://127.0.0.1:5501", "http://localhost:5501"]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowed = [
+      "http://synapsepm.duckdns.org",
+      "https://synapsepm.duckdns.org",
+      "http://localhost:3000",
+      "http://localhost:5501",
+      "http://127.0.0.1:5501"
+    ];
+
+    // allow requests with no origin (curl/postman)
+    if (!origin) return callback(null, true);
+
+    if (allowed.includes(origin)) return callback(null, true);
+
+    return callback(new Error("Not allowed by CORS: " + origin));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  optionsSuccessStatus: 204,
 }));
 
-app.use(express.json());
 
-// Inject mock analytics data on startup (only if INJECT_MOCK_DATA is set)
+
+
+app.use(express.json());
 const aiTracker = require("../utils/aiTracker");
-if (process.env.INJECT_MOCK_DATA === 'true') {
+if (process.env.INJECT_MOCK_DATA === "true") {
   (() => {
     const providers = ["Gemini", "OpenAI", "Groq"];
     for (let i = 0; i < 15; i++) {
       const provider = providers[Math.floor(Math.random() * providers.length)];
       aiTracker.track({
         provider,
-        model: provider === "Gemini" ? "gemini-2.5-flash" : provider === "OpenAI" ? "gpt-4" : "llama-3.1-8b-instant",
+        model:
+          provider === "Gemini"
+            ? "gemini-2.5-flash"
+            : provider === "OpenAI"
+            ? "gpt-4"
+            : "llama-3.1-8b-instant",
         prompt: `Mock task ${i + 1}`,
         response: `Mock result for task ${i + 1}`,
         tokens: Math.floor(100 + Math.random() * 500),
         latencyMs: Math.floor(50 + Math.random() * 300),
         success: Math.random() > 0.2,
-        userId: "demo"
+        userId: "demo",
       });
     }
     console.log("[Server] Injected 15 mock analytics records");
@@ -61,12 +91,13 @@ if (process.env.INJECT_MOCK_DATA === 'true') {
 app.use("/api/ai", aiRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/user-analytics", userAnalyticsRoutes);
+app.use("/api/notifications", notificationRoutes);
+
 
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/users", userRoutes);
 app.use("/api/dashboards", dashboardRoutes);
-app.use("/api/notifications", notificationRoutes);
 app.use("/api", taskRoutes);
 
 const ROUTES = {
@@ -81,7 +112,7 @@ const ROUTES = {
   ANALYTICS: "/analytics",
   INVITATIONS: "/invitations",
   TEST: "/test",
-  ACCEPT_SHARE: "/accept-share"
+  ACCEPT_SHARE: "/accept-share",
 };
 //  #region Frontend routes
 app.get(ROUTES.HOME, (req, res) => {
@@ -135,8 +166,58 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Unhandled error:", err);
   res.status(500).json({ message: "Internal server error" });
 });
-const PORT = parseInt( process.env.PORT || defaultPort.toString(), 10);
-app.listen(PORT, () => {
-  console.log("Server is running on port " + PORT);
+
+const PORT = parseInt(process.env.PORT || defaultPort.toString(), 10);
+
+// Create HTTP server from Express app
+const httpServer = http.createServer(app);
+
+// Attach Socket.IO to the SAME server
+const io = new SocketIOServer(httpServer, {
+  path: "/socket.io",
+  cors: {
+    origin: (origin, callback) => {
+      const allowed = [
+        "http://synapsepm.duckdns.org",
+        "https://synapsepm.duckdns.org",
+        "http://localhost:3000",
+        "http://localhost:5501",
+        "http://127.0.0.1:5501",
+      ];
+
+      // allow requests with no origin (curl/postman)
+      if (!origin) return callback(null, true);
+
+      if (allowed.includes(origin)) return callback(null, true);
+
+      return callback(new Error("Not allowed by CORS (socket): " + origin));
+    },
+    credentials: true,
+    methods: ["GET", "POST"],
+  },
 });
+
+// Socket handlers
+io.on("connection", (socket) => {
+  console.log("🔌 socket connected:", socket.id);
+
+  // join a board room so you can broadcast to that board only
+  socket.on("joinBoard", (boardId: string) => {
+    socket.join(`board:${boardId}`);
+    socket.emit("joinedBoard", { boardId });
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("❌ socket disconnected:", socket.id, reason);
+  });
+});
+
+// Make io accessible in routes/controllers via req.app.get("io")
+app.set("io", io);
+
+// Start server
+httpServer.listen(PORT, () => {
+  console.log("🚀 Server + Socket.IO running on port " + PORT);
+});
+
 // #endregion
